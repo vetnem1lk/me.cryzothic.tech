@@ -1,0 +1,15 @@
+# Vladislav Klimentev - C++ Developer (Tools / Gameplay)
+
+> Interactive portfolio of Vladislav Klimentev, a C++/Qt developer with production
+> desktop-tooling experience moving into game development.
+
+## CV
+
+- [CV in English (PDF)](https://me.cryzothic.tech/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf)
+- [CV in Russian (PDF)](https://me.cryzothic.tech/cv/Klimentev_Vladislav_CPP_Developer_RU.pdf)
+
+## Contact
+
+- GitHub: https://github.com/vetnem1lk
+- Telegram: https://t.me/cryzoth
+- Email: klimentev.vlad@gmail.com
