@@ -15,6 +15,7 @@ dist-ssr
 # local agent context (not part of the public repo)
 CLAUDE.md
 graphify-out/
+cryx.deploy.json
 
 # Editor directories and files
 .vscode/*
