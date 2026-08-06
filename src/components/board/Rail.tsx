@@ -22,15 +22,27 @@ export default function Rail() {
             <summary className={SUMMARY}>components/board/</summary>
             <ul className={FILE}>
               <li>Board.tsx</li>
-              <li>VaiShell.tsx</li>
-              <li>Stage.tsx</li>
+              <li>Marquee.tsx</li>
               <li>Rail.tsx</li>
+              <li>Stage.tsx</li>
+              <li>VaiShell.tsx</li>
               <li>commands.ts</li>
+              <li>commands.test.ts</li>
               <li>transport.ts</li>
             </ul>
+            <details open>
+              <summary className={SUMMARY}>views/</summary>
+              <ul className={FILE}>
+                <li>Briefing.tsx</li>
+                <li>Contact.tsx</li>
+                <li>Loot.tsx</li>
+                <li>Placeholder.tsx</li>
+              </ul>
+            </details>
           </details>
           <ul className={FILE}>
             <li>App.tsx</li>
+            <li>main.tsx</li>
             <li>index.css</li>
             <li>components/TargetCursor.tsx</li>
             <li>components/FastPath.tsx</li>
