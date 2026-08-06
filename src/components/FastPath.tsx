@@ -21,7 +21,7 @@ export default function FastPath() {
               key={label}
               href={href}
               download
-              className="cursor-target rounded-md bg-accent-deep px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent"
+              className="cursor-target rounded-lg border border-dashed border-lilac/45 px-3 py-1.5 text-sm font-semibold text-lilac transition-colors hover:border-lilac hover:bg-lilac/10"
             >
               {label}
             </a>

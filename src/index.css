@@ -3,12 +3,13 @@
 @theme {
   --color-accent: #5980a6;
   --color-accent-deep: #46688e;
+  --color-lilac: #b497cf;
 }
 
-/* While the custom cursor sets body cursor:none, text-entry fields keep the system
-   I-beam (explicit cursor beats inheritance). Groundwork for the V-Agent chat input. */
-input,
-textarea,
-[contenteditable='true'] {
-  cursor: auto;
+/* TargetCursor adds this class while alive; author rule beats UA cursors (the
+   pointer hand on links, the I-beam on fields) so no system cursor doubles the
+   custom one. Class dies with the component — system cursor is the failsafe. */
+body.custom-cursor,
+body.custom-cursor * {
+  cursor: none;
 }

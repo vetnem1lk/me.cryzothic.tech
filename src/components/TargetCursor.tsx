@@ -23,7 +23,8 @@ const IDLE_POS = [
 ]
 
 // ponytail: naive selector — also matches button-type inputs; refine when a form
-// control other than the V-Agent chat field appears.
+// control other than the V-Agent chat field appears. Text-entry elements are lock
+// targets too: corners frame the field, the dot morphs into a custom I-beam.
 const TEXT_ENTRY = 'input, textarea, [contenteditable="true"]'
 
 // Mount only for precise pointers whose user accepts motion; anywhere else the
@@ -42,26 +43,28 @@ export default function TargetCursor({
   hoverDuration = 0.2,
   parallaxOn = true,
   cursorColor = '#ffffff',
-  cursorColorOnTarget = '#5980a6',
+  cursorColorOnTarget = '#b497cf',
 }: TargetCursorProps) {
   const enabled = useSyncExternalStore(subscribe, getSnapshot)
   const cursorRef = useRef<HTMLDivElement>(null)
   const dotRef = useRef<HTMLDivElement>(null)
+  const ibeamRef = useRef<HTMLDivElement>(null)
 
   useGSAP(
     (_context, contextSafe) => {
       const cursor = cursorRef.current
       const dot = dotRef.current
-      if (!enabled || !cursor || !dot || !contextSafe) return
+      const ibeam = ibeamRef.current
+      if (!enabled || !cursor || !dot || !ibeam || !contextSafe) return
 
       const corners = Array.from(
         cursor.querySelectorAll<HTMLDivElement>('.target-cursor-corner'),
       )
 
-      // cursor:none lives only while this effect is alive — if the component (or JS
-      // as a whole) dies, the system cursor is back.
-      const prevBodyCursor = document.body.style.cursor
-      document.body.style.cursor = 'none'
+      // The class scopes cursor:none (incl. UA pointer/I-beam overrides — see
+      // index.css) and lives only while this effect is alive — if the component
+      // (or JS as a whole) dies, the system cursor is back.
+      document.body.classList.add('custom-cursor')
 
       gsap.set(cursor, {
         xPercent: -50,
@@ -69,9 +72,13 @@ export default function TargetCursor({
         x: window.innerWidth / 2,
         y: window.innerHeight / 2,
       })
-      // Tailwind 4 translate-* utilities emit the standalone `translate` property,
-      // which would stack with GSAP's transform — so idle offsets are set here.
+      // Tailwind 4 translate-* utilities emit the standalone `translate` property:
+      // it stacks with GSAP's transform, and GSAP neutralizes it (`translate: none`)
+      // on its first transform write — so every offset here is GSAP-owned from the
+      // start; no translate classes on animated nodes.
       corners.forEach((c, i) => gsap.set(c, IDLE_POS[i]))
+      gsap.set(dot, { xPercent: -50, yPercent: -50 })
+      gsap.set(ibeam, { xPercent: -50, yPercent: -50, scale: 0.5, autoAlpha: 0 })
 
       let spinTl: gsap.core.Timeline | null = null
       const startSpin = () => {
@@ -88,8 +95,26 @@ export default function TargetCursor({
       let activeTarget: Element | null = null
       let currentLeave: (() => void) | null = null
       let cornerTargets: { x: number; y: number }[] | null = null
-      let hiddenForText = false
+      let ibeamMode = false
       const strength = { value: 0 }
+
+      // Crossfade dot <-> I-beam (transform/opacity only).
+      const setIbeam = (text: boolean) => {
+        if (text === ibeamMode) return
+        ibeamMode = text
+        gsap.to(dot, {
+          autoAlpha: text ? 0 : 1,
+          scale: text ? 0.5 : 1,
+          duration: 0.15,
+          ease: 'power2.out',
+        })
+        gsap.to(ibeam, {
+          autoAlpha: text ? 1 : 0,
+          scale: text ? 1 : 0.5,
+          duration: 0.15,
+          ease: 'power2.out',
+        })
+      }
 
       // While locked: each frame nudge corners toward the target rect relative to the
       // live cursor position — the lag against the dot is the parallax feel.
@@ -118,24 +143,19 @@ export default function TargetCursor({
       const paint = (color: string) => {
         gsap.to(corners, { borderColor: color, duration: 0.15, ease: 'power2.out' })
         gsap.to(dot, { backgroundColor: color, duration: 0.15, ease: 'power2.out' })
+        gsap.to(ibeam, { color, duration: 0.15, ease: 'power2.out' })
       }
 
       const enter = contextSafe((e: MouseEvent) => {
         const el = e.target as Element
 
-        // System I-beam over text entry: fade the whole custom cursor out.
-        const overText = !!el.closest?.(TEXT_ENTRY)
-        if (overText !== hiddenForText) {
-          hiddenForText = overText
-          gsap.to(cursor, { autoAlpha: overText ? 0 : 1, duration: 0.15 })
-        }
-
         // Locked target left the DOM (route change) — force the leave path.
         if (activeTarget && !activeTarget.isConnected) currentLeave?.()
 
-        const target = el.closest?.(targetSelector)
+        const target = el.closest?.(targetSelector) ?? el.closest?.(TEXT_ENTRY)
         if (!target || target === activeTarget) return
         currentLeave?.()
+        setIbeam(target.matches(TEXT_ENTRY))
 
         activeTarget = target
         corners.forEach((c) => gsap.killTweensOf(c, 'x,y'))
@@ -175,6 +195,7 @@ export default function TargetCursor({
           cornerTargets = null
           gsap.killTweensOf(strength)
           strength.value = 0
+          setIbeam(false)
           paint(cursorColor)
           corners.forEach((c, i) => {
             gsap.killTweensOf(c, 'x,y')
@@ -213,7 +234,7 @@ export default function TargetCursor({
         window.removeEventListener('mouseup', up)
         gsap.ticker.remove(tick)
         spinTl?.kill()
-        document.body.style.cursor = prevBodyCursor
+        document.body.classList.remove('custom-cursor')
       }
       // ponytail: no scroll/resize re-sync of a locked rect — every current and
       // planned .cursor-target lives in viewport-fixed chrome; add an
@@ -243,9 +264,18 @@ export default function TargetCursor({
     >
       <div
         ref={dotRef}
-        className="absolute top-1/2 left-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full"
         style={{ willChange: 'transform', backgroundColor: cursorColor }}
       />
+      <div
+        ref={ibeamRef}
+        className="absolute top-1/2 left-1/2"
+        style={{ willChange: 'transform', color: cursorColor, opacity: 0 }}
+      >
+        <div className="mx-auto h-0.5 w-2 bg-current" />
+        <div className="mx-auto h-3.5 w-0.5 bg-current" />
+        <div className="mx-auto h-0.5 w-2 bg-current" />
+      </div>
       <div
         className="target-cursor-corner absolute top-1/2 left-1/2 h-3 w-3 border-[3px] border-r-0 border-b-0"
         style={{ willChange: 'transform', borderColor: cursorColor }}
