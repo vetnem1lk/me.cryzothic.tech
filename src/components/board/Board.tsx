@@ -2,7 +2,6 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef, useState } from 'react';
 import Marquee from './Marquee';
-import Rail from './Rail';
 import Stage from './Stage';
 import VaiShell from './VaiShell';
 
@@ -31,17 +30,16 @@ export default function Board() {
   return (
     <div
       ref={scope}
-      className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh-3rem)] md:min-h-[520px]"
+      className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh-3rem)] md:min-h-[520px]"
     >
-      <div className="relative flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-accent/40">
+      <div className="relative flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-accent/40 md:overflow-hidden">
         {CORNERS.map((c) => (
           <span key={c} aria-hidden className={`${CORNER} ${c}`} />
         ))}
         <Marquee />
-        <div className="min-h-0 flex-1 md:grid md:grid-cols-[340px_minmax(0,1fr)_300px]">
+        <div className="min-h-0 flex-1 md:grid md:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
           <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
           <Stage />
-          <Rail />
         </div>
       </div>
       {!sheetOpen && (

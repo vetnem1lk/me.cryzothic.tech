@@ -86,7 +86,7 @@ function CvDropdown() {
 export default function FastPath() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-12 max-w-6xl items-center justify-between gap-4 px-4">
+      <div className="mx-auto flex h-12 max-w-[1600px] items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 items-baseline gap-3">
           {/* Face mark colored by the theme via mask — the 36KB traced SVG stays a
               cached static asset instead of joining the JS bundle. */}
