@@ -52,7 +52,7 @@ html {
 
 /* Tri-color dashed separator — lilac/mint/sand (spec §T3c.8, palette B). */
 .sep-tri {
-  height: 2px;
+  height: 1px;
   flex: none;
   background: repeating-linear-gradient(
     90deg,

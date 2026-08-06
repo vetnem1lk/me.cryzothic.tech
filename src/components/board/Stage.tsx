@@ -38,7 +38,7 @@ export default function Stage() {
       data-dock
       className="flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-b-0"
     >
-      <nav className="flex flex-wrap items-center gap-3 p-2 font-mono text-xs">
+      <nav className="flex flex-wrap items-center gap-3 p-2 font-mono text-[13px] font-semibold">
         <Link href="/" className={navClass}>
           ~/
         </Link>

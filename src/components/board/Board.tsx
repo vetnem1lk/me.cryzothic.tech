@@ -32,12 +32,12 @@ export default function Board() {
       ref={scope}
       className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh_-_3rem)] md:min-h-[520px] md:flex-none"
     >
-      <div className="relative flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-accent/40 md:overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 flex-col border border-dashed border-accent/40">
         {CORNERS.map((c) => (
           <span key={c} aria-hidden className={`${CORNER} ${c}`} />
         ))}
         <Marquee />
-        <div className="min-h-0 flex-1 md:grid md:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
+        <div className="min-h-0 flex-1 md:grid md:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
           <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
           <div aria-hidden className="sep-tri md:hidden" />
           <Stage />
