@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Marquee from './Marquee';
+import Rail from './Rail';
 import Stage from './Stage';
 import VaiShell from './VaiShell';
 
@@ -23,9 +24,7 @@ export default function Board() {
         <div className="min-h-0 flex-1 md:grid md:grid-cols-[340px_minmax(0,1fr)_300px]">
           <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
           <Stage />
-          <aside data-dock className="p-3 md:border-l md:border-dashed md:border-neutral-800">
-            rail — lands in Task 5
-          </aside>
+          <Rail />
         </div>
       </div>
       {!sheetOpen && (
