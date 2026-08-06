@@ -1,11 +1,13 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useRef } from 'react';
+import { Suspense, lazy, useRef } from 'react';
 import { Link, Route, Switch, useLocation } from 'wouter';
 import Briefing from './views/Briefing';
 import Contact from './views/Contact';
 import Loot from './views/Loot';
 import Placeholder from './views/Placeholder';
+
+const CodeBase = lazy(() => import('./views/CodeBase'));
 
 const NAV = [
   { href: '/career', label: 'career' },
@@ -35,7 +37,7 @@ export default function Stage() {
       data-dock
       className="flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-b-0"
     >
-      <nav className="flex flex-wrap gap-3 p-2 font-mono text-xs">
+      <nav className="flex flex-wrap items-center gap-3 p-2 font-mono text-xs">
         <Link href="/" className={navClass}>
           ~/
         </Link>
@@ -44,6 +46,10 @@ export default function Stage() {
             {n.label}
           </Link>
         ))}
+        <span className="flex-1" aria-hidden />
+        <Link href="/code" className={navClass}>
+          code_base
+        </Link>
       </nav>
       <div aria-hidden className="sep-tri" />
       <div ref={viewRef} className="scroll-thin min-h-0 flex-1 md:overflow-y-auto">
@@ -62,6 +68,15 @@ export default function Stage() {
           </Route>
           <Route path="/contact">
             <Contact />
+          </Route>
+          <Route path="/code">
+            <Suspense
+              fallback={
+                <p className="p-4 font-mono text-xs text-neutral-500">cloning code_base…</p>
+              }
+            >
+              <CodeBase />
+            </Suspense>
           </Route>
           <Route>
             <Briefing />
