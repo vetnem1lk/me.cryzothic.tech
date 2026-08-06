@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
+import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
 import {
@@ -13,7 +14,6 @@ import {
 const GREETING =
   "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.";
 
-const CHIPS = ['whoami', '/joke', 'cat resume', 'contact'];
 const TYPE_SPEED = { min: 45, max: 180 };
 
 const segClass = (active: boolean, side: 'l' | 'r') =>
@@ -160,18 +160,7 @@ export default function VaiShell({
           ),
         )}
       </div>
-      <div className="flex flex-wrap gap-2 px-3 pb-2">
-        {CHIPS.map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => submit(c)}
-            className="cursor-target rounded border border-dashed border-neutral-700 px-2 py-0.5 font-mono text-[11px] text-neutral-300 hover:border-accent/60"
-          >
-            {c}
-          </button>
-        ))}
-      </div>
+      <CommandRow onRun={submit} />
       <div aria-hidden className="sep-tri" />
       <form
         className="relative p-2"
