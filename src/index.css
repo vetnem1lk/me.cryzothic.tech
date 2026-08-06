@@ -34,20 +34,58 @@ body.custom-cursor * {
   }
 }
 
-/* Custom scrollbars — standard properties ONLY. Baseline everywhere we care
-   about; in Chromium their presence disables ::-webkit-scrollbar styling, so
-   webkit pseudos are deliberately absent (doc-verified 2026-08-06). */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-accent) 35%, transparent) transparent;
+/* Custom scrollbars — two engines behind mutually exclusive gates.
+   Doc-verified 2026-08-06: non-auto scrollbar-width/scrollbar-color DISABLE
+   ::-webkit-scrollbar* styling in Chromium, so the standard props may only
+   ship to Firefox (where the webkit selector is unsupported and the gate
+   below is false). Known limitation, founder-accepted: over a native
+   scrollbar `cursor: none` has no effect (system cursor shows) and thumb
+   drags emit no mousemove — the target cursor freezes until the pointer
+   returns to the page. */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    border-radius: 4px;
+  }
+  .scroll-thin:hover::-webkit-scrollbar-thumb,
+  .scroll-thin:focus-within::-webkit-scrollbar-thumb,
+  ::-webkit-scrollbar-thumb:hover,
+  ::-webkit-scrollbar-thumb:active {
+    background: color-mix(in srgb, var(--color-accent) 65%, transparent);
+  }
 }
-.scroll-thin {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-accent) 35%, transparent) transparent;
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-accent) 35%, transparent) transparent;
+  }
+  .scroll-thin:hover,
+  .scroll-thin:focus-within {
+    scrollbar-color: color-mix(in srgb, var(--color-accent) 65%, transparent) transparent;
+  }
 }
-.scroll-thin:hover,
-.scroll-thin:focus-within {
-  scrollbar-color: color-mix(in srgb, var(--color-accent) 65%, transparent) transparent;
+
+/* Hidden-scrollbar utility (command row). scrollbar-width: none disables
+   webkit styling in Chromium too — harmless, the bar is hidden either way;
+   the webkit rule covers Safari < 18.2. */
+.scroll-hide {
+  scrollbar-width: none;
+}
+.scroll-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* Tri-color dashed separator — lilac/mint/sand (spec §T3c.8, palette B). */
