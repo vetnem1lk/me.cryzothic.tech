@@ -1,7 +1,87 @@
+import { useEffect, useRef, useState } from 'react'
+
 const CV_LINKS = [
-  { href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf', label: 'CV EN' },
-  { href: '/cv/Klimentev_Vladislav_CPP_Developer_RU.pdf', label: 'CV RU' },
+  {
+    href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf',
+    label: 'CV EN',
+    menuLabel: 'English · PDF',
+  },
+  {
+    href: '/cv/Klimentev_Vladislav_CPP_Developer_RU.pdf',
+    label: 'CV RU',
+    menuLabel: 'Русский · PDF',
+  },
 ]
+
+const CV_BUTTON =
+  'cursor-target rounded-lg border border-dashed border-accent/45 px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:border-accent hover:bg-accent/10'
+
+/* Mobile-only replacement for the two CV buttons: one button, a dashed dropdown
+   with the language choice. Desktop keeps the flat strip. */
+function CvDropdown() {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div ref={rootRef} className="relative md:hidden">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={`${CV_BUTTON} flex items-center gap-1.5`}
+      >
+        CV
+        <svg
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          aria-hidden="true"
+          className={`size-3 transition-transform ${open ? 'rotate-180' : ''}`}
+        >
+          <path d="M2.5 4.5 6 8l3.5-3.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          role="menu"
+          aria-label="CV language"
+          className="absolute top-full right-0 mt-2 w-44 overflow-hidden rounded-lg border border-dashed border-accent/45 bg-neutral-950/95 shadow-lg backdrop-blur-sm"
+        >
+          {CV_LINKS.map(({ href, label, menuLabel }) => (
+            <a
+              key={label}
+              role="menuitem"
+              href={href}
+              download
+              onClick={() => setOpen(false)}
+              className="cursor-target block px-3 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
+            >
+              {menuLabel}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function FastPath() {
   return (
@@ -18,18 +98,14 @@ export default function FastPath() {
           <span className="truncate font-semibold tracking-tight text-neutral-100">
             Vladislav Klimentev
           </span>
-          <span className="hidden text-sm text-neutral-400 sm:inline">
+          <span className="hidden text-sm text-neutral-400 md:inline">
             C++ Developer · Tools / Gameplay
           </span>
         </div>
-        <nav aria-label="Quick actions" className="flex items-center gap-2">
+        <CvDropdown />
+        <nav aria-label="Quick actions" className="hidden items-center gap-2 md:flex">
           {CV_LINKS.map(({ href, label }) => (
-            <a
-              key={label}
-              href={href}
-              download
-              className="cursor-target rounded-lg border border-dashed border-accent/45 px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:border-accent hover:bg-accent/10"
-            >
+            <a key={label} href={href} download className={CV_BUTTON}>
               {label}
             </a>
           ))}
@@ -45,13 +121,13 @@ export default function FastPath() {
             href="https://t.me/cryzoth"
             target="_blank"
             rel="noreferrer"
-            className="cursor-target hidden px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white sm:inline"
+            className="cursor-target px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white"
           >
             Telegram
           </a>
           <a
             href="mailto:klimentev.vlad@gmail.com"
-            className="cursor-target hidden px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white md:inline"
+            className="cursor-target px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white"
           >
             Email
           </a>
