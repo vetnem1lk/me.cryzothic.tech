@@ -23,7 +23,7 @@ export default function Briefing() {
         }}
       />
       <p className="max-w-md text-center text-sm text-neutral-400">
-        C++ developer — tools / gameplay. Pick a sector, or ask V-Agent anything.
+        C++ developer — tools / gameplay. Pick a sector, or ask VAI anything.
       </p>
       <div className="grid w-full max-w-lg gap-3 sm:grid-cols-2">
         {ACTIONS.map((a) => (
