@@ -189,11 +189,11 @@ export default function TargetCursor({
         })
 
         const leave = contextSafe(() => {
-          // Other channel still engaged (hover vs focus) — keep the lock.
-          if (target.isConnected && (target.matches(':hover') || target === document.activeElement))
-            return
+          // Hover is the only hold-channel — a clicked button keeps focus and
+          // must not pin the lock; typing feedback is the input's own accent
+          // caret, not a cursor lock (founder rev 2026-08-06).
+          if (target.isConnected && target.matches(':hover')) return
           target.removeEventListener('mouseleave', leave)
-          target.removeEventListener('focusout', leave)
           if (activeTarget !== target) return
           activeTarget = null
           currentLeave = null
@@ -213,7 +213,6 @@ export default function TargetCursor({
         })
         currentLeave = leave
         target.addEventListener('mouseleave', leave)
-        target.addEventListener('focusout', leave)
       })
 
       const enter = contextSafe((e: MouseEvent) => {
@@ -225,15 +224,6 @@ export default function TargetCursor({
         const target = el.closest?.(targetSelector) ?? el.closest?.(TEXT_ENTRY)
         if (!target) return
         lockTo(target)
-      })
-
-      // Keyboard path: `~` (or Tab) focusing a text field locks the cursor on
-      // it just like hover does. ponytail: last interaction wins — hovering a
-      // new target while the field stays focused re-locks to the hovered one.
-      const focusLock = contextSafe((e: FocusEvent) => {
-        if (activeTarget && !activeTarget.isConnected) currentLeave?.()
-        const el = e.target as Element | null
-        if (el?.matches?.(TEXT_ENTRY)) lockTo(el)
       })
 
       const move = (e: MouseEvent) => {
@@ -253,14 +243,12 @@ export default function TargetCursor({
       window.addEventListener('mouseover', enter, { passive: true })
       window.addEventListener('mousedown', down, { passive: true })
       window.addEventListener('mouseup', up, { passive: true })
-      window.addEventListener('focusin', focusLock, { passive: true })
 
       return () => {
         window.removeEventListener('mousemove', move)
         window.removeEventListener('mouseover', enter)
         window.removeEventListener('mousedown', down)
         window.removeEventListener('mouseup', up)
-        window.removeEventListener('focusin', focusLock)
         gsap.ticker.remove(tick)
         spinTl?.kill()
         document.body.classList.remove('custom-cursor')

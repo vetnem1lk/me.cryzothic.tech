@@ -177,7 +177,7 @@ export default function VaiShell({
           aria-label={`ask ${MODE_NAME[mode]}`}
           autoComplete="off"
           placeholder={`C:\\> ask ${MODE_NAME[mode]} · /help`}
-          className="peer w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
+          className="caret-terminal peer w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
         />
         <TextType
           key={mode}

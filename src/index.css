@@ -102,3 +102,15 @@ body.custom-cursor * {
     transparent 42px 48px
   );
 }
+
+/* Terminal caret — accent underscore where supported (Chromium 144+),
+   accent bar caret elsewhere (doc-verified 2026-08-06: Firefox/Safari have
+   no caret-shape yet). Blink is native — visually matches TextType's 0.5s. */
+.caret-terminal {
+  caret-color: var(--color-accent);
+}
+@supports (caret-shape: underscore) {
+  .caret-terminal {
+    caret-shape: underscore;
+  }
+}
