@@ -8,6 +8,13 @@ export default function FastPath() {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur-sm">
       <div className="mx-auto flex h-12 max-w-6xl items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 items-baseline gap-3">
+          {/* Face mark colored by the theme via mask — the 36KB traced SVG stays a
+              cached static asset instead of joining the JS bundle. */}
+          <span
+            aria-hidden="true"
+            className="h-6 shrink-0 self-center bg-accent aspect-[574/1024]"
+            style={{ mask: 'url(/face-icon-tight.svg) center / contain no-repeat' }}
+          />
           <span className="truncate font-semibold tracking-tight text-neutral-100">
             Vladislav Klimentev
           </span>
