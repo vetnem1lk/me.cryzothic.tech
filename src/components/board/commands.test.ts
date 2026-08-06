@@ -29,7 +29,19 @@ describe('runCommand', () => {
     for (const c of COMMAND_ROW) expect(runCommand(c)).not.toBeNull();
   });
   it('row has no functional duplicates (unique routes, unique names)', () => {
-    expect(new Set(COMMAND_ROW).size).toBe(COMMAND_ROW.length);
+    expect(COMMAND_ROW).toEqual([
+      '/help',
+      'whoami',
+      'ls projects',
+      '/loadout',
+      '/lore',
+      '/joke',
+      '/career',
+      '/skills',
+      '/nda',
+      '/loot',
+      '/contact',
+    ]);
     const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(Boolean);
     expect(new Set(routes).size).toBe(routes.length);
   });

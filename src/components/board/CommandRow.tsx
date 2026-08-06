@@ -30,12 +30,24 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
         }, RESUME_DELAY_MS);
       };
       // Seamless wrap over the duplicated half — covers drift AND manual scroll.
+      // Period is the first track's border box, NOT scrollWidth / 2: the row's own
+      // px-3 padding counts toward scrollWidth, so half would overshoot by 6–12 px
+      // and snap the row backward once per lap.
       const wrap = () => {
-        const half = row.scrollWidth / 2;
-        if (half > 0 && row.scrollLeft >= half) row.scrollLeft -= half;
+        const period = (row.firstElementChild as HTMLElement | null)?.offsetWidth ?? 0;
+        if (period > 0) while (row.scrollLeft >= period) row.scrollLeft -= period;
       };
+      // Carry accumulator: at 14 px/s one frame is ~0.23 px, which an
+      // integer-snapping scrollLeft rounds away every frame — a total stall.
+      let carry = 0;
       const tick = (_time: number, deltaMs: number) => {
-        if (!paused) row.scrollLeft += (DRIFT_SPEED * deltaMs) / 1000;
+        if (paused) return;
+        carry += (DRIFT_SPEED * deltaMs) / 1000;
+        if (carry >= 1) {
+          const px = Math.floor(carry);
+          carry -= px;
+          row.scrollLeft += px;
+        }
       };
       const onWheel = () => {
         pause();
@@ -70,9 +82,8 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
 
   const track = (hidden: boolean) => (
     <div aria-hidden={hidden || undefined} className="flex shrink-0 items-center gap-2 pr-2">
-      {COMMAND_ROW.map((c, i) => (
+      {COMMAND_ROW.map((c) => (
         <Fragment key={c}>
-          {i > 0 && <span className="text-neutral-700">·</span>}
           <button
             type="button"
             tabIndex={hidden ? -1 : undefined}
@@ -81,6 +92,11 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
           >
             {c}
           </button>
+          {/* Trailing, not leading: keeps both tracks byte-identical (the wrap
+              math needs equal widths) and makes the seam gap match gap-2. */}
+          <span aria-hidden className="text-neutral-700">
+            ·
+          </span>
         </Fragment>
       ))}
     </div>
