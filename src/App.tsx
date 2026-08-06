@@ -1,8 +1,10 @@
 import FastPath from './components/FastPath'
+import TargetCursor from './components/TargetCursor'
 
 export default function App() {
   return (
     <>
+      <TargetCursor />
       <FastPath />
       <main className="flex min-h-dvh items-center justify-center bg-neutral-950 pt-12 text-neutral-100">
         <div className="px-4 text-center">

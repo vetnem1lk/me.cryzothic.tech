@@ -4,3 +4,11 @@
   --color-accent: #5980a6;
   --color-accent-deep: #46688e;
 }
+
+/* While the custom cursor sets body cursor:none, text-entry fields keep the system
+   I-beam (explicit cursor beats inheritance). Groundwork for the V-Agent chat input. */
+input,
+textarea,
+[contenteditable='true'] {
+  cursor: auto;
+}
