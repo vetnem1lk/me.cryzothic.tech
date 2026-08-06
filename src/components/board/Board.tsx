@@ -1,4 +1,5 @@
 import Marquee from './Marquee';
+import Stage from './Stage';
 
 const CORNER = 'absolute h-2.5 w-2.5 border-accent';
 const CORNERS = [
@@ -23,9 +24,7 @@ export default function Board() {
           >
             vai-shell — lands in Task 4
           </aside>
-          <section data-dock className="border-b border-dashed border-neutral-800 p-3 md:border-b-0">
-            stage — lands in Task 3
-          </section>
+          <Stage />
           <aside data-dock className="p-3 md:border-l md:border-dashed md:border-neutral-800">
             rail — lands in Task 5
           </aside>
