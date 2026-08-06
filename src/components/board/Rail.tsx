@@ -5,7 +5,7 @@ export function runCommand(raw: string): CommandResult | null {
   return cmd ? cmd() : null;
 }`;
 
-const SUMMARY = 'cursor-target font-mono text-xs text-neutral-300 hover:text-accent';
+const SUMMARY = 'cursor-target block py-1 font-mono text-xs text-neutral-300 hover:text-accent';
 const FILE = 'pl-4 font-mono text-[11px] leading-5 text-neutral-500';
 
 export default function Rail() {
