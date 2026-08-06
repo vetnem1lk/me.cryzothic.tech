@@ -30,7 +30,7 @@ export default function Board() {
   return (
     <div
       ref={scope}
-      className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh-3rem)] md:min-h-[520px]"
+      className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh_-_3rem)] md:min-h-[520px] md:flex-none"
     >
       <div className="relative flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-accent/40 md:overflow-hidden">
         {CORNERS.map((c) => (
