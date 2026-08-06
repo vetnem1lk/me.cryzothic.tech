@@ -49,7 +49,7 @@ export default function Board() {
           onClick={() => setSheetOpen(true)}
           className="cursor-target fixed right-3 bottom-3 z-40 rounded-md border border-dashed border-accent/60 bg-neutral-950/90 px-3 py-2 font-mono text-xs text-accent md:hidden"
         >
-          V-Agent
+          VAI
         </button>
       )}
     </div>

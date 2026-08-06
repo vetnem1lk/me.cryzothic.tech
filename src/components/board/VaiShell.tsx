@@ -1,12 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { runCommand } from './commands';
-import { mockTransport, type ChatMessage } from './transport';
+import {
+  MODE_HINT,
+  MODE_NAME,
+  mockTransport,
+  type AgentMode,
+  type ChatMessage,
+} from './transport';
 
 const GREETING =
-  "Player 1 detected. Welcome to the build. I'm V-Agent — ask about Vlad, or try /help for shell commands.";
+  "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.";
 
 const CHIPS = ['whoami', '/joke', 'cat resume', 'contact'];
+
+const segClass = (active: boolean, side: 'l' | 'r') =>
+  `cursor-target border border-dashed px-2 py-0.5 uppercase ${side === 'l' ? 'rounded-l border-r-0' : 'rounded-r'} ${
+    active
+      ? 'border-accent/60 text-accent'
+      : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
+  }`;
 
 export default function VaiShell({
   mobileOpen,
@@ -15,7 +28,14 @@ export default function VaiShell({
   mobileOpen: boolean;
   onMobileClose: () => void;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([{ role: 'agent', text: GREETING }]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'agent', text: GREETING, from: 'vai' },
+  ]);
+  const [mode, setMode] = useState<AgentMode>('vai');
+  const modeRef = useRef<AgentMode>('vai');
+  // ponytail: promise-chain serialization — replies land in submit order even
+  // when a future live transport resolves out of order.
+  const queueRef = useRef<Promise<void>>(Promise.resolve());
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
@@ -39,18 +59,27 @@ export default function VaiShell({
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [messages]);
 
-  async function submit(raw: string) {
+  function switchMode(next: AgentMode) {
+    if (next === modeRef.current) return;
+    modeRef.current = next;
+    setMode(next);
+    setMessages((m) => [...m, { role: 'sys', text: MODE_HINT[next] }]);
+  }
+
+  function submit(raw: string) {
     const text = raw.trim();
     if (!text) return;
     setMessages((m) => [...m, { role: 'user', text }]);
-    const cmd = runCommand(text);
-    if (cmd) {
-      setMessages((m) => [...m, { role: 'agent', text: cmd.text }]);
-      if (cmd.navigateTo) navigate(cmd.navigateTo);
-      return;
-    }
-    const reply = await mockTransport.send(text);
-    setMessages((m) => [...m, { role: 'agent', text: reply }]);
+    queueRef.current = queueRef.current.then(async () => {
+      const cmd = runCommand(text);
+      if (cmd) {
+        setMessages((m) => [...m, { role: 'agent', text: cmd.text, from: modeRef.current }]);
+        if (cmd.navigateTo) navigate(cmd.navigateTo);
+        return;
+      }
+      const reply = await mockTransport.send(text, modeRef.current);
+      setMessages((m) => [...m, { role: 'agent', text: reply, from: modeRef.current }]);
+    });
   }
 
   return (
@@ -63,16 +92,38 @@ export default function VaiShell({
       }`}
     >
       <header className="flex items-center justify-between border-b border-dashed border-neutral-800 px-3 py-2">
-        <span className="font-mono text-xs tracking-widest text-accent uppercase">V-Agent</span>
-        {mobileOpen && (
-          <button
-            type="button"
-            onClick={onMobileClose}
-            className="cursor-target font-mono text-xs text-neutral-400 md:hidden"
-          >
-            [x] close
-          </button>
-        )}
+        <span className="font-mono text-xs tracking-widest text-accent uppercase">
+          {MODE_NAME[mode]}
+        </span>
+        <div className="flex items-center gap-3">
+          <div role="group" aria-label="agent mode" className="flex font-mono text-[11px]">
+            <button
+              type="button"
+              aria-pressed={mode === 'vai'}
+              onClick={() => switchMode('vai')}
+              className={segClass(mode === 'vai', 'l')}
+            >
+              VAI
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === 'gai'}
+              onClick={() => switchMode('gai')}
+              className={segClass(mode === 'gai', 'r')}
+            >
+              GAI
+            </button>
+          </div>
+          {mobileOpen && (
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="cursor-target font-mono text-xs text-neutral-400 md:hidden"
+            >
+              [x] close
+            </button>
+          )}
+        </div>
       </header>
       <div
         ref={logRef}
@@ -80,26 +131,34 @@ export default function VaiShell({
         aria-live="polite"
         className="scroll-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm max-md:max-h-56"
       >
-        {messages.map((m, i) => (
-          <p
-            key={i}
-            className={
-              m.role === 'agent'
-                ? 'whitespace-pre-line text-neutral-200'
-                : 'text-right text-neutral-400'
-            }
-          >
-            {m.role === 'agent' && <span className="mr-1 font-mono text-accent">V:</span>}
-            {m.text}
-          </p>
-        ))}
+        {messages.map((m, i) =>
+          m.role === 'sys' ? (
+            <p key={i} className="font-mono text-[11px] text-sep-mint/80">
+              {m.text}
+            </p>
+          ) : (
+            <p
+              key={i}
+              className={
+                m.role === 'agent'
+                  ? 'whitespace-pre-line text-neutral-200'
+                  : 'text-right text-neutral-400'
+              }
+            >
+              {m.role === 'agent' && (
+                <span className="mr-1 font-mono text-accent">{MODE_NAME[m.from ?? 'vai']}:</span>
+              )}
+              {m.text}
+            </p>
+          ),
+        )}
       </div>
       <div className="flex flex-wrap gap-2 px-3 pb-2">
         {CHIPS.map((c) => (
           <button
             key={c}
             type="button"
-            onClick={() => void submit(c)}
+            onClick={() => submit(c)}
             className="cursor-target rounded border border-dashed border-neutral-700 px-2 py-0.5 font-mono text-[11px] text-neutral-300 hover:border-accent/60"
           >
             {c}
@@ -113,14 +172,14 @@ export default function VaiShell({
           e.preventDefault();
           const v = inputRef.current?.value ?? '';
           if (inputRef.current) inputRef.current.value = '';
-          void submit(v);
+          submit(v);
         }}
       >
         <input
           ref={inputRef}
           name="prompt"
           autoComplete="off"
-          placeholder="C:\> ask V-Agent · /help"
+          placeholder={`C:\\> ask ${MODE_NAME[mode]} · /help`}
           className="w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-neutral-600"
         />
       </form>
