@@ -43,7 +43,7 @@ export default function TargetCursor({
   hoverDuration = 0.2,
   parallaxOn = true,
   cursorColor = '#ffffff',
-  cursorColorOnTarget = '#b497cf',
+  cursorColorOnTarget,
 }: TargetCursorProps) {
   const enabled = useSyncExternalStore(subscribe, getSnapshot)
   const cursorRef = useRef<HTMLDivElement>(null)
@@ -60,6 +60,14 @@ export default function TargetCursor({
       const corners = Array.from(
         cursor.querySelectorAll<HTMLDivElement>('.target-cursor-corner'),
       )
+
+      // Lock color defaults to the site accent (single source of truth in @theme).
+      const lockColor =
+        cursorColorOnTarget ??
+        (getComputedStyle(document.documentElement)
+          .getPropertyValue('--color-accent')
+          .trim() ||
+          '#b497cf')
 
       // The class scopes cursor:none (incl. UA pointer/I-beam overrides — see
       // index.css) and lives only while this effect is alive — if the component
@@ -161,7 +169,7 @@ export default function TargetCursor({
         corners.forEach((c) => gsap.killTweensOf(c, 'x,y'))
         spinTl?.pause()
         gsap.set(cursor, { rotation: 0 })
-        paint(cursorColorOnTarget)
+        paint(lockColor)
 
         const rect = target.getBoundingClientRect()
         const ct = [

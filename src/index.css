@@ -1,9 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-accent: #5980a6;
-  --color-accent-deep: #46688e;
-  --color-lilac: #b497cf;
+  --color-accent: #b497cf;
 }
 
 /* TargetCursor adds this class while alive; author rule beats UA cursors (the
