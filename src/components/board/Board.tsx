@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { useRef, useState } from 'react';
 import Marquee from './Marquee';
 import Rail from './Rail';
 import Stage from './Stage';
@@ -14,8 +16,23 @@ const CORNERS = [
 
 export default function Board() {
   const [sheetOpen, setSheetOpen] = useState(false);
+  const scope = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+      gsap
+        .timeline({ defaults: { ease: 'power2.out', duration: 0.45 } })
+        .from('[data-dock]', { autoAlpha: 0, y: 18, stagger: 0.1 });
+    },
+    { scope },
+  );
+
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh-3rem)] md:min-h-[520px]">
+    <div
+      ref={scope}
+      className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh-3rem)] md:min-h-[520px]"
+    >
       <div className="relative flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-accent/40">
         {CORNERS.map((c) => (
           <span key={c} aria-hidden className={`${CORNER} ${c}`} />

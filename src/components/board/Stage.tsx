@@ -1,4 +1,7 @@
-import { Link, Route, Switch } from 'wouter';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { useRef } from 'react';
+import { Link, Route, Switch, useLocation } from 'wouter';
 import Briefing from './views/Briefing';
 import Contact from './views/Contact';
 import Loot from './views/Loot';
@@ -16,6 +19,17 @@ const navClass = (active: boolean) =>
   `cursor-target px-1 ${active ? 'text-accent' : 'text-neutral-500 hover:text-neutral-300'}`;
 
 export default function Stage() {
+  const viewRef = useRef<HTMLDivElement>(null);
+  const [location] = useLocation();
+
+  useGSAP(
+    () => {
+      if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+      gsap.from(viewRef.current, { autoAlpha: 0, y: 8, duration: 0.2, ease: 'power1.out' });
+    },
+    { dependencies: [location] },
+  );
+
   return (
     <section
       data-dock
@@ -31,7 +45,7 @@ export default function Stage() {
           </Link>
         ))}
       </nav>
-      <div className="min-h-0 flex-1 md:overflow-y-auto">
+      <div ref={viewRef} className="min-h-0 flex-1 md:overflow-y-auto">
         <Switch>
           <Route path="/career">
             <Placeholder title="Career Progression" />
