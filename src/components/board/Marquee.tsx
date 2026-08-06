@@ -13,7 +13,7 @@ export default function Marquee() {
           className="marquee-track flex min-w-full shrink-0 justify-around gap-12 font-mono text-[11px] tracking-[0.2em] whitespace-nowrap text-neutral-500 uppercase"
         >
           {[0, 1, 2].map((i) => (
-            <span key={i}>{STATUS}</span>
+            <span key={i} aria-hidden={i > 0 || undefined}>{STATUS}</span>
           ))}
         </div>
       ))}
