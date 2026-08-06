@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import { runCommand } from './commands';
+import TextType from './TextType';
 import {
   MODE_HINT,
   MODE_NAME,
@@ -172,7 +173,7 @@ export default function VaiShell({
       </div>
       <div aria-hidden className="sep-tri" />
       <form
-        className="p-2"
+        className="relative p-2"
         onSubmit={(e) => {
           e.preventDefault();
           const v = inputRef.current?.value ?? '';
@@ -183,9 +184,16 @@ export default function VaiShell({
         <input
           ref={inputRef}
           name="prompt"
+          aria-label={`ask ${MODE_NAME[mode]}`}
           autoComplete="off"
           placeholder={`C:\\> ask ${MODE_NAME[mode]} · /help`}
-          className="w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-neutral-600"
+          className="peer w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
+        />
+        <TextType
+          key={mode}
+          text={`C:\\> ask ${MODE_NAME[mode]} · /help`}
+          variableSpeed={{ min: 45, max: 180 }}
+          className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 font-mono text-sm peer-focus:hidden peer-not-placeholder-shown:hidden"
         />
       </form>
     </aside>
