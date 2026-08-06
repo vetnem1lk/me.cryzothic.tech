@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face {
+    font-family: 'JetBrains Mono Variable';
+    src: url('../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
+    font-weight: 100 800;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body {
+    width: 1200px; height: 630px; background: #0a0a0a; color: #f5f5f5;
+    font-family: 'JetBrains Mono Variable', Consolas, monospace;
+    display: grid; place-items: center;
+  }
+  .frame {
+    position: relative; width: 1120px; height: 550px;
+    border: 2px dashed rgba(180, 151, 207, 0.45); border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+  }
+  .corner { position: absolute; width: 18px; height: 18px; border: 2px solid #b497cf; }
+  .tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+  .tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+  .bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+  .br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+  .status {
+    position: absolute; top: -14px; background: #0a0a0a; padding: 0 16px;
+    font-size: 18px; letter-spacing: 0.2em; text-transform: uppercase; color: #b497cf;
+  }
+  .face {
+    width: 108px; height: 192px; background: #b497cf;
+    -webkit-mask: url('../public/face-icon-tight.svg') center / contain no-repeat;
+    mask: url('../public/face-icon-tight.svg') center / contain no-repeat;
+  }
+  h1 { font-size: 56px; font-weight: 700; }
+  .role { font-size: 28px; color: #d4c3e3; }
+  .proof { font-size: 20px; color: #8a8a8a; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <span class="corner tl"></span><span class="corner tr"></span>
+    <span class="corner bl"></span><span class="corner br"></span>
+    <span class="status">UNLOCKED: C++ / Qt Developer Portfolio</span>
+    <div class="face"></div>
+    <h1>Vladislav Klimentev</h1>
+    <div class="role">C++ Developer — Tools / Gameplay</div>
+    <div class="proof">Qt platform in production · custom C++ engine · me.cryzothic.tech</div>
+  </div>
+</body>
+</html>
