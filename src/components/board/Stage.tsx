@@ -35,7 +35,7 @@ export default function Stage() {
       data-dock
       className="flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-b-0"
     >
-      <nav className="flex flex-wrap gap-3 border-b border-dashed border-neutral-800 p-2 font-mono text-xs">
+      <nav className="flex flex-wrap gap-3 p-2 font-mono text-xs">
         <Link href="/" className={navClass}>
           ~/
         </Link>
@@ -45,7 +45,8 @@ export default function Stage() {
           </Link>
         ))}
       </nav>
-      <div ref={viewRef} className="min-h-0 flex-1 md:overflow-y-auto">
+      <div aria-hidden className="sep-tri" />
+      <div ref={viewRef} className="scroll-thin min-h-0 flex-1 md:overflow-y-auto">
         <Switch>
           <Route path="/career">
             <Placeholder title="Career Progression" />

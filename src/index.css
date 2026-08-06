@@ -4,6 +4,8 @@
 
 @theme {
   --color-accent: #b497cf;
+  --color-sep-mint: #97cfb4;
+  --color-sep-sand: #cfc397;
   --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, Consolas, monospace;
 }
@@ -30,4 +32,35 @@ body.custom-cursor * {
   .marquee-track {
     animation: none;
   }
+}
+
+/* Custom scrollbars — standard properties ONLY. Baseline everywhere we care
+   about; in Chromium their presence disables ::-webkit-scrollbar styling, so
+   webkit pseudos are deliberately absent (doc-verified 2026-08-06). */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-accent) 35%, transparent) transparent;
+}
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-accent) 35%, transparent) transparent;
+}
+.scroll-thin:hover,
+.scroll-thin:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--color-accent) 65%, transparent) transparent;
+}
+
+/* Tri-color dashed separator — lilac/mint/sand (spec §T3c.8, palette B). */
+.sep-tri {
+  height: 2px;
+  flex: none;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-accent) 0 10px,
+    transparent 10px 16px,
+    var(--color-sep-mint) 16px 26px,
+    transparent 26px 32px,
+    var(--color-sep-sand) 32px 42px,
+    transparent 42px 48px
+  );
 }

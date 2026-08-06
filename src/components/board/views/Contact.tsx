@@ -21,6 +21,8 @@ export default function Contact() {
           <a
             key={c.href}
             href={c.href}
+            target={c.href.startsWith('http') ? '_blank' : undefined}
+            rel={c.href.startsWith('http') ? 'noreferrer' : undefined}
             className="cursor-target rounded-md border border-dashed border-accent/50 p-4 hover:border-accent"
           >
             <span className="block text-sm text-neutral-200">{c.label}</span>

@@ -56,7 +56,7 @@ export default function VaiShell({
   return (
     <aside
       data-dock
-      className={`flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-r md:border-b-0 ${
+      className={`flex min-h-0 flex-col md:border-r md:border-dashed md:border-neutral-800 ${
         mobileOpen
           ? 'max-md:fixed max-md:inset-x-2 max-md:bottom-2 max-md:z-50 max-md:max-h-[70dvh] max-md:rounded-lg max-md:border max-md:border-accent/50 max-md:bg-neutral-950/95 max-md:backdrop-blur'
           : ''
@@ -78,7 +78,7 @@ export default function VaiShell({
         ref={logRef}
         role="log"
         aria-live="polite"
-        className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm max-md:max-h-56"
+        className="scroll-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm max-md:max-h-56"
       >
         {messages.map((m, i) => (
           <p
@@ -106,8 +106,9 @@ export default function VaiShell({
           </button>
         ))}
       </div>
+      <div aria-hidden className="sep-tri" />
       <form
-        className="border-t border-dashed border-neutral-800 p-2"
+        className="p-2"
         onSubmit={(e) => {
           e.preventDefault();
           const v = inputRef.current?.value ?? '';

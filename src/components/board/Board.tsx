@@ -39,6 +39,7 @@ export default function Board() {
         <Marquee />
         <div className="min-h-0 flex-1 md:grid md:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)]">
           <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
+          <div aria-hidden className="sep-tri md:hidden" />
           <Stage />
         </div>
       </div>
