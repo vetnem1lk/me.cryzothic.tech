@@ -14,6 +14,7 @@ const GREETING =
   "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.";
 
 const CHIPS = ['whoami', '/joke', 'cat resume', 'contact'];
+const TYPE_SPEED = { min: 45, max: 180 };
 
 const segClass = (active: boolean, side: 'l' | 'r') =>
   `cursor-target border border-dashed px-2 py-0.5 uppercase ${side === 'l' ? 'rounded-l border-r-0' : 'rounded-r'} ${
@@ -192,7 +193,7 @@ export default function VaiShell({
         <TextType
           key={mode}
           text={`C:\\> ask ${MODE_NAME[mode]} · /help`}
-          variableSpeed={{ min: 45, max: 180 }}
+          variableSpeed={TYPE_SPEED}
           className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 font-mono text-sm peer-focus:hidden peer-not-placeholder-shown:hidden"
         />
       </form>

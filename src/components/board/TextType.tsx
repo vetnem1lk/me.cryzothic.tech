@@ -16,8 +16,8 @@ interface TextTypeProps {
 // React Bits "TextType" trimmed to its one job here: loop-type a single label
 // string (type → pause → delete → retype). Multi-text array, per-text colors,
 // reverse mode and visibility gating from the donor are removed.
-// ponytail: reduced-motion is snapshotted at mount — a live toggle re-renders
-// on the next remount (route/mode change), good enough for a decorative label.
+// ponytail: `reduced` is read per render (not subscribed); a live OS toggle
+// applies on the next remount (mode switch / route) — fine for a decorative label.
 export default function TextType({
   text,
   className = '',
