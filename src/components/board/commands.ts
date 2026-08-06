@@ -8,7 +8,7 @@ const JOKES = [
 ];
 let jokeIx = 0;
 
-// Facts trace to Resume\context\facts\career-facts.md — keep them defensible.
+// Lore facts are real and checkable — keep them that way.
 const LORE = [
   'Lore drop: became team lead 9 months after joining — small team, fast trust loop.',
   'Lore drop: co-authored a physics paper on point-defect evolution in FCC crystals (2023, RINC-indexed).',
@@ -65,6 +65,10 @@ export const COMMAND_ROW = Object.keys(COMMANDS);
 // ponytail: exact-match registry; fuzzy matching/args arrive with the FAQ corpus (T6)
 export function runCommand(raw: string): CommandResult | null {
   const key = raw.trim().toLowerCase().replace(/\s+/g, ' ');
-  const cmd = COMMANDS[key] ?? ALIASES[key];
+  const cmd = Object.hasOwn(COMMANDS, key)
+    ? COMMANDS[key]
+    : Object.hasOwn(ALIASES, key)
+      ? ALIASES[key]
+      : null;
   return cmd ? cmd() : null;
 }

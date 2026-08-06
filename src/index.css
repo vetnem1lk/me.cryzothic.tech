@@ -72,6 +72,9 @@ body.custom-cursor * {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--color-accent) 35%, transparent) transparent;
   }
+  .scroll-thin {
+    scrollbar-width: thin;
+  }
   .scroll-thin:hover,
   .scroll-thin:focus-within {
     scrollbar-color: color-mix(in srgb, var(--color-accent) 65%, transparent) transparent;
