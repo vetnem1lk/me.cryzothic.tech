@@ -1,7 +1,11 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/jetbrains-mono';
 
 @theme {
   --color-accent: #b497cf;
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, Consolas, monospace;
 }
 
 /* TargetCursor adds this class while alive; author rule beats UA cursors (the
