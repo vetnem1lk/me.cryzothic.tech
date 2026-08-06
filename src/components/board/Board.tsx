@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import Marquee from './Marquee';
 import Stage from './Stage';
+import VaiShell from './VaiShell';
 
 const CORNER = 'absolute h-2.5 w-2.5 border-accent';
 const CORNERS = [
@@ -10,6 +12,7 @@ const CORNERS = [
 ];
 
 export default function Board() {
+  const [sheetOpen, setSheetOpen] = useState(false);
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh-3rem)] md:min-h-[520px]">
       <div className="relative flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-accent/40">
@@ -18,18 +21,22 @@ export default function Board() {
         ))}
         <Marquee />
         <div className="min-h-0 flex-1 md:grid md:grid-cols-[340px_minmax(0,1fr)_300px]">
-          <aside
-            data-dock
-            className="border-b border-dashed border-neutral-800 p-3 md:border-r md:border-b-0"
-          >
-            vai-shell — lands in Task 4
-          </aside>
+          <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
           <Stage />
           <aside data-dock className="p-3 md:border-l md:border-dashed md:border-neutral-800">
             rail — lands in Task 5
           </aside>
         </div>
       </div>
+      {!sheetOpen && (
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="cursor-target fixed right-3 bottom-3 z-40 rounded-md border border-dashed border-accent/60 bg-neutral-950/90 px-3 py-2 font-mono text-xs text-accent md:hidden"
+        >
+          V-Agent
+        </button>
+      )}
     </div>
   );
 }
