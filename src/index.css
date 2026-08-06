@@ -15,3 +15,19 @@ body.custom-cursor,
 body.custom-cursor * {
   cursor: none;
 }
+
+/* UNLOCKED ticker — duplicated-track seamless loop; the gap term is load-bearing */
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(calc(-100% - var(--marquee-gap)));
+  }
+}
+.marquee-track {
+  --marquee-gap: 3rem;
+  animation: marquee-scroll 28s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
