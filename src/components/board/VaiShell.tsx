@@ -69,17 +69,22 @@ export default function VaiShell({
   function submit(raw: string) {
     const text = raw.trim();
     if (!text) return;
+    const requestMode = modeRef.current;
     setMessages((m) => [...m, { role: 'user', text }]);
-    queueRef.current = queueRef.current.then(async () => {
-      const cmd = runCommand(text);
-      if (cmd) {
-        setMessages((m) => [...m, { role: 'agent', text: cmd.text, from: modeRef.current }]);
-        if (cmd.navigateTo) navigate(cmd.navigateTo);
-        return;
-      }
-      const reply = await mockTransport.send(text, modeRef.current);
-      setMessages((m) => [...m, { role: 'agent', text: reply, from: modeRef.current }]);
-    });
+    queueRef.current = queueRef.current
+      .then(async () => {
+        const cmd = runCommand(text);
+        if (cmd) {
+          setMessages((m) => [...m, { role: 'agent', text: cmd.text, from: requestMode }]);
+          if (cmd.navigateTo) navigate(cmd.navigateTo);
+          return;
+        }
+        const reply = await mockTransport.send(text, requestMode);
+        setMessages((m) => [...m, { role: 'agent', text: reply, from: requestMode }]);
+      })
+      .catch(() => {
+        setMessages((m) => [...m, { role: 'sys', text: '[sys] transport error — try again.' }]);
+      });
   }
 
   return (
