@@ -231,6 +231,7 @@ export default function TargetCursor({
       // it just like hover does. ponytail: last interaction wins — hovering a
       // new target while the field stays focused re-locks to the hovered one.
       const focusLock = contextSafe((e: FocusEvent) => {
+        if (activeTarget && !activeTarget.isConnected) currentLeave?.()
         const el = e.target as Element | null
         if (el?.matches?.(TEXT_ENTRY)) lockTo(el)
       })
