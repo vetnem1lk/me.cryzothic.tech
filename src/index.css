@@ -1,3 +1,6 @@
+/* The only stylesheet: Tailwind, the self-hosted fonts, the theme tokens, and the
+   handful of effects utilities cannot express (marquee drift, dashed separators,
+   the terminal caret). Anything expressible as a utility class stays in the JSX. */
 @import 'tailwindcss';
 @import '@fontsource-variable/manrope';
 @import '@fontsource-variable/jetbrains-mono';

@@ -1,3 +1,6 @@
+// The board: the framed two-column layout everything else lives inside — VAI's
+// terminal on the left, the routed stage on the right. A phone has no room for
+// two columns, so on mobile the terminal becomes the sheet behind the VAI button.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef, useState } from 'react';

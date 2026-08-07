@@ -1,3 +1,6 @@
+// The page shell. Two things load eagerly because a visitor in a hurry may only
+// ever see them — the crosshair cursor and the CV strip — and the interactive
+// board arrives behind them as a lazy chunk, so text is on screen first.
 import { Suspense, lazy } from 'react';
 import FastPath from './components/FastPath';
 import TargetCursor from './components/TargetCursor';

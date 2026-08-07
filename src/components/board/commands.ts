@@ -1,3 +1,6 @@
+// The lines the terminal answers by itself — no model, no network. They exist so
+// the chat still does something useful when the API is down, rate-limited or out
+// of budget for the day, and so the shell has a surface worth exploring.
 export type CommandResult = { text: string; navigateTo?: string };
 
 const JOKES = [

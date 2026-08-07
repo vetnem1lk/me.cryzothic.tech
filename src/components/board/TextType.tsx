@@ -1,3 +1,7 @@
+// React Bits "TextType" trimmed to its one job here: loop-type a single label
+// string (type → pause → delete → retype), which is how the terminal's empty
+// input still reads as alive. Multi-text arrays and the rest of the donor's
+// options are gone — nothing in this site needed them.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
@@ -13,9 +17,6 @@ interface TextTypeProps {
   cursorBlinkDuration?: number;
 }
 
-// React Bits "TextType" trimmed to its one job here: loop-type a single label
-// string (type → pause → delete → retype). Multi-text array, per-text colors,
-// reverse mode and visibility gating from the donor are removed.
 // ponytail: `reduced` is read per render (not subscribed); a live OS toggle
 // applies on the next remount (mode switch / route) — fine for a decorative label.
 export default function TextType({

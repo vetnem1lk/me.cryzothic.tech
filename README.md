@@ -5,30 +5,87 @@ into game development (tools / gameplay track).
 
 > Demo GIF: TBA
 >
-> Live: https://me.cryzothic.tech (first deploy pending)
+> Live: https://me.cryzothic.tech
 
 ## Why this repo is worth reading
 
-- **The whole UI is data-driven.** Every view renders from a single bilingual
-  `content.json` (en/ru). This mirrors the architecture of the SQL-first production
-  platform I build at my day job, where the database defines forms, widgets and button
-  logic and the C++/Qt client renders them. Here JSON defines the views and React
-  renders them - same archetype, different host.
-- **The game layer is real code, not a template.** The interactive scene ships as a
-  lazy-loaded Phaser 4 chunk; the shell stays plain DOM/CSS so text remains text
-  (accessibility, parsing, speed).
+- **The site shows you its own source.** The `/code` view reads the real files at build
+  time (`?raw`), so the exhibit cannot drift from what shipped. Since T5 it also carries
+  the API's guardrail modules — the code below is on display, which is why every file in
+  here opens by saying what it is and why it exists.
+- **There is a live agent behind the chat, and its guardrails are open.** See below.
+- **The shell stays plain DOM/CSS** so text remains text — accessibility, parsing,
+  speed. Motion is GSAP, and everything decorative stops under
+  `prefers-reduced-motion`.
+
+## Live agent
+
+The terminal on the left is a real agent, not a scripted demo. It answers in two modes —
+**VAI** about Vlad, grounded in a private facts file; **GAI** about anything — and streams
+tokens over Server-Sent Events.
+
+Everything that keeps a public agent with a spendable budget honest lives server-side in
+[`server/`](server/README.md): an origin allowlist, a per-IP limiter, hard size caps, a
+bilingual prompt-injection screen, a global daily fuse, a cheap classifier as the topic
+gate, and a per-boot canary that kills any stream which starts quoting the system prompt.
+The browser holds no key, no prompt and no rules. The prompts themselves are private, so
+this repo ships the guardrails and the tests but cannot run the agent as deployed —
+[`server/README.md`](server/README.md) has the full order and the reasoning.
 
 ## Stack
 
-Vite 8 · React 19 · TypeScript 6 · Tailwind CSS 4 · wouter · Phaser 4 (game layer,
-lazy chunk) · oxlint
+- **Front:** Vite 8 · React 19 · TypeScript 6 · Tailwind CSS 4 · wouter · GSAP · oxlint
+- **API:** Node 24 · Express 5 · vitest · OpenRouter (free-tier model chain)
 
 ## Performance budget
 
-- Initial route JS ≤ 100 KB gzipped; Phaser loads as a separate on-demand chunk
+- Initial route JS ≤ 100 KB gzipped; the board and the `/code` exhibit are separate
+  on-demand chunks
 - Lighthouse ≥ 95 in every category; CLS < 0.1; INP < 200 ms
 - Fonts self-hosted with `font-display: swap`, full Cyrillic coverage
 - `prefers-reduced-motion` respected throughout
+
+## Repository map
+
+```
+me.cryzothic.tech/
+├── src/                             # the front end
+│   ├── main.tsx                     # browser entry: mounts App
+│   ├── App.tsx                      # shell: CV strip + cursor eager, board lazy
+│   ├── index.css                    # Tailwind + theme tokens + the few hand-written effects
+│   └── components/
+│       ├── FastPath.tsx             # pinned CV/contact strip — the thirty-second path
+│       ├── TargetCursor.tsx         # crosshair cursor, fine pointers only
+│       └── board/
+│           ├── Board.tsx            # framed two-column layout (terminal | stage)
+│           ├── Marquee.tsx          # status bar across the top
+│           ├── Stage.tsx            # right column: nav + routed views
+│           ├── VaiShell.tsx         # the terminal: log, submit queue, paced typing
+│           ├── CommandRow.tsx       # drifting ticker that advertises the commands
+│           ├── TextType.tsx         # looping type/delete placeholder label
+│           ├── commands.ts          # local commands — work with the API down
+│           ├── transport.ts         # the chat contract the UI codes against
+│           ├── apiTransport.ts      # its live implementation: POST + SSE reader
+│           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
+│           ├── *.test.ts            # vitest: commands, drain, transport
+│           └── views/               # Briefing · Loot · Contact · CodeBase · ThreeDView · Placeholder
+│               └── codebaseManifest.ts  # what /code displays, imported `?raw`
+├── server/                          # the VAI/GAI API — see server/README.md
+│   ├── src/
+│   │   ├── index.ts                 # express app: CORS, limiter, routes
+│   │   ├── config.ts                # env → typed Config (models, caps, fuse)
+│   │   ├── prompts.ts               # loads the private prompts, mints the boot canary
+│   │   ├── gates.ts                 # size caps, injection screen, canary scanner
+│   │   ├── chat.ts                  # /api/chat: limits → gates → classifier → SSE relay
+│   │   └── openrouter.ts            # request shape, SSE parser, model fallback, watchdogs
+│   ├── test/                        # vitest suite per module, network never touched
+│   ├── evals/                       # guardrail + grounding probes against a live instance
+│   ├── prompts/                     # PRIVATE, gitignored (README only)
+│   └── .env.example                 # settings, names only
+├── public/                          # CV PDFs, icons, og image, robots.txt, llms.txt
+├── og/card.html                     # source of the Open Graph image
+└── .github/workflows/ci.yml         # lint + test + build, front and server
+```
 
 ## Develop
 
@@ -36,8 +93,12 @@ lazy chunk) · oxlint
 npm ci
 npm run dev      # local dev server
 npm run lint     # oxlint
+npm test         # vitest
 npm run build    # type-check + production build
 ```
+
+The API is a separate workspace with its own scripts — see
+[`server/README.md`](server/README.md) for the keyless local path.
 
 ## License
 

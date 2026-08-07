@@ -1,10 +1,11 @@
+// Placeholder for the /3d model viewer that is not built yet: a wireframe cube
+// that tilts under the pointer. It is hand-drawn SVG rather than a 3D library so
+// the promise of the tab costs the board chunk almost nothing until it is real.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef } from 'react';
 
-// Stub for the future model viewer (spec §T3c.6): static wireframe cube,
-// hover tilt only — no infinite loops (T3b.6), tiny enough to live in the
-// board chunk. Not a .cursor-target: it performs no action.
+// No infinite loops here (T3b.6), and not a .cursor-target: it performs no action.
 export default function ThreeDView() {
   const scope = useRef<HTMLElement>(null);
   const cubeRef = useRef<SVGSVGElement>(null);

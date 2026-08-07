@@ -1,3 +1,6 @@
+// The strip pinned above everything else: CV downloads and direct contact,
+// reachable without waiting for the board or working out the game shell. A
+// recruiter with thirty seconds should still leave with the PDF.
 import { useEffect, useRef, useState } from 'react'
 
 const CV_LINKS = [

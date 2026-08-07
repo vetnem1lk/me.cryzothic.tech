@@ -1,3 +1,6 @@
+// Stand-in panel for the stage routes whose content is still being written
+// (career, skills, nda). They are named and routed already so the nav never
+// leads anywhere broken — an honest "not yet" beats a missing tab.
 export default function Placeholder({ title }: { title: string }) {
   return (
     <section className="grid min-h-48 flex-1 place-items-center p-8 text-center">

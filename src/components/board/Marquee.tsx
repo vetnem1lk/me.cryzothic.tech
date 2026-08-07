@@ -1,3 +1,6 @@
+// The status bar across the top of the board — the line that tells a visitor
+// what this site is before any of the game furniture makes sense. The string is
+// repeated for width only, and every copy past the first is aria-hidden.
 const STATUS = 'UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev';
 
 export default function Marquee() {

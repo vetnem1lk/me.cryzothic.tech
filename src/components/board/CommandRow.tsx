@@ -1,3 +1,6 @@
+// The drifting ticker above the terminal input. It exists because nothing else
+// would ever tell a visitor that typing `whoami` does something — the row is the
+// discoverability layer for commands.ts, and a click runs the command.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Fragment, useRef } from 'react';

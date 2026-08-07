@@ -1,3 +1,6 @@
+// The /code view: a file tree and a pane that shows this site's own source,
+// verbatim. Reading the code is the point of the exhibit, so this is deliberately
+// a plain <pre> — no syntax highlighter, no extra kilobytes for decoration.
 import { useState } from 'react';
 import { PROJECTS, type CodeProject } from './codebaseManifest';
 

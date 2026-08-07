@@ -1,3 +1,6 @@
+// The board's right column: the nav strip and the router that swaps views under
+// it. Views are imported eagerly because they are small; /code is the one
+// exception and loads on demand, since it carries this site's source as text.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Suspense, lazy, useRef } from 'react';

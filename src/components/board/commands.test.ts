@@ -1,3 +1,6 @@
+// Pins the local command surface: every command on the visible row resolves,
+// hidden aliases land on the same result, and unknown input returns null — the
+// signal the terminal reads as "this one is for the model".
 import { describe, expect, it } from 'vitest';
 import { COMMAND_ROW, runCommand } from './commands';
 

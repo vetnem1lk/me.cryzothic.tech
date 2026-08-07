@@ -1,3 +1,6 @@
+// The stage's default view — what a visitor lands on before touching anything.
+// One line of who Vlad is and five doors into the rest, because an unexplained
+// panel next to a chat box teaches nobody where to click first.
 import { Link } from 'wouter';
 
 const ACTIONS = [

@@ -1,3 +1,6 @@
+// The /loot view: the resume PDFs as drops. Four files and not two, because an
+// ATS parser and a human want very different documents — offering both beats
+// guessing which one is on the other end of the download.
 const LOOT = [
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf',

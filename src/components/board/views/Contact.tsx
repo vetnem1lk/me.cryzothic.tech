@@ -1,3 +1,6 @@
+// The /contact view: the three channels that actually reach Vlad, dressed as a
+// boss-fight panel to stay inside the shell's fiction. No form — a form needs a
+// backend to receive it, and a recruiter would rather use their own mail client.
 const CONTACTS = [
   { href: 'https://github.com/vetnem1lk', label: 'GitHub', sub: 'vetnem1lk — this site is open source' },
   { href: 'https://t.me/cryzoth', label: 'Telegram', sub: '@cryzoth — fastest response' },

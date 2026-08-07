@@ -1,3 +1,6 @@
+// The crosshair that stands in for the system cursor: four corners that snap
+// around whatever `.cursor-target` sits under the pointer. It mounts only for a
+// fine pointer whose owner accepts motion — anywhere else it renders nothing.
 import { useRef, useSyncExternalStore } from 'react'
 import { gsap } from 'gsap'
 import { useGSAP } from '@gsap/react'
