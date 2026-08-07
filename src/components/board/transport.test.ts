@@ -3,7 +3,14 @@
 // tokens, [DONE], a mid-stream error event, and failures before a byte streams.
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { apiTransport } from './apiTransport';
-import { MODE_HINT, MODE_NAME, type HistoryMsg, type StreamHandlers } from './transport';
+import {
+  MODE_HINT,
+  MODE_NAME,
+  history,
+  type ChatMessage,
+  type HistoryMsg,
+  type StreamHandlers,
+} from './transport';
 
 const enc = new TextEncoder();
 
@@ -118,6 +125,50 @@ describe('apiTransport stream', () => {
     expect(s.dones).toBe(1);
   });
 
+  test('a token handler that throws is not mistaken for a broken connection', async () => {
+    stubFetch(sse('data:{"t":"one"}\n\n', 'data:{"t":"two"}\n\n', 'data: [DONE]\n\n'));
+    const s = handlers();
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const seen: string[] = [];
+
+    apiTransport.send('hi', 'vai', [], {
+      ...s.h,
+      onToken: (t) => {
+        seen.push(t);
+        throw new Error('the caller blew up');
+      },
+    });
+    await s.settled;
+
+    expect(seen).toEqual(['one', 'two']); // the stream survives its consumer
+    expect(s.errors).toEqual([]);
+    expect(s.dones).toBe(1);
+    expect(logged).toHaveBeenCalledTimes(2);
+    logged.mockRestore();
+  });
+
+  test('an error event split mid-line across chunks still ends the turn', async () => {
+    stubFetch(sse('event: er', 'ror\ndata:{"mess', 'age":"response withheld"}\n\n'));
+    const s = handlers();
+
+    apiTransport.send('hi', 'vai', [], s.h);
+    await s.settled;
+
+    expect(s.errors).toEqual(['response withheld']);
+    expect(s.dones).toBe(0);
+  });
+
+  test('an error event split from its data line still ends the turn', async () => {
+    stubFetch(sse('data:{"t":"half "}\n\nevent: error\n', 'data:{"message":"stopped"}\n\n'));
+    const s = handlers();
+
+    apiTransport.send('hi', 'vai', [], s.h);
+    await s.settled;
+
+    expect(s.tokens).toEqual(['half ']);
+    expect(s.errors).toEqual(['stopped']);
+  });
+
   test('an error event ends the turn and keeps the tokens already delivered', async () => {
     stubFetch(
       sse('data:{"t":"half "}\n\n', 'event: error\ndata:{"message":"response withheld"}\n\n'),
@@ -229,6 +280,94 @@ describe('apiTransport failures', () => {
 
     expect(s.errors).toEqual([]);
     expect(s.dones).toBe(0);
+  });
+});
+
+describe('history', () => {
+  const turns: ChatMessage[] = [
+    { role: 'user', text: 'who is vlad', from: 'vai', id: 'q1' },
+    { role: 'agent', text: 'a C++ dev', from: 'vai' },
+    { role: 'sys', text: '[sys] mode: GAI' },
+    { role: 'user', text: 'and games?', from: 'vai', id: 'q2' },
+  ];
+
+  test('maps the visible turns to the wire roles', () => {
+    expect(history(turns, 'vai')).toEqual([
+      { role: 'user', content: 'who is vlad' },
+      { role: 'assistant', content: 'a C++ dev' },
+      { role: 'user', content: 'and games?' },
+    ]);
+  });
+
+  test('each mode carries its own conversation', () => {
+    const mixed: ChatMessage[] = [
+      ...turns,
+      { role: 'user', text: 'unrelated', from: 'gai', id: 'q3' },
+    ];
+    expect(history(mixed, 'gai')).toEqual([{ role: 'user', content: 'unrelated' }]);
+  });
+
+  test('leaves out the question being asked, which the transport appends itself', () => {
+    expect(history(turns, 'vai', 'q2')).toEqual([
+      { role: 'user', content: 'who is vlad' },
+      { role: 'assistant', content: 'a C++ dev' },
+    ]);
+  });
+
+  test('an id that is not on screen yet leaves every turn in place', () => {
+    // The queue can run before React has committed the new line: nothing to
+    // skip, and every message present is already a prior turn.
+    expect(history(turns, 'vai', 'not-rendered-yet')).toHaveLength(3);
+  });
+
+  test('an answer that landed below the new question is still a prior turn', () => {
+    // Questions echo instantly, answers arrive when the queue reaches them: ask
+    // twice in a row and the second question sits above the first answer.
+    const raced: ChatMessage[] = [
+      { role: 'user', text: 'q1', from: 'vai', id: 'q1' },
+      { role: 'user', text: 'q2', from: 'vai', id: 'q2' },
+      { role: 'agent', text: 'a1', from: 'vai' },
+    ];
+    expect(history(raced, 'vai', 'q2')).toEqual([
+      { role: 'user', content: 'q1' },
+      { role: 'assistant', content: 'a1' },
+    ]);
+  });
+
+  test('a turn that produced no text is left out', () => {
+    const failed: ChatMessage[] = [
+      { role: 'user', text: 'q', from: 'vai' },
+      { role: 'agent', text: '', from: 'vai', id: 'dead' },
+    ];
+    expect(history(failed, 'vai')).toEqual([{ role: 'user', content: 'q' }]);
+  });
+
+  test('leaves room for the new question inside the service message cap', () => {
+    const many: ChatMessage[] = Array.from({ length: 40 }, (_, i) => ({
+      role: i % 2 ? 'agent' : 'user',
+      text: `turn ${i}`,
+      from: 'vai',
+    }));
+    const sent = history(many, 'vai');
+    expect(sent).toHaveLength(15); // 15 + the appended question = the cap of 16
+    expect(sent[14].content).toBe('turn 39'); // and it is the newest that survive
+  });
+
+  test('a long turn is trimmed to the per-message cap', () => {
+    const long: ChatMessage[] = [{ role: 'agent', text: 'y'.repeat(900), from: 'vai' }];
+    expect(history(long, 'vai')[0].content).toHaveLength(500);
+  });
+
+  test('the oldest turns go first when the conversation outgrows the budget', () => {
+    const heavy: ChatMessage[] = Array.from({ length: 15 }, (_, i) => ({
+      role: 'agent',
+      text: `${i}`.padEnd(500, '.'),
+      from: 'vai',
+    }));
+    const sent = history(heavy, 'vai');
+    const total = sent.reduce((n, m) => n + m.content.length, 0);
+    expect(total).toBeLessThanOrEqual(5500); // 6000 total cap, minus the question
+    expect(sent[sent.length - 1].content.startsWith('14')).toBe(true);
   });
 });
 

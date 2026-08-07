@@ -1,15 +1,22 @@
+// The board's terminal: the visitor's questions, the queue that answers them one
+// at a time, and the paced typing that puts each answer on screen character by
+// character. The pacing math is drain.ts; the wire is apiTransport.ts.
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import { navigate } from 'wouter/use-browser-location';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
-import { MODE_HINT, MODE_NAME, type AgentMode, type ChatMessage } from './transport';
+import { EMPTY, push, take, type DrainState } from './drain';
+import { MODE_HINT, MODE_NAME, history, type AgentMode, type ChatMessage } from './transport';
 
 const GREETING =
   "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.";
 
 const TYPE_SPEED = { min: 45, max: 180 };
+const CURSOR_BLINK = 0.5; // seconds per half-blink, matching the input's own cursor
 
 const segClass = (active: boolean, side: 'l' | 'r') =>
   `cursor-target border border-dashed px-2 py-0.5 uppercase ${side === 'l' ? 'rounded-l border-r-0' : 'rounded-r'} ${
@@ -35,6 +42,43 @@ export default function VaiShell({
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
+  // A turn reads the log as it stands when the queue reaches it — long after the
+  // render that started it, so state alone would be stale.
+  const messagesRef = useRef(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+  // Leaving the board must not leave a paint loop or an open socket behind.
+  const aliveRef = useRef(true);
+  const abortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
+  // ponytail: read per render like TextType, not subscribed — an OS toggle
+  // mid-answer applies to the next turn.
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Only one line is ever pending: the queue answers one question at a time.
+  const pendingId = messages.find((m) => m.pending)?.id;
+
+  useGSAP(
+    () => {
+      if (!cursorRef.current) return;
+      gsap.to(cursorRef.current, {
+        opacity: 0,
+        duration: CURSOR_BLINK,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power2.inOut',
+      });
+    },
+    { scope: rootRef, dependencies: [pendingId], revertOnUpdate: true },
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -63,11 +107,72 @@ export default function VaiShell({
     setMessages((m) => [...m, { role: 'sys', text: MODE_HINT[next] }]);
   }
 
+  /**
+   * One live answer: tokens stream into the drain, a paint loop types them out,
+   * and the promise settles when the last character is on screen — which is what
+   * holds the next question in the queue until this one has finished.
+   */
+  const runTurn = (text: string, turnMode: AgentMode, askId: string, replyId: string) =>
+    new Promise<void>((resolve) => {
+      let st: DrainState = EMPTY;
+      let last = performance.now();
+
+      const paint = (now: number) => {
+        if (!aliveRef.current) return resolve(); // the board went away mid-answer
+        const [chunk, next] = take(st, reduced ? Infinity : now - last);
+        st = next;
+        last = now;
+        if (chunk) {
+          setMessages((all) =>
+            all.map((m) => (m.id === replyId ? { ...m, text: m.text + chunk } : m)),
+          );
+        }
+        if (st.doneFeeding && st.shown >= st.buf.length) {
+          // A turn that produced no text at all leaves no empty line behind —
+          // the [sys] note under it already says what happened.
+          setMessages((all) =>
+            all
+              .filter((m) => m.id !== replyId || m.text)
+              .map((m) => (m.id === replyId ? { ...m, pending: false } : m)),
+          );
+          return resolve();
+        }
+        requestAnimationFrame(paint);
+      };
+      requestAnimationFrame(paint);
+
+      const ac = new AbortController();
+      abortRef.current = ac;
+      apiTransport.send(
+        text,
+        turnMode,
+        history(messagesRef.current, turnMode, askId),
+        {
+          onToken: (t) => {
+            st = push(st, t);
+          },
+          onDone: () => {
+            st = { ...st, doneFeeding: true };
+          },
+          onError: (msg) => {
+            // Ending the feed is what closes the turn: the loop types out
+            // whatever arrived, drops the cursor and lets the queue move on.
+            // The service's own watchdogs mean a stalled stream lands here too.
+            st = { ...st, doneFeeding: true };
+            setMessages((m) => [...m, { role: 'sys', text: `[sys] ${msg}` }]);
+          },
+        },
+        ac.signal,
+      );
+    });
+
   function submit(raw: string) {
     const text = raw.trim();
     if (!text) return;
     const requestMode = modeRef.current;
-    setMessages((m) => [...m, { role: 'user', text }]);
+    const askId = crypto.randomUUID();
+    const replyId = crypto.randomUUID();
+    setMessages((m) => [...m, { role: 'user', text, from: requestMode, id: askId }]);
     queueRef.current = queueRef.current
       .then(async () => {
         const cmd = runCommand(text);
@@ -76,18 +181,13 @@ export default function VaiShell({
           if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
-        // Task 7 replaces this with a live drain (tokens on screen as they land,
-        // real history, abort on unmount); until then the stream is buffered into
-        // the one-shot reply this queue already knows how to render.
-        const reply = await new Promise<string>((resolve, reject) => {
-          let acc = '';
-          apiTransport.send(text, requestMode, [], {
-            onToken: (t) => (acc += t),
-            onDone: () => resolve(acc),
-            onError: reject,
-          });
-        });
-        setMessages((m) => [...m, { role: 'agent', text: reply, from: requestMode }]);
+        // An empty pending line is the thinking state: the cursor blinks alone
+        // until the first token lands.
+        setMessages((m) => [
+          ...m,
+          { role: 'agent', text: '', from: requestMode, id: replyId, pending: true },
+        ]);
+        await runTurn(text, requestMode, askId, replyId);
       })
       .catch(() => {
         setMessages((m) => [...m, { role: 'sys', text: '[sys] transport error — try again.' }]);
@@ -96,6 +196,7 @@ export default function VaiShell({
 
   return (
     <aside
+      ref={rootRef}
       data-dock
       className={`flex min-h-0 flex-col md:border-r md:border-dashed md:border-neutral-800 ${
         mobileOpen
@@ -151,6 +252,9 @@ export default function VaiShell({
           ) : (
             <p
               key={i}
+              // A line still being typed stays out of the live region: an
+              // announcement every frame is unusable. It is read once, whole.
+              aria-hidden={m.pending || undefined}
               className={
                 m.role === 'agent'
                   ? 'whitespace-pre-line text-neutral-200'
@@ -161,6 +265,11 @@ export default function VaiShell({
                 <span className="mr-1 font-mono text-accent">{MODE_NAME[m.from ?? 'vai']}:</span>
               )}
               {m.text}
+              {m.pending && !reduced && (
+                <span ref={cursorRef} className="ml-0.5 inline-block text-accent">
+                  _
+                </span>
+              )}
             </p>
           ),
         )}

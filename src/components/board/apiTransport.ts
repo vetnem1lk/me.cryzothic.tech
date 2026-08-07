@@ -37,6 +37,16 @@ async function run(
     closed = true;
     h.onError(m);
   };
+  // The wire is fine, its consumer is not: a handler that throws must not reach
+  // the visitor as `connection failed`, nor abandon the stream half-read. It
+  // goes where a bug belongs — the console — and the answer keeps arriving.
+  const emit = (t: string) => {
+    try {
+      h.onToken(t);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   try {
     const res = await fetch(ENDPOINT, {
@@ -78,7 +88,7 @@ async function run(
         return true;
       }
       const t = field(payload, 't');
-      if (t) h.onToken(t);
+      if (t) emit(t);
       return false;
     };
 

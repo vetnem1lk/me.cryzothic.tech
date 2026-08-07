@@ -5,7 +5,9 @@ import boardSrc from '../Board.tsx?raw';
 import stageSrc from '../Stage.tsx?raw';
 import textTypeSrc from '../TextType.tsx?raw';
 import vaiSrc from '../VaiShell.tsx?raw';
+import apiTransportSrc from '../apiTransport.ts?raw';
 import commandsSrc from '../commands.ts?raw';
+import drainSrc from '../drain.ts?raw';
 import transportSrc from '../transport.ts?raw';
 
 export interface CodeFile {
@@ -33,7 +35,9 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/Stage.tsx', content: stageSrc },
       { path: 'src/components/board/TextType.tsx', content: textTypeSrc },
       { path: 'src/components/board/VaiShell.tsx', content: vaiSrc },
+      { path: 'src/components/board/apiTransport.ts', content: apiTransportSrc },
       { path: 'src/components/board/commands.ts', content: commandsSrc },
+      { path: 'src/components/board/drain.ts', content: drainSrc },
       { path: 'src/components/board/transport.ts', content: transportSrc },
     ],
   },
