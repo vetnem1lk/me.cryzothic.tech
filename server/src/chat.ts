@@ -52,7 +52,10 @@ export function ipLimiter(): RequestHandler {
   return rateLimit({
     windowMs: 60_000,
     limit: 10,
-    keyGenerator: (req) => cfHeader(req) ?? ipKeyGenerator(req.ip ?? ''),
+    // Both paths go through ipKeyGenerator: it collapses IPv6 to a /56, and a
+    // residential IPv6 allocation hands out a fresh address per connection — an
+    // address-exact bucket would be no limit at all.
+    keyGenerator: (req) => ipKeyGenerator(cfHeader(req) ?? req.ip ?? ''),
     // `app.use('/api/chat', …)` would match by prefix; an exact check keeps the
     // budget on the one route that costs money.
     skip: (req) => req.path !== '/api/chat',
@@ -73,7 +76,9 @@ export function dailyFuse(cfg: Config): RequestHandler {
   let day = '';
   let spent = 0;
   return (req, res, next) => {
-    if (req.path !== '/api/chat') return next();
+    // Only an answer costs a model call, so only a POST costs budget — a GET or
+    // a CORS preflight on this path must not spend it.
+    if (req.method !== 'POST' || req.path !== '/api/chat') return next();
     const today = new Date().toISOString().slice(0, 10);
     if (today !== day) {
       day = today;
@@ -94,14 +99,22 @@ export function dailyFuse(cfg: Config): RequestHandler {
 // Errors that happen before any byte is streamed
 // ---------------------------------------------------------------------------
 
+// One rule for what a visitor is allowed to read, wherever the failure surfaces.
+// Our own 4xx text is useful to them ("message too long (max 500 characters)").
+// Anything else — an upstream status code, a prompt filename in a 500 — is for
+// the logs, so it is replaced.
+export function publicMessage(err: unknown, fallback: string): string {
+  const status = (err as { status?: unknown })?.status;
+  const ours = typeof status === 'number' && status >= 400 && status < 500;
+  return ours ? ((err as Error).message ?? fallback) : fallback;
+}
+
 // One shape for every failure the service can still answer with a status code:
-// `{error:{message}}`, which is what the frontend parses. 5xx text is replaced —
-// it can carry internals, and a visitor can do nothing with it either way.
+// `{error:{message}}`, which is what the frontend parses.
 export function sendJsonError(res: Response, err: unknown): void {
   const raw = (err as { status?: unknown })?.status;
   const status = typeof raw === 'number' && raw >= 400 && raw < 600 ? raw : 500;
-  const message = status >= 500 ? 'internal error' : ((err as Error)?.message ?? 'bad request');
-  res.status(status).json({ error: { message } });
+  res.status(status).json({ error: { message: publicMessage(err, 'internal error') } });
 }
 
 // ---------------------------------------------------------------------------
@@ -219,10 +232,11 @@ async function relay(
 ): Promise<void> {
   const userText = body.messages[body.messages.length - 1].content;
 
-  // Screen every user turn, not only the newest: parking the payload in an
-  // earlier message and following it with something innocent is the cheapest way
-  // past a last-message-only screen.
-  if (body.messages.some((m) => m.role === 'user' && screenInjection(m.content))) {
+  // Screen every message, whatever role it claims. Two bypasses close here: the
+  // payload parked in an earlier turn behind an innocent question, and the
+  // payload labelled `assistant` — the history comes from the browser, so that
+  // label is attacker-controlled text sitting where a model trusts it most.
+  if (body.messages.some((m) => screenInjection(m.content))) {
     return sse.finish(pickDeflection(prompts, userText, seq++));
   }
   if (body.mode === 'vai' && !(await isOnTopic(cfg, userText, fetchImpl))) {
@@ -265,7 +279,8 @@ export async function handleChat(
   try {
     await relay(cfg, prompts, body, sse, fetchImpl);
   } catch (err) {
-    // Headers are long gone by now — a failure here can only be an error event.
-    sse.error(err instanceof Error ? err.message : 'upstream error');
+    // Headers are long gone by now — a failure here can only be an error event,
+    // and it is sanitized on the way out like every other visitor-facing failure.
+    sse.error(publicMessage(err, 'upstream error'));
   }
 }
