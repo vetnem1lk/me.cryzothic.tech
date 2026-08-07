@@ -5,7 +5,7 @@
 // exact SSE bytes the browser has to parse.
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { loadConfig } from '../src/config.js';
 import { screenInjection } from '../src/gates.js';
 import type { Prompts } from '../src/prompts.js';
@@ -86,10 +86,17 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// The service logs upstream failures to stderr on purpose (see chat.ts and
-// openrouter.ts). Tests that provoke one capture that line instead of letting it
-// scribble over the suite output; the ones that care assert on it.
-const captureLog = () => vi.spyOn(console, 'error').mockImplementation(() => {});
+// The service writes to stderr on purpose (see chat.ts and openrouter.ts): upstream
+// failures, and one line per stream naming the model that answered. Every chat test
+// now provokes the latter, so the spy is installed for the whole suite rather than
+// per test; the tests that care read the same spy back through `captureLog()`. A
+// stream still running when its test ends escapes this — it unwinds after the mocks
+// are restored — so no test here may walk away from one.
+let stderr: MockInstance<typeof console.error>;
+beforeEach(() => {
+  stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+});
+const captureLog = () => stderr;
 
 const post = (url: string, body: unknown, headers: Record<string, string> = {}) =>
   fetch(`${url}/api/chat`, {
@@ -154,7 +161,7 @@ describe('POST /api/chat — on-topic VAI answer', () => {
   it('answers anyway when the classifier itself fails (fail-open)', async () => {
     // The strict system prompt is the real topic guard; a classifier outage must
     // not turn the chat into a wall of deflections.
-    captureLog(); // the 429 below is logged, and that is not a test failure
+    // The 429 below is logged to stderr; that is expected, not a test failure.
     const f = vi.fn(async (_url: string, init: RequestInit) => {
       const body = JSON.parse(init.body as string) as { stream: boolean };
       if (!body.stream) return { ok: false, status: 429, text: async () => 'rate limited' };
@@ -534,12 +541,15 @@ describe('POST /api/chat — visitor hangs up mid-answer', () => {
     // it with an SSE error frame — on a socket that is already gone. The spy
     // below is what makes that guard load-bearing instead of decorative.
     const writesAfterClose: string[] = [];
-    captureLog(); // the abort reaches the catch and is logged; expected here
-    const f = vi.fn(async (_url: string, init: RequestInit) => ({
-      ok: true,
-      status: 200,
-      body: stalls(init.signal as AbortSignal, orFrame('first')),
-    }));
+    // The abort reaches the catch and is logged to stderr; expected here.
+    // The first answer stalls, so the visitor can hang up in the middle of it. The
+    // follow-up completes: a stream still running when this test ends would unwind
+    // — and log — during whatever test comes next.
+    const f = vi.fn(async (_url: string, init: RequestInit) =>
+      f.mock.calls.length > 1
+        ? { ok: true, status: 200, body: bytes(orFrame('served'), 'data: [DONE]\n\n') }
+        : { ok: true, status: 200, body: stalls(init.signal as AbortSignal, orFrame('first')) },
+    );
     const app = createApp({ cfg, prompts, fetchImpl: inject(f) });
     const srv = createServer((req, res) => {
       let closed = false;
@@ -573,6 +583,7 @@ describe('POST /api/chat — visitor hangs up mid-answer', () => {
 
     const after = await post(url, ask('and again?', 'gai'));
     expect(after.status).toBe(200);
+    expect(readSse(await after.text()).text).toBe('served'); // drained, not left open
   });
 });
 

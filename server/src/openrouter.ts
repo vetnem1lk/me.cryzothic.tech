@@ -14,9 +14,21 @@ export interface ChatMsg {
 
 export interface OrChunk {
   content?: string;
+  // Which model actually served the request. Every frame names it, and with a
+  // fallback chain it is regularly not the one we asked for first — carried out of
+  // the parser only so streamChat can log it. Never shown to a visitor.
+  model?: string;
   error?: string;
   done?: boolean;
 }
+
+// The model may think; it may not think out loud. `exclude` keeps the reasoning off
+// the wire entirely — a fallback model that maps its analysis channel into `content`
+// once put "We must not mention other people" on a visitor's screen. `low` is the
+// budget half: reasoning bills as output tokens, and prod measured 1634 characters of
+// reasoning against 424 of answer under a 600-token cap. Non-reasoning models ignore
+// it. (Doc-verified 2026-08-07: openrouter.ai/docs/use-cases/reasoning-tokens.)
+const REASONING = { effort: 'low', exclude: true } as const;
 
 export function chatRequestInit(
   cfg: Config,
@@ -50,6 +62,7 @@ export function chatRequestInit(
       stream: body.stream,
       max_tokens: body.maxTokens,
       temperature: body.temperature,
+      reasoning: REASONING,
     }),
   };
 }
@@ -82,8 +95,12 @@ export async function* parseChatSSE(src: AsyncIterable<Uint8Array>): AsyncGenera
       // Upstream failures mid-stream arrive as HTTP 200 with an error payload,
       // so the status code alone never tells the whole story.
       if (c.error) return { error: String(c.error.message ?? 'upstream error') };
+      // `delta.content` and nothing else: our primary streams its deliberation in a
+      // sibling `delta.reasoning` field, and no reasoning channel may ever render.
       const t = c.choices?.[0]?.delta?.content;
-      return t ? { content: t } : null;
+      const model = typeof c.model === 'string' ? c.model : undefined;
+      if (t) return model ? { content: t, model } : { content: t };
+      return model ? { model } : null;
     } catch {
       return null; // malformed frame — skip, never crash
     }
@@ -181,6 +198,12 @@ export async function* streamChat(
     }
   }
 
+  // Which model answered, and how much of one. Two prod diagnoses stalled on this
+  // blind spot: the chain means the answer is often not from the primary, and
+  // nothing in the logs said so. Names and counts only — no visitor text, no prompt.
+  let answeredBy = 'unknown';
+  let tokens = 0;
+
   try {
     const init = chatRequestInit(
       cfg,
@@ -201,13 +224,19 @@ export async function* streamChat(
     if (!res.body) throw new Error('openrouter returned no response body');
 
     for await (const chunk of parseChatSSE(alive(res.body))) {
+      if (chunk.model) answeredBy = chunk.model;
       if (chunk.error) throw new Error(chunk.error);
-      if (chunk.content) yield chunk.content;
+      if (chunk.content) {
+        tokens++;
+        yield chunk.content;
+      }
     }
   } finally {
     // Also runs when the consumer walks away mid-stream, so no timer outlives
-    // the request it was guarding.
+    // the request it was guarding — and the log line lands on every exit, which
+    // is the point: a truncated or failed answer is when the name matters most.
     clearTimeout(idle);
     clearTimeout(total);
+    console.error(`[vai-api] answered via ${answeredBy} (${tokens} tokens streamed)`);
   }
 }

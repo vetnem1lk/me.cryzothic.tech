@@ -2,7 +2,7 @@
 // nothing OpenRouter has since retired), an SSE parser that survives every frame
 // shape a real stream throws at it, and the two watchdog timers. No test here
 // touches the network — fetch is injected and the "stream" is hand-built bytes.
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { loadConfig } from '../src/config.js';
 import {
   callBuffered,
@@ -21,6 +21,10 @@ const msgs: ChatMsg[] = [
 
 const enc = (s: string) => new TextEncoder().encode(s);
 const frame = (content: string) => `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`;
+// What a real frame looks like: OpenRouter names the serving model on every one,
+// and under a fallback chain that is regularly not the model we asked for first.
+const served = (content: string) =>
+  `data: ${JSON.stringify({ model: 'z-ai/glm-4.7:free', choices: [{ delta: { content } }] })}\n\n`;
 
 async function* bytes(...parts: string[]) {
   for (const p of parts) yield enc(p);
@@ -67,6 +71,17 @@ const streamOf = (...parts: string[]) =>
 // at the injection point, where a hand-rolled stub stands in for global fetch.
 const inject = (fn: unknown) => fn as unknown as typeof fetch;
 
+// The service writes to stderr on purpose: an upstream failure, and one line per
+// stream naming the model that answered. Silenced suite-wide so those lines cannot
+// scribble over the test output; the tests that care read them back off `log`.
+let log: MockInstance<typeof console.error>;
+beforeEach(() => {
+  log = vi.spyOn(console, 'error').mockImplementation(() => {});
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('parseChatSSE', () => {
   it('yields the content deltas in order', async () => {
     expect(await collect(bytes(frame('Hel'), frame('lo')))).toEqual([
@@ -107,6 +122,27 @@ describe('parseChatSSE', () => {
   it('ignores frames without a content delta', async () => {
     const roleOnly = `data: ${JSON.stringify({ choices: [{ delta: { role: 'assistant' } }] })}\n\n`;
     expect(await collect(bytes(roleOnly, frame('ok')))).toEqual([{ content: 'ok' }]);
+  });
+
+  it('never surfaces a reasoning delta, whatever it says', async () => {
+    // The prod leak of 2026-08-07: a fallback model folded its analysis channel
+    // into the answer and a visitor read "We must not mention other people" — one
+    // of our private refusal rules, paraphrased. `reasoning.exclude` in the request
+    // is the fix; this is the belt to that braces. Our primary already streams its
+    // deliberation in `delta.reasoning`, and that field must never reach a browser.
+    const think = { reasoning: 'We must not mention other people' };
+    const leak = `data: ${JSON.stringify({ choices: [{ delta: think }] })}\n\n`;
+    expect(await collect(bytes(leak, frame('ok')))).toEqual([{ content: 'ok' }]);
+  });
+
+  it('surfaces the model each frame names, alongside the content', async () => {
+    const served = `data: ${JSON.stringify({ model: 'a/b:free', choices: [{ delta: { content: 'x' } }] })}\n\n`;
+    expect(await collect(bytes(served))).toEqual([{ content: 'x', model: 'a/b:free' }]);
+  });
+
+  it('surfaces the model from an opening frame that carries no content', async () => {
+    const open = `data: ${JSON.stringify({ model: 'a/b:free', choices: [{ delta: { role: 'assistant' } }] })}\n\n`;
+    expect(await collect(bytes(open))).toEqual([{ model: 'a/b:free' }]);
   });
 
   it('stops at [DONE] and drops anything after it', async () => {
@@ -164,13 +200,22 @@ describe('chatRequestInit', () => {
     expect((body.models as string[])[0]).toBe('nvidia/nemotron-3-super-120b-a12b:free');
   });
 
+  it('asks the model to reason without returning the reasoning', () => {
+    // `exclude` keeps the deliberation off the wire, so no model in the chain can
+    // render its analysis channel as the answer. `low` is the budget half: reasoning
+    // tokens bill as output tokens, and prod measured 1634 reasoning characters
+    // against 424 of answer on a 600-token cap — that is why replies came truncated.
+    expect(body.reasoning).toEqual({ effort: 'low', exclude: true });
+  });
+
   it('sends nothing OpenRouter has retired', () => {
     // `route: 'fallback'`, `usage.include` and `stream_options` are all dead as of
-    // 2026-08-07 — the body is exactly these five keys and no more.
+    // 2026-08-07 — the body is exactly these six keys and no more.
     expect(Object.keys(body).sort()).toEqual([
       'max_tokens',
       'messages',
       'models',
+      'reasoning',
       'stream',
       'temperature',
     ]);
@@ -214,10 +259,12 @@ describe('callBuffered', () => {
     expect(body.stream).toBe(false);
     expect(body.max_tokens).toBe(4);
     expect(body.temperature).toBe(0);
+    // The classifier needs this most: on a 4-token cap a reasoning model would
+    // spend the whole budget thinking and hand back an empty verdict.
+    expect(body.reasoning).toEqual({ effort: 'low', exclude: true });
   });
 
   it('throws with the status on a non-OK response, and logs the reason', async () => {
-    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     const f = fakeFetch({ ok: false, status: 500, text: async () => 'upstream exploded' });
     await expect(
       callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
@@ -227,7 +274,6 @@ describe('callBuffered', () => {
     expect(line).toContain('500');
     expect(line).toContain('upstream exploded'); // the operator gets the real reason
     expect(line).not.toContain(cfg.apiKey); // and never the key
-    log.mockRestore();
   });
 
   it('gives up on a classifier call that never answers', async () => {
@@ -311,7 +357,6 @@ describe('streamChat', () => {
     // The bug this logging was added for: OpenRouter answers 400 with the reason
     // in the body, the visitor may only see "upstream error", and journalctl used
     // to show nothing at all — so the only way to diagnose it was live curl.
-    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     const f = fakeFetch({
       ok: false,
       status: 400,
@@ -327,7 +372,22 @@ describe('streamChat', () => {
     expect(line).toContain('3 items or fewer');
     expect(line).toContain(cfg.models[0]); // which chain was rejected
     expect(line).not.toContain(cfg.apiKey);
-    log.mockRestore();
+  });
+
+  it('logs which model answered and how much it streamed', async () => {
+    // Two prod diagnoses on 2026-08-07 stalled on the same blind spot: with a
+    // fallback chain the answer usually does not come from the primary, and the
+    // service could not say which model produced it.
+    const f = streamOf(served('He'), served('llo'), 'data: [DONE]\n\n');
+    for await (const _t of streamChat(cfg, msgs, { temperature: 0.7, fetchImpl: inject(f) }));
+
+    expect(log).toHaveBeenCalledTimes(1); // one line per request, no more
+    const line = String(log.mock.calls[0][0]);
+    expect(line).toContain('z-ai/glm-4.7:free'); // the fallback, not cfg.models[0]
+    expect(line).toContain('2');
+    expect(line).not.toContain('Hello'); // never what the visitor was told
+    expect(line).not.toContain('You are VAI'); // never the system prompt
+    expect(line).not.toContain(cfg.apiKey);
   });
 
   it('throws when a 200 arrives without a body', async () => {
@@ -340,7 +400,7 @@ describe('streamChat', () => {
 
   it('throws on a mid-stream error frame, after the partial answer', async () => {
     const err = `data: ${JSON.stringify({ error: { message: 'rate limited' } })}\n\n`;
-    const f = streamOf(frame('Hi'), err, frame('never'));
+    const f = streamOf(served('Hi'), err, frame('never'));
     const out: string[] = [];
     const run = async () => {
       for await (const t of streamChat(cfg, msgs, { temperature: 0.7, fetchImpl: inject(f) })) {
@@ -349,6 +409,9 @@ describe('streamChat', () => {
     };
     await expect(run()).rejects.toThrow('rate limited');
     expect(out).toEqual(['Hi']);
+    // A half-finished answer is exactly when the operator needs the name: the line
+    // is on the way out of the request, not on the happy path.
+    expect(String(log.mock.calls.at(-1)?.[0])).toContain('z-ai/glm-4.7:free');
   });
 
   it('aborts a stalled stream after the idle timeout', async () => {
