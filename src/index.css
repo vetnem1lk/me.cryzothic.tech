@@ -1,5 +1,5 @@
 /* The only stylesheet: Tailwind, the self-hosted fonts, the theme tokens, and the
-   handful of effects utilities cannot express (marquee drift, dashed separators,
+   handful of effects utilities cannot express (marquee drift, custom scrollbars,
    the terminal caret). Anything expressible as a utility class stays in the JSX. */
 @import 'tailwindcss';
 @import '@fontsource-variable/manrope';
@@ -7,6 +7,8 @@
 
 @theme {
   --color-accent: #b497cf;
+  /* Palette B accents: mint is live ([sys] lines, the headline gradient);
+     sand is declared but unused — Tailwind v4 emits only referenced vars. */
   --color-sep-mint: #97cfb4;
   --color-sep-sand: #cfc397;
   --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
@@ -92,21 +94,6 @@ body.custom-cursor * {
 }
 .scroll-hide::-webkit-scrollbar {
   display: none;
-}
-
-/* Tri-color dashed separator — lilac/mint/sand (spec §T3c.8, palette B). */
-.sep-tri {
-  height: 1px;
-  flex: none;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--color-accent) 0 10px,
-    transparent 10px 16px,
-    var(--color-sep-mint) 16px 26px,
-    transparent 26px 32px,
-    var(--color-sep-sand) 32px 42px,
-    transparent 42px 48px
-  );
 }
 
 /* Terminal caret — accent underscore where supported (Chromium 144+),

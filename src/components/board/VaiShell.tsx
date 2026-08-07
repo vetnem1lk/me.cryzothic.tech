@@ -301,9 +301,8 @@ export default function VaiShell({
         )}
       </div>
       <CommandRow onRun={submit} />
-      <div aria-hidden className="sep-tri" />
       <form
-        className="relative p-2"
+        className="relative border-t border-dashed border-neutral-800 p-2"
         onSubmit={(e) => {
           e.preventDefault();
           const v = inputRef.current?.value ?? '';
