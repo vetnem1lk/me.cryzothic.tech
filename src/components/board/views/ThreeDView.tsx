@@ -1,6 +1,6 @@
-// Placeholder for the /3d model viewer that is not built yet: a wireframe cube
-// that tilts under the pointer. It is hand-drawn SVG rather than a 3D library so
-// the promise of the tab costs the board chunk almost nothing until it is real.
+// The engine bay: a wireframe cube that tilts under the pointer. Hand-drawn
+// SVG instead of a 3D library on purpose:
+// the whole view costs the board chunk almost nothing — which is the point.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef } from 'react';
@@ -64,10 +64,10 @@ export default function ThreeDView() {
         </svg>
       </div>
       <p className="font-mono text-xs tracking-widest text-neutral-500 uppercase">
-        3D viewer docking soon
+        engine bay — wireframe mode
       </p>
       <p className="max-w-md text-center text-sm text-neutral-400">
-        A real-time model viewer is planned for this slot — the wireframe holds the docking bay.
+        A hand-drawn SVG wireframe — no 3D library on board. The frame tilts to follow the pointer.
       </p>
     </section>
   );
