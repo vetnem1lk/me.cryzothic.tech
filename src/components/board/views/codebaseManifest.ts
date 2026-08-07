@@ -1,5 +1,9 @@
-// What the /code view shows: its own source, imported `?raw` so the bundle carries
-// the real files and the exhibit can never drift from the code it claims to be.
+// What the /code view shows: real source, imported `?raw` so the bundle carries the
+// actual files and the exhibit can never drift from the code it claims to be. Two
+// projects — this site's front end, and the guardrails of the API behind the chat.
+import gatesSrc from '../../../../server/src/gates.ts?raw';
+import chatSrc from '../../../../server/src/chat.ts?raw';
+import openrouterSrc from '../../../../server/src/openrouter.ts?raw';
 import appSrc from '../../../App.tsx?raw';
 import cssSrc from '../../../index.css?raw';
 import cursorSrc from '../../TargetCursor.tsx?raw';
@@ -23,8 +27,9 @@ export interface CodeProject {
   files: CodeFile[];
 }
 
-// ponytail: one seed project (this site, curated files) — the UI is already
-// multi-project; more projects land when the founder picks them (spec §T3c.5).
+// ponytail: two curated projects, not a directory walk — more land when the founder
+// picks them (spec §T3c.5). The server entries are the three guardrail modules; the
+// private prompts they load are, deliberately, not among them.
 export const PROJECTS: CodeProject[] = [
   {
     id: 'site',
@@ -41,6 +46,15 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/commands.ts', content: commandsSrc },
       { path: 'src/components/board/drain.ts', content: drainSrc },
       { path: 'src/components/board/transport.ts', content: transportSrc },
+    ],
+  },
+  {
+    id: 'vai-api',
+    label: 'vai-api (guardrails)',
+    files: [
+      { path: 'server/src/chat.ts', content: chatSrc },
+      { path: 'server/src/gates.ts', content: gatesSrc },
+      { path: 'server/src/openrouter.ts', content: openrouterSrc },
     ],
   },
 ];
