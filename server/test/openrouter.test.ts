@@ -216,13 +216,18 @@ describe('callBuffered', () => {
     expect(body.temperature).toBe(0);
   });
 
-  it('throws with the status on a non-OK response, releasing the socket', async () => {
-    const cancel = vi.fn(async () => {});
-    const f = fakeFetch({ ok: false, status: 500, body: { cancel }, json: async () => ({}) });
+  it('throws with the status on a non-OK response, and logs the reason', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const f = fakeFetch({ ok: false, status: 500, text: async () => 'upstream exploded' });
     await expect(
       callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
     ).rejects.toThrow('openrouter HTTP 500');
-    expect(cancel).toHaveBeenCalled();
+
+    const line = String(log.mock.calls[0][0]);
+    expect(line).toContain('500');
+    expect(line).toContain('upstream exploded'); // the operator gets the real reason
+    expect(line).not.toContain(cfg.apiKey); // and never the key
+    log.mockRestore();
   });
 
   it('gives up on a classifier call that never answers', async () => {
@@ -302,14 +307,27 @@ describe('streamChat', () => {
     expect(body.temperature).toBe(0.4);
   });
 
-  it('throws with the status when the stream never opens, releasing the socket', async () => {
-    const cancel = vi.fn(async () => {});
-    const f = fakeFetch({ ok: false, status: 429, body: { cancel } });
+  it('throws with the status when the stream never opens, and logs the reason', async () => {
+    // The bug this logging was added for: OpenRouter answers 400 with the reason
+    // in the body, the visitor may only see "upstream error", and journalctl used
+    // to show nothing at all — so the only way to diagnose it was live curl.
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const f = fakeFetch({
+      ok: false,
+      status: 400,
+      text: async () => '{"error":{"message":"\'models\' array must have 3 items or fewer."}}',
+    });
     const run = async () => {
       for await (const _t of streamChat(cfg, msgs, { temperature: 0.7, fetchImpl: inject(f) }));
     };
-    await expect(run()).rejects.toThrow('openrouter HTTP 429');
-    expect(cancel).toHaveBeenCalled();
+    await expect(run()).rejects.toThrow('openrouter HTTP 400');
+
+    const line = String(log.mock.calls[0][0]);
+    expect(line).toContain('400');
+    expect(line).toContain('3 items or fewer');
+    expect(line).toContain(cfg.models[0]); // which chain was rejected
+    expect(line).not.toContain(cfg.apiKey);
+    log.mockRestore();
   });
 
   it('throws when a 200 arrives without a body', async () => {

@@ -54,6 +54,16 @@ export function chatRequestInit(
   };
 }
 
+// A visitor only ever sees a sanitized "upstream error", so without this line the
+// real reason exists nowhere: OpenRouter explains a rejection in the response body
+// ("'models' array must have 3 items or fewer"), and reading that body is also what
+// releases the socket. Safe to log — status, our own model chain, OpenRouter's text.
+// Never the API key, never the visitor's message, never the system prompt.
+async function logUpstreamFailure(res: Response, models: string[]): Promise<void> {
+  const detail = await res.text().catch(() => '');
+  console.error(`openrouter HTTP ${res.status} [${models.join(', ')}] ${detail}`.trimEnd());
+}
+
 // SSE arrives as arbitrary byte chunks, not lines: a frame can be split mid-JSON
 // or mid-character, and between frames come keep-alive comments (": OPENROUTER
 // PROCESSING"). Anything unparsable is dropped rather than thrown — a single bad
@@ -116,9 +126,9 @@ export async function callBuffered(
     );
     const res = await call(CHAT_URL, init);
     if (!res.ok) {
-      // Free-tier 429s are steady state, not an exception — let the socket go
-      // instead of leaving an unread body pinned to the connection pool.
-      res.body?.cancel().catch(() => {});
+      // Free-tier 429s are steady state, not an exception — but they still go to
+      // the log, and draining the body is what frees the connection either way.
+      await logUpstreamFailure(res, [model]);
       throw new Error(`openrouter HTTP ${res.status}`);
     }
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
@@ -185,7 +195,7 @@ export async function* streamChat(
     );
     const res = await call(CHAT_URL, init);
     if (!res.ok) {
-      res.body?.cancel().catch(() => {}); // same: don't hold a socket for an error body
+      await logUpstreamFailure(res, cfg.models); // same: log it, drain it
       throw new Error(`openrouter HTTP ${res.status}`);
     }
     if (!res.body) throw new Error('openrouter returned no response body');

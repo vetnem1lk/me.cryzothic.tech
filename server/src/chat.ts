@@ -304,6 +304,10 @@ export async function handleChat(
   } catch (err) {
     // Headers are long gone by now — a failure here can only be an error event,
     // and it is sanitized on the way out like every other visitor-facing failure.
+    // Which is exactly why the operator's copy goes to the log first: after the
+    // line below, "upstream error" is all that is left of the reason. The message
+    // is ours (a status, an upstream error string), never the visitor's text.
+    console.error('chat relay failed:', (err as Error).message);
     sse.error(publicMessage(err, 'upstream error'));
   }
 }

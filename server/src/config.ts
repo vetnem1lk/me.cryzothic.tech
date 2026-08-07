@@ -15,10 +15,15 @@ export interface Config {
 
 // OpenRouter free-tier chain, primary first: sent as models[] so OpenRouter falls
 // through to the next one on rate limit or outage. Slugs verified live 2026-08-07.
+//
+// Exactly three, and no more: OpenRouter rejects the whole request with HTTP 400
+// ("'models' array must have 3 items or fewer") — a fourth entry is not a weaker
+// fallback, it is total outage. With only three slots, the one that would go to a
+// second Google model buys less than provider diversity: NVIDIA → Google → OpenAI
+// survives any single provider going down. The pin lives in config.test.ts.
 const MODELS = [
   'nvidia/nemotron-3-super-120b-a12b:free',
   'google/gemma-4-31b-it:free',
-  'google/gemma-4-26b-a4b-it:free',
   'openai/gpt-oss-20b:free',
 ];
 

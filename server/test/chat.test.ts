@@ -83,7 +83,13 @@ function serve(deps: AppDeps): string {
 
 afterEach(() => {
   for (const s of servers.splice(0)) s.close();
+  vi.restoreAllMocks();
 });
+
+// The service logs upstream failures to stderr on purpose (see chat.ts and
+// openrouter.ts). Tests that provoke one capture that line instead of letting it
+// scribble over the suite output; the ones that care assert on it.
+const captureLog = () => vi.spyOn(console, 'error').mockImplementation(() => {});
 
 const post = (url: string, body: unknown, headers: Record<string, string> = {}) =>
   fetch(`${url}/api/chat`, {
@@ -148,9 +154,10 @@ describe('POST /api/chat — on-topic VAI answer', () => {
   it('answers anyway when the classifier itself fails (fail-open)', async () => {
     // The strict system prompt is the real topic guard; a classifier outage must
     // not turn the chat into a wall of deflections.
+    captureLog(); // the 429 below is logged, and that is not a test failure
     const f = vi.fn(async (_url: string, init: RequestInit) => {
       const body = JSON.parse(init.body as string) as { stream: boolean };
-      if (!body.stream) return { ok: false, status: 429, body: { cancel: async () => {} } };
+      if (!body.stream) return { ok: false, status: 429, text: async () => 'rate limited' };
       return { ok: true, status: 200, body: bytes(orFrame('ok'), 'data: [DONE]\n\n') };
     });
     const url = serve({ cfg, prompts, fetchImpl: inject(f) });
@@ -391,6 +398,9 @@ describe('POST /api/chat — canary filter', () => {
   it('reports an upstream failure mid-stream as a generic SSE error event', async () => {
     // Upstream text ("openrouter HTTP 401", a prompt filename in a 500) is for
     // logs, not for a visitor — same rule the JSON error path applies to 5xx.
+    // "For logs" is literal: the operator's copy goes to stderr, which is the
+    // only place the real reason exists once the visitor's copy is sanitized.
+    const log = captureLog();
     const upstreamError = `data: ${JSON.stringify({ error: { message: 'rate limited' } })}\n\n`;
     const f = fakeOpenRouter({ tokens: ['partial answer here'], trailer: upstreamError });
     const url = serve({ cfg, prompts, fetchImpl: inject(f) });
@@ -398,6 +408,7 @@ describe('POST /api/chat — canary filter', () => {
     const sse = readSse(await (await post(url, ask('hi', 'gai'))).text());
     expect(sse.error).toBe('upstream error');
     expect(sse.done).toBe(false);
+    expect(log.mock.calls.flat().join(' ')).toContain('rate limited');
   });
 });
 
@@ -523,6 +534,7 @@ describe('POST /api/chat — visitor hangs up mid-answer', () => {
     // it with an SSE error frame — on a socket that is already gone. The spy
     // below is what makes that guard load-bearing instead of decorative.
     const writesAfterClose: string[] = [];
+    captureLog(); // the abort reaches the catch and is logged; expected here
     const f = vi.fn(async (_url: string, init: RequestInit) => ({
       ok: true,
       status: 200,

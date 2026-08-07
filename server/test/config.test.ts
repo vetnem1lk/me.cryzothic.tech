@@ -7,7 +7,6 @@ import { loadConfig } from '../src/config.js';
 const CHAIN = [
   'nvidia/nemotron-3-super-120b-a12b:free',
   'google/gemma-4-31b-it:free',
-  'google/gemma-4-26b-a4b-it:free',
   'openai/gpt-oss-20b:free',
 ];
 
@@ -27,6 +26,14 @@ describe('loadConfig', () => {
     const c = loadConfig({ MOCK_LLM: '1' });
     expect(c.models).toEqual(CHAIN);
     expect(c.classifierModel).toBe('google/gemma-4-26b-a4b-it:free');
+  });
+
+  it('stays within the OpenRouter limit of 3 models per request', () => {
+    // A fourth entry is not a degraded fallback, it is a hard 400 from OpenRouter
+    // ("'models' array must have 3 items or fewer") on *every* chat request —
+    // and the unit suite injects fetch, so nothing else here would ever see it.
+    // This pin makes that mistake fail offline instead of in production.
+    expect(loadConfig({ MOCK_LLM: '1' }).models.length).toBeLessThanOrEqual(3);
   });
 
   it('applies defaults when nothing is set', () => {
