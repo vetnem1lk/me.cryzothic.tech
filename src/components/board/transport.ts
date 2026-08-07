@@ -4,6 +4,12 @@
 // the wire. The wire itself lives in apiTransport.ts.
 export type AgentMode = 'vai' | 'gai';
 
+/**
+ * A clickable follow-up rendered under a message — client-side furniture:
+ * `history()` never sends it, so the model and the wire shape stay unchanged.
+ */
+export type ChatAction = { label: string; to: string };
+
 export interface ChatMessage {
   role: 'user' | 'agent' | 'sys';
   text: string;
@@ -14,6 +20,8 @@ export interface ChatMessage {
   pending?: boolean;
   /** A `/command` and its answer: shown in the shell, never sent to the model. */
   local?: boolean;
+  /** Buttons shown under this line — the shell's offer, not the model's words. */
+  actions?: ChatAction[];
 }
 
 export const MODE_NAME: Record<AgentMode, string> = { vai: 'VAI', gai: 'GAI' };

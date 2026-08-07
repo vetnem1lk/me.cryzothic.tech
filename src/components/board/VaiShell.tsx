@@ -4,6 +4,7 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
@@ -35,7 +36,15 @@ export default function VaiShell({
   // `local`: the greeting is furniture the shell prints, not a turn the model
   // took — replaying it as history would put words in VAI's mouth.
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'agent', text: GREETING, from: 'vai', local: true },
+    {
+      role: 'agent',
+      text: GREETING,
+      from: 'vai',
+      local: true,
+      // Straight to the route, not a synthesized /3d — the visitor asked for the
+      // engine bay, not for a command echoed back at them.
+      actions: [{ label: 'Try the engine', to: '/3d' }],
+    },
   ]);
   const [mode, setMode] = useState<AgentMode>('vai');
   const modeRef = useRef<AgentMode>('vai');
@@ -294,6 +303,24 @@ export default function VaiShell({
               {m.pending && !reduced && (
                 <span ref={cursorRef} className="ml-0.5 inline-block text-accent">
                   _
+                </span>
+              )}
+              {/* `!m.pending` keeps a focusable control out of an aria-hidden
+                  subtree — the two are mutually exclusive by construction. It
+                  also keeps the offer off a half-typed line. Real links, not
+                  buttons: middle-click, open-in-new-tab and the links rotor all
+                  work, and wouter still routes the plain click. */}
+              {m.actions && !m.pending && (
+                <span className="mt-1.5 flex flex-wrap gap-2">
+                  {m.actions.map((a) => (
+                    <Link
+                      key={a.label}
+                      href={a.to}
+                      className="cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent"
+                    >
+                      {a.label}
+                    </Link>
+                  ))}
                 </span>
               )}
             </p>
