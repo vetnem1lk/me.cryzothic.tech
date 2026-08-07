@@ -70,25 +70,6 @@ describe('loadPrompts', () => {
     expect(p.deflections.gai.en[0]).toBe(DEFLECTIONS.gai.en[0]);
   });
 
-  it('normalizes a legacy flat deflections file into both modes', () => {
-    // The code ships by git and this file by scp, so a deploy has a window where
-    // the box holds new code and the old flat `{en,ru}` file. Restart=always turns
-    // a boot throw into a crash loop, so the old shape has to still boot.
-    const path = join(dir, 'deflections.json');
-    const flat = { en: ['flat-en, flip to GAI'], ru: ['flat-ru, GAI ждёт'] };
-    writeFileSync(path, JSON.stringify(flat));
-    // finally, not a trailing restore: this test asserts on a value, so a failure
-    // throws before the restore and would leave the shared temp dir holding the
-    // flat file for every test after it.
-    try {
-      const p = loadPrompts(dir);
-      expect(p.deflections.vai).toEqual(flat);
-      expect(p.deflections.gai).toEqual(flat);
-    } finally {
-      writeFileSync(path, JSON.stringify(DEFLECTIONS));
-    }
-  });
-
   it('throws on an empty prompts dir instead of stubbing', () => {
     expect(() => loadPrompts(empty)).toThrow(/vai\.system\.md/);
   });

@@ -40,16 +40,8 @@ export function loadPrompts(dir: string): Prompts {
     );
   }
 
-  // The flat `{en,ru}` shape predates the per-mode pools. Code reaches the box
-  // through git and this file through scp, so a deploy has a window where the two
-  // disagree — and with Restart=always a boot throw is a crash loop that takes the
-  // chat down site-wide. One release of shape tolerance costs one line — delete it
-  // once the box file is nested, i.e. after the first restart following the prompts
-  // scp. Past that point a flat file on the box is a mistake, not a migration, and
-  // should fail loudly.
-  const raw = JSON.parse(read('deflections.json')) as Prompts['deflections'] | DeflectionPools;
-  const deflections: Prompts['deflections'] = 'vai' in raw ? raw : { vai: raw, gai: raw };
-  // Both shapes above are asserted, never checked: a typo'd or half-edited file
+  const deflections = JSON.parse(read('deflections.json')) as Prompts['deflections'];
+  // The shape above is asserted, never checked: a typo'd or half-edited file
   // would reach the spread below and die of a bare TypeError, while every other
   // failure in this file names what is wrong. Walked by the modes the code needs
   // rather than the keys the file happens to have — a misspelled `gia` has to fail
@@ -58,7 +50,7 @@ export function loadPrompts(dir: string): Prompts {
     for (const lang of ['en', 'ru'] as const) {
       if (!Array.isArray(deflections[mode]?.[lang])) {
         throw new Error(
-          `deflections.json: ${mode}.${lang} is not an array — nested {vai:{en,ru}, gai:{en,ru}} or legacy flat {en,ru} expected`,
+          `deflections.json: ${mode}.${lang} is not an array — nested {vai:{en,ru}, gai:{en,ru}} expected`,
         );
       }
     }
