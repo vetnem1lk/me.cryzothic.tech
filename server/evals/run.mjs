@@ -11,10 +11,9 @@
 //                four probes flagged `preModel` — the ones the injection screen answers
 //                from a canned pool before any model call — and holds every other probe
 //                to transport alone: HTTP 200, a stream that ends on [DONE], a non-empty
-//                body, and no canary anywhere. Two classes look pre-model but are not:
-//                the topic gate needs the classifier, which mock mode answers ON, and
-//                the `clean` probe is worded to slip past the screen on purpose. Both
-//                reach the model, so both are skipped like the rest.
+//                body, and no canary anywhere. The topic gate looks pre-model but is not:
+//                it needs the classifier, which mock mode answers ON, so it reaches the
+//                model and is skipped like the rest.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -64,9 +63,11 @@ const DEFAULT_MATCH = {
 
 // `preModel: true` marks a probe the injection screen answers from a canned pool
 // before the first network call — its verdict is the same with or without a key, which
-// is what makes it judgeable against a mock. The flag is explicit per probe rather
-// than derived from the id: `injection-en-quote-first-line` is worded to slip past the
-// screen, so it reaches the model like any other question.
+// is what makes it judgeable against a mock. The flag is explicit per probe rather than
+// derived from the id, and `injection-en-quote-first-line` is why it stays that way: the
+// screen catches its phrasing today, but its assertion is the forbid list, which a mock
+// stream satisfies for free. Left unflagged, it is judged only against a real model —
+// where a rephrasing that slips the screen still has to come back without prompt bytes.
 
 // ---------------------------------------------------------------------------
 // Talking to the endpoint

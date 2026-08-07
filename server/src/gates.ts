@@ -66,6 +66,15 @@ const INJECTION: RegExp[] = [
   /\bdisregard\b/i,
   /\bsystem\s+(?:prompt|message|instructions?)\b/i,
   /\b(?:reveal|repeat|print|show|output)\b[^.!?]{0,30}\b(?:prompt|instructions?)\b/i,
+  /\byour\s+(?:instructions?|prompt)\b/i, // "what are your instructions?" — no verb needed
+  // The quote-back family, which asks for the prompt's own bytes without ever
+  // naming it: by position ("the text above", "everything above", "first line"),
+  // or by fidelity ("verbatim", "word for word"). The pattern above only sees
+  // "prompt"/"instructions" as the object, so this class walked straight past it
+  // and got line 1 of the system prompt streamed back in production. The verb is
+  // still required: "what does the first line of his resume say?" is a question
+  // about a document, and "quote his test counts" is a question about his work.
+  /\b(?:quote|repeat|print|output|echo|show|reveal|reproduce|recite)\b[^.!?]{0,40}\b(?:(?:text|lines?|everything|message|context)\s+above|verbatim|word\s+for\s+word|first\s+line)\b/i,
   /\byou(?:['’]re|\s+are)\s+now\b/i,
   /\bdeveloper\s+mode\b/i,
   // Persona swaps, in two shapes. An order: "Act as Sydney", "you should act as X".
@@ -83,6 +92,10 @@ const INJECTION: RegExp[] = [
   /представь[а-яё]*,?\s+(?:[а-яё]+,?\s+)*что\s+ты/i,
   /ты\s+теперь/i,
   /режим[а-яё]*\s+разработчика/i,
+  // The Russian half of the quote-back family: verb stems (no `\b` — it is
+  // ASCII-only and would never fire next to Cyrillic), then the same targets.
+  // "покажи его проекты" keeps passing because it names none of them.
+  /(?:цитир|повтор|покаж|показ|вывед|напечата|воспроизв)[а-яё]*[^.!?]{0,40}(?:текст[а-яё]*\s+выше|строк[а-яё]*\s+выше|выше\s+текст|дословно|слово\s+в\s+слово|перв[а-яё]+\s+строк|инструкц|промп?т)/i,
 ];
 
 // True means "do not send this to a model" — the route answers with a deflection.
