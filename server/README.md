@@ -69,10 +69,9 @@ Prompts are read once, at startup. A copied file changes nothing until the resta
 
 When a prompt change also needs new code to read it, deploy the code first. A running
 service only understands the file shapes its own version knows, and a restart into a
-shape it cannot parse is a crash loop, not a degraded answer — the loader tolerates the
-older shape for exactly one release for this reason, never the other way round. That
-fallback has a removal point: once the deployed file is on the new shape (the first
-restart after it is copied over), the tolerance in `src/prompts.ts` goes.
+shape it cannot parse is a crash loop, not a degraded answer. `deflections.json` is
+the nested per-mode file (`{vai:{en,ru}, gai:{en,ru}}`); `npm run boot-check` against
+the exact pair you are about to ship is what proves the restart before it happens.
 
 ## Run it locally without a key
 
