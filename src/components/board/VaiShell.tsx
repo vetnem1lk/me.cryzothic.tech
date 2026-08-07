@@ -4,7 +4,7 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
@@ -116,6 +116,18 @@ export default function VaiShell({
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [messages]);
+
+  // Navigation is the sheet's exit: on a phone the shell covers the board, so a
+  // route change — an action link, or any /command that navigates — means the
+  // visitor chose a destination hidden behind the overlay. Only a *change*
+  // closes it; opening the sheet leaves the location alone and re-runs this.
+  const [location] = useLocation();
+  const prevLoc = useRef(location);
+  useEffect(() => {
+    if (location === prevLoc.current) return;
+    prevLoc.current = location;
+    if (mobileOpen) onMobileClose();
+  }, [location, mobileOpen, onMobileClose]);
 
   function switchMode(next: AgentMode) {
     if (next === modeRef.current) return;

@@ -20,7 +20,7 @@ export interface ChatMessage {
   pending?: boolean;
   /** A `/command` and its answer: shown in the shell, never sent to the model. */
   local?: boolean;
-  /** Buttons shown under this line — the shell's offer, not the model's words. */
+  /** Links shown under this line — the shell's offer, not the model's words. */
   actions?: ChatAction[];
 }
 

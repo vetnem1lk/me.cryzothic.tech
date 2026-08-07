@@ -349,13 +349,13 @@ describe('history', () => {
     expect(history(withCommand, 'vai')).toEqual([{ role: 'user', content: 'real question' }]);
   });
 
-  test('strips actions from the wire — buttons are furniture, not conversation', () => {
+  test('strips actions from the wire — links are furniture, not conversation', () => {
     const withAction: ChatMessage[] = [
       { role: 'agent', text: 'hi', from: 'vai', actions: [{ label: 'Try the engine', to: '/3d' }] },
       { role: 'user', text: 'q', from: 'vai' },
     ];
     // Exact equality, not a key-shape check: this also fails if a line ever gets
-    // dropped from history for carrying buttons.
+    // dropped from history for carrying links.
     expect(history(withAction, 'vai')).toEqual([
       { role: 'assistant', content: 'hi' },
       { role: 'user', content: 'q' },

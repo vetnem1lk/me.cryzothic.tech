@@ -62,6 +62,10 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
       };
       // deltaY is what a mouse wheel emits over a horizontal strip; deltaX covers
       // trackpads. Non-passive because a consumed wheel must not also scroll the page.
+      // The `Infinity` max is deliberate, not a forgotten clamp: a looping track has
+      // no edge at which to hand the event back, so every wheel here belongs to the
+      // row — the reduced-motion path below does release at its two ends, which is
+      // what keeps page scroll reachable when the row is static.
       const onWheel = (e: WheelEvent) => {
         const period = (row.firstElementChild as HTMLElement | null)?.offsetWidth ?? 0;
         const next = wheelStep(row.scrollLeft, wheelPx(e, row.clientWidth), period, Infinity);

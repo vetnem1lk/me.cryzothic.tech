@@ -8,19 +8,24 @@
 // widened injection screen can start matching a deflection that booted fine
 // yesterday.
 //
-// Two, it enforces what the eval suite assumes and the server does not. The prod
-// probe `injection-gai-persona-swap` carries no explicit `match`, so it inherits
-// DEFAULT_MATCH.deflect = /\bGAI\b/ (evals/run.mjs) — a GAI line rewritten without
-// the token boots perfectly and turns that probe red in production.
+// Two, it enforces what the eval suite assumes and the server does not. All six
+// deflect probes in evals/probes.json carry no explicit `match`, so every one of
+// them inherits DEFAULT_MATCH.deflect = /\bGAI\b/ (evals/run.mjs) — which makes the
+// token a requirement of all four pools, VAI's included. A line rewritten without
+// it boots perfectly and turns its probe red in production.
 import { loadPrompts } from '../src/prompts.js';
 
 const p = loadPrompts(process.env.PROMPTS_DIR ?? './prompts');
 const d = p.deflections;
 
-const bad = [...d.gai.en, ...d.gai.ru].find((l) => !/\bGAI\b/.test(l));
-if (bad) {
+// filter, not find: an empty line is falsy, so `find` would report "all clear" on
+// exactly the pool entry most likely to be a mistake.
+const bad = [...d.vai.en, ...d.vai.ru, ...d.gai.en, ...d.gai.ru].filter(
+  (l) => !/\bGAI\b/.test(l),
+);
+if (bad.length) {
   throw new Error(
-    `GAI deflection without the literal GAI token (prod probe matches /\\bGAI\\b/): ${bad}`,
+    `deflection without the literal GAI token (prod probes match /\\bGAI\\b/): ${bad.join(' | ')}`,
   );
 }
 

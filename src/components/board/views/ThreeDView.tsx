@@ -1,6 +1,6 @@
 // The engine bay: a wireframe cube that tilts under the pointer. Hand-drawn
-// SVG instead of a 3D library on purpose:
-// the whole view costs the board chunk almost nothing — which is the point.
+// SVG instead of a 3D library on purpose: the whole view costs the board
+// chunk almost nothing — which is the point.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef } from 'react';
@@ -67,7 +67,7 @@ export default function ThreeDView() {
         engine bay — wireframe mode
       </p>
       <p className="max-w-md text-center text-sm text-neutral-400">
-        A hand-drawn SVG wireframe — no 3D library on board. The frame tilts to follow the pointer.
+        A hand-drawn SVG wireframe — no 3D library on board.
       </p>
     </section>
   );

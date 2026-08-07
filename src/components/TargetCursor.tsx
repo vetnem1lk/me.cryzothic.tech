@@ -257,9 +257,11 @@ export default function TargetCursor({
         document.body.classList.remove('custom-cursor')
       }
       // ponytail: no scroll/resize re-sync of a locked rect.
-      // The command row is the one scrollable .cursor-target strip; wheel-scroll
-      // under a locked cursor shifts buttons beneath the frozen rect until the
-      // next pointermove re-locks — visible for a frame, cosmetic, accepted.
+      // Three containers scroll under .cursor-target elements — the command row,
+      // the chat log (which also auto-scrolls itself on every message) and the
+      // stage view; scrolling any of them slides a target out from under the
+      // frozen rect until the next pointermove re-locks it — visible for a
+      // frame, cosmetic, accepted.
     },
     {
       dependencies: [
