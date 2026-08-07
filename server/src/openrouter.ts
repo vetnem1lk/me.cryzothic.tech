@@ -27,7 +27,8 @@ export interface OrChunk {
 // once put "We must not mention other people" on a visitor's screen. `low` is the
 // budget half: reasoning bills as output tokens, and prod measured 1634 characters of
 // reasoning against 424 of answer under a 600-token cap. Non-reasoning models ignore
-// it. (Doc-verified 2026-08-07: openrouter.ai/docs/use-cases/reasoning-tokens.)
+// it. Sent only to calls that ask for it — a short answer budget cannot afford to
+// think. (Doc-verified 2026-08-07: openrouter.ai/docs/use-cases/reasoning-tokens.)
 const REASONING = { effort: 'low', exclude: true } as const;
 
 export function chatRequestInit(
@@ -38,6 +39,13 @@ export function chatRequestInit(
     stream: boolean;
     maxTokens: number;
     temperature: number;
+    /**
+     * Opt-in, because the classifier must not reason: its whole budget is 8 tokens
+     * and reasoning bills as output tokens, so a thinking model spends the lot
+     * deliberating and returns an empty verdict — a topic gate that silently fails
+     * open. Only the answering stream, which has 600 tokens to play with, asks.
+     */
+    reasoning?: boolean;
   },
   signal: AbortSignal,
 ): RequestInit {
@@ -62,7 +70,7 @@ export function chatRequestInit(
       stream: body.stream,
       max_tokens: body.maxTokens,
       temperature: body.temperature,
-      reasoning: REASONING,
+      ...(body.reasoning ? { reasoning: REASONING } : {}),
     }),
   };
 }
@@ -121,7 +129,8 @@ export async function* parseChatSSE(src: AsyncIterable<Uint8Array>): AsyncGenera
 }
 
 // One unstreamed call, used for the topic classifier that gates every chat turn.
-// Temperature 0: this call answers a fixed question, it does not write prose.
+// Temperature 0: this call answers a fixed question, it does not write prose. And
+// it never opts into `reasoning` — see the flag's note in chatRequestInit.
 export async function callBuffered(
   cfg: Config,
   messages: ChatMsg[],
@@ -213,6 +222,7 @@ export async function* streamChat(
         stream: true,
         maxTokens: cfg.caps.maxTokens,
         temperature: opts.temperature,
+        reasoning: true, // a 600-token answer can afford to think; the classifier cannot
       },
       signal,
     );

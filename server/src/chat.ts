@@ -16,14 +16,23 @@ import {
 } from './gates.js';
 import { callBuffered, streamChat, type ChatMsg } from './openrouter.js';
 
-// A separate, cheap model decides one thing only: is this question about Vlad.
-// Kept strict and closed-ended — anything it does not recognise is OFF, and the
-// grounded system prompt is still there behind it.
-export const CLASSIFIER_PROMPT = `You route questions for VAI, an agent that ONLY discusses Vladislav Klimentev
-(Vlad): his career, skills, projects (Donut-Engine, CyberHockey2077, orch_bot,
-hypertrade, cryx-vpn, fantasy-durak), education, awards, personality, hobbies,
-this portfolio site, or hiring him. Greetings and small talk addressed to the
-agent count as ON. Anything else is OFF. Reply with exactly ON or OFF.`;
+// A separate, cheap model decides one thing only: is this message about Vlad. Not
+// whether we should answer it — that judgement belongs to the grounded system
+// prompt one layer down, which knows which personal questions get a refusal and
+// which get an answer. Conflating the two cost real questions in prod: "his biggest
+// weak point as a candidate" and "his medical diagnoses" were both classified OFF,
+// so a recruiter got a joke deflection where the first has an approved answer and
+// the second deserves a straight refusal. Unsure means ON: a wrong ON reaches a
+// prompt that can still refuse, a wrong OFF reaches nothing at all.
+export const CLASSIFIER_PROMPT =
+  'You decide whether a message is ABOUT Vladislav Klimentev (Vlad) — the subject of this ' +
+  'portfolio site — or not. ON = anything about Vlad: his career, skills, projects, ' +
+  'education, awards, personality, hobbies, private or personal matters (health, age, ' +
+  'salary, contact details, availability), this portfolio site, hiring him, or greetings ' +
+  'and small talk addressed to the agent. Personal questions are still ON: refusing them ' +
+  'is not your job, another layer does that. OFF = only messages whose subject is not ' +
+  'Vlad at all (general knowledge, world facts, coding help, writing tasks). If unsure, ' +
+  'reply ON. Reply with exactly ON or OFF.';
 
 const VAI_TEMPERATURE = 0.6; // grounded answers: stay close to the facts
 const GAI_TEMPERATURE = 0.8; // general chat: allowed to be livelier
@@ -225,9 +234,12 @@ async function isOnTopic(
       { role: 'user', content: userText },
     ],
     cfg.classifierModel,
+    // Eight tokens is a measured verdict plus headroom — four left it on the edge,
+    // and callBuffered deliberately never asks the model to reason, or the budget
+    // would go on thinking and come back empty (see chatRequestInit's flag).
     // A visitor who closed the tab is not owed a verdict: the same signal that
     // stops the answering stream stops the call that gates it.
-    { maxTokens: 4, fetchImpl, signal },
+    { maxTokens: 8, fetchImpl, signal },
   ).catch(() => 'ON');
   return !verdict.toUpperCase().startsWith('OFF');
 }

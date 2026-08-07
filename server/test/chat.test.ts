@@ -7,6 +7,7 @@ import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { loadConfig } from '../src/config.js';
+import { CLASSIFIER_PROMPT } from '../src/chat.js';
 import { screenInjection } from '../src/gates.js';
 import type { Prompts } from '../src/prompts.js';
 import { createApp, type AppDeps } from '../src/index.js';
@@ -70,6 +71,7 @@ const bodyOf = (f: ReturnType<typeof fakeOpenRouter>, call: number) =>
     models: string[];
     temperature: number;
     max_tokens: number;
+    reasoning?: unknown;
     messages: { role: string; content: string }[];
   };
 
@@ -127,6 +129,28 @@ const ask = (content: string, mode: 'vai' | 'gai' = 'vai') => ({
   messages: [{ role: 'user', content }],
 });
 
+describe('CLASSIFIER_PROMPT', () => {
+  it('asks only whether the subject is Vlad, and leaves refusing to the layer below', () => {
+    // Pinned verbatim, because this string *is* the topic gate. The wording it
+    // replaced asked the model whether we ought to answer, and prod measured that
+    // costing real questions: "What is his biggest weak point as a candidate?" and
+    // "Describe his medical diagnoses…" both came back OFF, so a recruiter got a
+    // joke deflection instead of the approved answer and a proper refusal. Deciding
+    // what to refuse is the system prompt's job, one layer down — hence the explicit
+    // "personal questions are still ON" and the ON default when unsure.
+    expect(CLASSIFIER_PROMPT).toBe(
+      'You decide whether a message is ABOUT Vladislav Klimentev (Vlad) — the subject of this ' +
+        'portfolio site — or not. ON = anything about Vlad: his career, skills, projects, ' +
+        'education, awards, personality, hobbies, private or personal matters (health, age, ' +
+        'salary, contact details, availability), this portfolio site, hiring him, or greetings ' +
+        'and small talk addressed to the agent. Personal questions are still ON: refusing them ' +
+        'is not your job, another layer does that. OFF = only messages whose subject is not ' +
+        'Vlad at all (general knowledge, world facts, coding help, writing tasks). If unsure, ' +
+        'reply ON. Reply with exactly ON or OFF.',
+    );
+  });
+});
+
 describe('POST /api/chat — on-topic VAI answer', () => {
   it('classifies, then relays the model stream as SSE frames', async () => {
     const f = fakeOpenRouter({ verdict: 'ON', tokens: ['Vlad ', 'ships ', 'things.'] });
@@ -147,13 +171,17 @@ describe('POST /api/chat — on-topic VAI answer', () => {
     const gate = bodyOf(f, 0);
     expect(gate.stream).toBe(false);
     expect(gate.models).toEqual([cfg.classifierModel]);
-    expect(gate.max_tokens).toBe(4);
-    expect(gate.messages[0].content).toMatch(/Reply with exactly ON or OFF\.$/);
+    expect(gate.max_tokens).toBe(8);
+    // Eight tokens buy a verdict only if none of them go on thinking, so this call
+    // carries no `reasoning` field at all — while the answering call still does.
+    expect('reasoning' in gate).toBe(false);
+    expect(gate.messages[0].content).toBe(CLASSIFIER_PROMPT);
     expect(gate.messages[1]).toEqual({ role: 'user', content: 'What did Vlad build?' });
 
     const answer = bodyOf(f, 1);
     expect(answer.stream).toBe(true);
     expect(answer.temperature).toBe(0.6);
+    expect(answer.reasoning).toEqual({ effort: 'low', exclude: true });
     expect(answer.messages[0]).toEqual({ role: 'system', content: prompts.vaiSystem });
     expect(answer.messages[1]).toEqual({ role: 'user', content: 'What did Vlad build?' });
   });

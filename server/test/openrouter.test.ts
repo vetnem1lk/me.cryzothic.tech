@@ -179,7 +179,14 @@ describe('parseChatSSE', () => {
 describe('chatRequestInit', () => {
   const init = chatRequestInit(
     cfg,
-    { messages: msgs, models: cfg.models, stream: true, maxTokens: 600, temperature: 0.7 },
+    {
+      messages: msgs,
+      models: cfg.models,
+      stream: true,
+      maxTokens: 600,
+      temperature: 0.7,
+      reasoning: true,
+    },
     new AbortController().signal,
   );
   const headers = init.headers as Record<string, string>;
@@ -206,6 +213,34 @@ describe('chatRequestInit', () => {
     // tokens bill as output tokens, and prod measured 1634 reasoning characters
     // against 424 of answer on a 600-token cap — that is why replies came truncated.
     expect(body.reasoning).toEqual({ effort: 'low', exclude: true });
+  });
+
+  it('leaves the field out entirely for a caller that did not ask to reason', () => {
+    // The classifier's shape. Reasoning bills as output tokens, so on an 8-token
+    // budget a thinking model spends the lot deliberating and returns nothing:
+    // prod measured 4 of 8 probes coming back with empty content while the field
+    // was present, 0 of 8 once it was gone. An empty verdict does not start with
+    // OFF, so the gate fails open — healthy-looking and doing nothing.
+    const quiet = chatRequestInit(
+      cfg,
+      {
+        messages: msgs,
+        models: [cfg.classifierModel],
+        stream: false,
+        maxTokens: 8,
+        temperature: 0,
+      },
+      new AbortController().signal,
+    );
+    const quietBody = JSON.parse(quiet.body as string) as Record<string, unknown>;
+    expect('reasoning' in quietBody).toBe(false);
+    expect(Object.keys(quietBody).sort()).toEqual([
+      'max_tokens',
+      'messages',
+      'models',
+      'stream',
+      'temperature',
+    ]);
   });
 
   it('sends nothing OpenRouter has retired', () => {
@@ -247,7 +282,7 @@ describe('callBuffered', () => {
       json: async () => ({ choices: [{ message: { content: '  ON  ' } }] }),
     });
     const out = await callBuffered(cfg, msgs, cfg.classifierModel, {
-      maxTokens: 4,
+      maxTokens: 8,
       fetchImpl: inject(f),
     });
 
@@ -257,17 +292,17 @@ describe('callBuffered', () => {
     const body = JSON.parse(init.body as string) as Record<string, unknown>;
     expect(body.models).toEqual([cfg.classifierModel]);
     expect(body.stream).toBe(false);
-    expect(body.max_tokens).toBe(4);
+    expect(body.max_tokens).toBe(8);
     expect(body.temperature).toBe(0);
-    // The classifier needs this most: on a 4-token cap a reasoning model would
-    // spend the whole budget thinking and hand back an empty verdict.
-    expect(body.reasoning).toEqual({ effort: 'low', exclude: true });
+    // Never for this call: a verdict is two letters, and a model that thinks first
+    // spends the whole budget on thinking and answers with an empty string.
+    expect('reasoning' in body).toBe(false);
   });
 
   it('throws with the status on a non-OK response, and logs the reason', async () => {
     const f = fakeFetch({ ok: false, status: 500, text: async () => 'upstream exploded' });
     await expect(
-      callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
+      callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 8, fetchImpl: inject(f) }),
     ).rejects.toThrow('openrouter HTTP 500');
 
     const line = String(log.mock.calls[0][0]);
@@ -290,7 +325,7 @@ describe('callBuffered', () => {
           }),
       );
       const call = expect(
-        callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
+        callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 8, fetchImpl: inject(f) }),
       ).rejects.toThrow(/abort/i);
       await vi.advanceTimersByTimeAsync(60_000);
       await call;
@@ -314,7 +349,7 @@ describe('callBuffered', () => {
     );
     const call = expect(
       callBuffered(cfg, msgs, cfg.classifierModel, {
-        maxTokens: 4,
+        maxTokens: 8,
         fetchImpl: inject(f),
         signal: ac.signal,
       }),
@@ -326,7 +361,7 @@ describe('callBuffered', () => {
   it('returns an empty string when the model answers with nothing', async () => {
     const f = fakeFetch({ ok: true, status: 200, json: async () => ({ choices: [] }) });
     await expect(
-      callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
+      callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 8, fetchImpl: inject(f) }),
     ).resolves.toBe('');
   });
 });
