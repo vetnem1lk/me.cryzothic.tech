@@ -3,13 +3,8 @@ import { navigate } from 'wouter/use-browser-location';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
-import {
-  MODE_HINT,
-  MODE_NAME,
-  mockTransport,
-  type AgentMode,
-  type ChatMessage,
-} from './transport';
+import { apiTransport } from './apiTransport';
+import { MODE_HINT, MODE_NAME, type AgentMode, type ChatMessage } from './transport';
 
 const GREETING =
   "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.";
@@ -81,7 +76,17 @@ export default function VaiShell({
           if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
-        const reply = await mockTransport.send(text, requestMode);
+        // Task 7 replaces this with a live drain (tokens on screen as they land,
+        // real history, abort on unmount); until then the stream is buffered into
+        // the one-shot reply this queue already knows how to render.
+        const reply = await new Promise<string>((resolve, reject) => {
+          let acc = '';
+          apiTransport.send(text, requestMode, [], {
+            onToken: (t) => (acc += t),
+            onDone: () => resolve(acc),
+            onError: reject,
+          });
+        });
         setMessages((m) => [...m, { role: 'agent', text: reply, from: requestMode }]);
       })
       .catch(() => {
