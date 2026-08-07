@@ -232,19 +232,30 @@ async function relay(
 ): Promise<void> {
   const userText = body.messages[body.messages.length - 1].content;
 
-  // Screen every message, whatever role it claims. Two bypasses close here: the
-  // payload parked in an earlier turn behind an innocent question, and the
-  // payload labelled `assistant` — the history comes from the browser, so that
-  // label is attacker-controlled text sitting where a model trusts it most.
-  if (body.messages.some((m) => screenInjection(m.content))) {
+  // Every message is screened; a hit means something different per role.
+  //
+  // A `user` turn is what the visitor typed, so a hit there is the attack and it
+  // gets a deflection. Any user turn counts, not only the newest — parking the
+  // payload behind an innocent follow-up is the cheapest bypass there is.
+  if (body.messages.some((m) => m.role === 'user' && screenInjection(m.content))) {
     return sse.finish(pickDeflection(prompts, userText, seq++));
   }
+  // An `assistant` turn is our own prose replayed by the browser. The label is
+  // still attacker-controlled, but a hit is far more often VAI quoting itself —
+  // "You are now looking at his three biggest projects", "had to act as a tech
+  // lead", "режиме разработчика игр" all trip the screen. Dropping the turn keeps
+  // the payload away from the model either way, and a false positive then costs
+  // one turn of history instead of the whole conversation: deflecting would
+  // repeat forever, because the client replays that history on every later turn.
+  // validateBody guarantees the last message is a user turn, so this can neither
+  // empty the array nor change who speaks last.
+  const history = body.messages.filter((m) => m.role === 'user' || !screenInjection(m.content));
   if (body.mode === 'vai' && !(await isOnTopic(cfg, userText, fetchImpl))) {
     return sse.finish(pickDeflection(prompts, userText, seq++));
   }
 
   const system = body.mode === 'vai' ? prompts.vaiSystem : prompts.gaiSystem;
-  const messages: ChatMsg[] = [{ role: 'system', content: system }, ...body.messages];
+  const messages: ChatMsg[] = [{ role: 'system', content: system }, ...history];
   const hit = makeCanaryScanner(prompts.canary);
   for await (const tok of streamChat(cfg, messages, {
     temperature: body.mode === 'vai' ? VAI_TEMPERATURE : GAI_TEMPERATURE,
