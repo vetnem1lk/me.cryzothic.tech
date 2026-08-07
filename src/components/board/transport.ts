@@ -12,6 +12,8 @@ export interface ChatMessage {
   id?: string;
   /** True while tokens are still arriving for this line. */
   pending?: boolean;
+  /** A `/command` and its answer: shown in the shell, never sent to the model. */
+  local?: boolean;
 }
 
 export const MODE_NAME: Record<AgentMode, string> = { vai: 'VAI', gai: 'GAI' };
@@ -53,6 +55,7 @@ const MAX_TOTAL = 5500;
 export function history(msgs: ChatMessage[], mode: AgentMode, skip?: string): HistoryMsg[] {
   const isPrior = (m: ChatMessage) =>
     (m.role === 'user' || m.role === 'agent') && // sys notes are the shell's own voice
+    !m.local && // and neither is a /command exchange
     m.from === mode &&
     m.text !== '' && // a turn that failed before its first token has nothing to say
     (skip === undefined || m.id !== skip); // most lines carry no id at all

@@ -44,12 +44,18 @@ export default function VaiShell({
   const logRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
-  // A turn reads the log as it stands when the queue reaches it — long after the
-  // render that started it, so state alone would be stale.
+  // A turn reads the log as it stands when the queue reaches it, long after the
+  // render that started it — so the ref leads and React follows. Neither an
+  // effect nor a functional updater is soon enough: both run at commit or render
+  // time, while the next queued turn resumes on a microtask as soon as the last
+  // one resolves, and it would read a log still missing the answer that just
+  // finished. Every write to the log goes through here, which is what lets the
+  // ref be the newest version instead of a copy chasing one.
   const messagesRef = useRef(messages);
-  useEffect(() => {
-    messagesRef.current = messages;
-  }, [messages]);
+  const setMsgs = (fn: (m: ChatMessage[]) => ChatMessage[]) => {
+    messagesRef.current = fn(messagesRef.current);
+    setMessages(messagesRef.current);
+  };
   // Leaving the board must not leave a paint loop or an open socket behind.
   const aliveRef = useRef(true);
   const abortRef = useRef<AbortController | null>(null);
@@ -104,7 +110,7 @@ export default function VaiShell({
     if (next === modeRef.current) return;
     modeRef.current = next;
     setMode(next);
-    setMessages((m) => [...m, { role: 'sys', text: MODE_HINT[next] }]);
+    setMsgs((m) => [...m, { role: 'sys', text: MODE_HINT[next] }]);
   }
 
   /**
@@ -114,8 +120,11 @@ export default function VaiShell({
    */
   const runTurn = (text: string, turnMode: AgentMode, askId: string, replyId: string) =>
     new Promise<void>((resolve) => {
+      // Queued behind an unmount: never open a request the board cannot show.
+      if (!aliveRef.current) return resolve();
       let st: DrainState = EMPTY;
       let last = performance.now();
+      let failed = false;
 
       const paint = (now: number) => {
         if (!aliveRef.current) return resolve(); // the board went away mid-answer
@@ -123,14 +132,16 @@ export default function VaiShell({
         st = next;
         last = now;
         if (chunk) {
-          setMessages((all) =>
-            all.map((m) => (m.id === replyId ? { ...m, text: m.text + chunk } : m)),
-          );
+          setMsgs((all) => all.map((m) => (m.id === replyId ? { ...m, text: m.text + chunk } : m)));
         }
         if (st.doneFeeding && st.shown >= st.buf.length) {
-          // A turn that produced no text at all leaves no empty line behind —
-          // the [sys] note under it already says what happened.
-          setMessages((all) =>
+          // A turn that produced no text at all leaves no empty line behind, but
+          // it does owe the visitor a reason: the error path wrote one already,
+          // a clean stream that said nothing has to say so itself.
+          if (!st.buf && !failed) {
+            setMsgs((m) => [...m, { role: 'sys', text: '[sys] empty response — try again.' }]);
+          }
+          setMsgs((all) =>
             all
               .filter((m) => m.id !== replyId || m.text)
               .map((m) => (m.id === replyId ? { ...m, pending: false } : m)),
@@ -146,6 +157,11 @@ export default function VaiShell({
       apiTransport.send(
         text,
         turnMode,
+        // ponytail: `askId` drops this question and only this one. Type a third
+        // question while the first answer is still running and it is already in
+        // the log, so the model can see a question that comes after the one it
+        // is answering — accepted, like drop-oldest: the alternative is threading
+        // a turn index through every line.
         history(messagesRef.current, turnMode, askId),
         {
           onToken: (t) => {
@@ -158,8 +174,9 @@ export default function VaiShell({
             // Ending the feed is what closes the turn: the loop types out
             // whatever arrived, drops the cursor and lets the queue move on.
             // The service's own watchdogs mean a stalled stream lands here too.
+            failed = true;
             st = { ...st, doneFeeding: true };
-            setMessages((m) => [...m, { role: 'sys', text: `[sys] ${msg}` }]);
+            setMsgs((m) => [...m, { role: 'sys', text: `[sys] ${msg}` }]);
           },
         },
         ac.signal,
@@ -170,27 +187,34 @@ export default function VaiShell({
     const text = raw.trim();
     if (!text) return;
     const requestMode = modeRef.current;
+    // Resolved here, once: /joke and /lore advance a counter, so the queue must
+    // not run them a second time. Only the rendering waits for the queue.
+    const cmd = runCommand(text);
     const askId = crypto.randomUUID();
     const replyId = crypto.randomUUID();
-    setMessages((m) => [...m, { role: 'user', text, from: requestMode, id: askId }]);
+    // A command and its answer are shell-local — shown, never replayed to the
+    // model, whose message and character budget belongs to the conversation.
+    setMsgs((m) => [...m, { role: 'user', text, from: requestMode, id: askId, local: !!cmd }]);
     queueRef.current = queueRef.current
       .then(async () => {
-        const cmd = runCommand(text);
         if (cmd) {
-          setMessages((m) => [...m, { role: 'agent', text: cmd.text, from: requestMode }]);
+          setMsgs((m) => [
+            ...m,
+            { role: 'agent', text: cmd.text, from: requestMode, local: true },
+          ]);
           if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
         // An empty pending line is the thinking state: the cursor blinks alone
         // until the first token lands.
-        setMessages((m) => [
+        setMsgs((m) => [
           ...m,
           { role: 'agent', text: '', from: requestMode, id: replyId, pending: true },
         ]);
         await runTurn(text, requestMode, askId, replyId);
       })
       .catch(() => {
-        setMessages((m) => [...m, { role: 'sys', text: '[sys] transport error — try again.' }]);
+        setMsgs((m) => [...m, { role: 'sys', text: '[sys] transport error — try again.' }]);
       });
   }
 
@@ -290,6 +314,9 @@ export default function VaiShell({
           name="prompt"
           aria-label={`ask ${MODE_NAME[mode]}`}
           autoComplete="off"
+          // The service rejects anything longer; better a full field than a
+          // round trip that comes back a 400.
+          maxLength={500}
           placeholder={`C:\\> ask ${MODE_NAME[mode]} · /help`}
           className="caret-terminal peer w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
         />

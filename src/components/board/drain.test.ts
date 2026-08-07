@@ -58,6 +58,20 @@ describe('take pacing', () => {
     expect(typed).toHaveLength(10);
   });
 
+  test('catch-up starts one character past the backlog threshold', () => {
+    expect(take(filled(240), 1000)[0]).toHaveLength(70); // still the base speed
+    expect(take(filled(241), 1000)[0]).toHaveLength(241); // 280 earned, 241 exist
+  });
+
+  test('a negative frame delta types nothing and banks nothing', () => {
+    // A rAF timestamp is the frame's start time and can predate the
+    // performance.now() taken when the loop was set up, so the first delta can
+    // be negative — and an unclamped negative carry would stall it for good.
+    const [chunk, next] = take(filled(50), -8);
+    expect(chunk).toBe('');
+    expect(next.carry).toBe(0);
+  });
+
   test('a frame too short for a whole character paints nothing but keeps the credit', () => {
     const [chunk, next] = take(filled(50), 5);
     expect(chunk).toBe('');

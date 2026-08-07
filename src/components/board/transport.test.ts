@@ -65,7 +65,12 @@ function handlers() {
 /** One macrotask — enough for every pending microtask in the read loop to run. */
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  // Spies too: an assertion failing between spying and restoring would leak the
+  // stub into every test that runs after it.
+  vi.restoreAllMocks();
+});
 
 describe('apiTransport request', () => {
   test('posts the mode plus prior history with the new user turn appended', async () => {
@@ -144,7 +149,6 @@ describe('apiTransport stream', () => {
     expect(s.errors).toEqual([]);
     expect(s.dones).toBe(1);
     expect(logged).toHaveBeenCalledTimes(2);
-    logged.mockRestore();
   });
 
   test('an error event split mid-line across chunks still ends the turn', async () => {
@@ -332,6 +336,17 @@ describe('history', () => {
       { role: 'user', content: 'q1' },
       { role: 'assistant', content: 'a1' },
     ]);
+  });
+
+  test('a /command and its answer stay in the shell', () => {
+    // Shell commands are local theatre: replaying them would spend the model's
+    // message and character budget on text it never wrote.
+    const withCommand: ChatMessage[] = [
+      { role: 'user', text: '/help', from: 'vai', id: 'c1', local: true },
+      { role: 'agent', text: '/help — this list', from: 'vai', local: true },
+      { role: 'user', text: 'real question', from: 'vai', id: 'q1' },
+    ];
+    expect(history(withCommand, 'vai')).toEqual([{ role: 'user', content: 'real question' }]);
   });
 
   test('a turn that produced no text is left out', () => {
