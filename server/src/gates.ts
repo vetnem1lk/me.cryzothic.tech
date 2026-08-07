@@ -106,10 +106,18 @@ export function screenInjection(text: string): boolean {
 
 const CYRILLIC = /[Ѐ-ӿ]/;
 
-// Answer in the language the visitor used, and walk the pool so a persistent
-// prober gets a different line every time instead of one canned sentence.
-export function pickDeflection(p: Prompts, userText: string, n: number): string {
-  const pool = CYRILLIC.test(userText) ? p.deflections?.ru : p.deflections?.en;
+// Answer as the identity the visitor is talking to, in the language they used, and
+// walk the pool so a persistent prober gets a different line every time instead of
+// one canned sentence. Mode first: VAI's lines redirect to GAI, which is nonsense
+// coming from GAI itself.
+export function pickDeflection(
+  p: Prompts,
+  mode: ChatBody['mode'],
+  userText: string,
+  n: number,
+): string {
+  const pools = p.deflections?.[mode];
+  const pool = CYRILLIC.test(userText) ? pools?.ru : pools?.en;
   if (!pool?.length) {
     // The pools come from a hand-edited JSON file that nothing else validates:
     // fail loudly here rather than streaming `undefined` at a visitor.

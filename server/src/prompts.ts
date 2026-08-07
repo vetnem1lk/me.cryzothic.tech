@@ -7,11 +7,16 @@ import { join } from 'node:path';
 // No cycle: gates.ts imports only `type` from here, and a type import is erased.
 import { screenInjection } from './gates.js';
 
+type DeflectionPools = { en: string[]; ru: string[] };
+
 export interface Prompts {
   vaiSystem: string;
   gaiSystem: string;
   canary: string;
-  deflections: { en: string[]; ru: string[] };
+  // Per mode, because the two deflect for different reasons: VAI's topic gate says
+  // "not my dataset, ask GAI", while GAI only ever deflects on an injection and has
+  // nowhere to send anyone.
+  deflections: { vai: DeflectionPools; gai: DeflectionPools };
 }
 
 export function loadPrompts(dir: string): Prompts {
@@ -35,13 +40,27 @@ export function loadPrompts(dir: string): Prompts {
     );
   }
 
-  const deflections = JSON.parse(read('deflections.json')) as Prompts['deflections'];
+  // The flat `{en,ru}` shape predates the per-mode pools. Code reaches the box
+  // through git and this file through scp, so a deploy has a window where the two
+  // disagree — and with Restart=always a boot throw is a crash loop that takes the
+  // chat down site-wide. One release of shape tolerance costs one line — delete it
+  // once the box file is nested, i.e. after the first restart following the T5b
+  // prompts scp. Past that point a flat file on the box is a mistake, not a
+  // migration, and should fail loudly.
+  const raw = JSON.parse(read('deflections.json')) as Prompts['deflections'] | DeflectionPools;
+  const deflections: Prompts['deflections'] = 'vai' in raw ? raw : { vai: raw, gai: raw };
   // A deflection comes back to us as an assistant turn in the replayed history,
   // where a screen hit drops the turn. A colliding line is therefore not a
   // deflection that fails — it is one turn of memory quietly lost from every
   // conversation that was ever deflected. Cheaper to catch at boot than to
-  // explain later.
-  const colliding = [...deflections.en, ...deflections.ru].find(screenInjection);
+  // explain later. GAI's pool is the likelier offender: its lines talk *about*
+  // persona swaps, which is the wording the screen hunts for.
+  const colliding = [
+    ...deflections.vai.en,
+    ...deflections.vai.ru,
+    ...deflections.gai.en,
+    ...deflections.gai.ru,
+  ].find(screenInjection);
   if (colliding) {
     throw new Error(`a deflection trips the injection screen — rephrase it: ${colliding}`);
   }

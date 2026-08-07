@@ -12,7 +12,7 @@ describe('health', () => {
       vaiSystem: '',
       gaiSystem: '',
       canary: 'CNRY-health',
-      deflections: { en: [''], ru: [''] },
+      deflections: { vai: { en: [''], ru: [''] }, gai: { en: [''], ru: [''] } },
     };
     const srv = createApp({ cfg, prompts }).listen(0);
     const port = (srv.address() as { port: number }).port;

@@ -55,6 +55,25 @@ clone it and you get the service, the gates and the tests, but not Vlad.
 
 Everything else is here on purpose. The guardrails are the exhibit.
 
+## Prompt deploy
+
+Prompts do not ship with the code: the code goes out through git, the files in
+`prompts/` are copied to the server's prompt directory by hand. Edit them locally,
+run `npm run boot-check` — it loads them exactly as boot does, so a lost `{{CANARY}}`
+or a deflection that collides with the injection screen fails on your machine instead
+of in a restart loop — then copy the changed file over and restart the service. Run
+the check again after any edit to the injection patterns in `src/gates.ts` too: a
+widened pattern can start matching a deflection that booted fine yesterday.
+
+Prompts are read once, at startup. A copied file changes nothing until the restart.
+
+When a prompt change also needs new code to read it, deploy the code first. A running
+service only understands the file shapes its own version knows, and a restart into a
+shape it cannot parse is a crash loop, not a degraded answer — the loader tolerates the
+older shape for exactly one release for this reason, never the other way round. That
+fallback has a removal point: once the deployed file is on the new shape (the first
+restart after it is copied over), the tolerance in `src/prompts.ts` goes.
+
 ## Run it locally without a key
 
 ```bash
