@@ -34,14 +34,18 @@ async function collect(src: AsyncIterable<Uint8Array>): Promise<OrChunk[]> {
 
 // Emits its frames one `gap` apart so fake timers can drive the idle/total
 // clocks, and rejects the moment the request is aborted — like a real body read.
+// One listener for the whole stream: registering one per frame would pile up
+// against the EventTarget warning threshold on a long stream.
 async function* paced(signal: AbortSignal, gap: number, frames: string[]) {
+  let cancelWait = () => {};
+  signal.addEventListener('abort', () => cancelWait(), { once: true });
   for (const f of frames) {
     await new Promise<void>((resolve, reject) => {
       const t = setTimeout(resolve, gap);
-      signal.addEventListener('abort', () => {
+      cancelWait = () => {
         clearTimeout(t);
         reject(new Error('aborted'));
-      }, { once: true });
+      };
     });
     yield enc(f);
   }
@@ -212,11 +216,36 @@ describe('callBuffered', () => {
     expect(body.temperature).toBe(0);
   });
 
-  it('throws with the status on a non-OK response', async () => {
-    const f = fakeFetch({ ok: false, status: 500, json: async () => ({}) });
+  it('throws with the status on a non-OK response, releasing the socket', async () => {
+    const cancel = vi.fn(async () => {});
+    const f = fakeFetch({ ok: false, status: 500, body: { cancel }, json: async () => ({}) });
     await expect(
       callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
     ).rejects.toThrow('openrouter HTTP 500');
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it('gives up on a classifier call that never answers', async () => {
+    vi.useFakeTimers();
+    try {
+      const f = vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<never>((_resolve, reject) => {
+            (init.signal as AbortSignal).addEventListener(
+              'abort',
+              () => reject(new Error('aborted')),
+              { once: true },
+            );
+          }),
+      );
+      const call = expect(
+        callBuffered(cfg, msgs, cfg.classifierModel, { maxTokens: 4, fetchImpl: inject(f) }),
+      ).rejects.toThrow(/abort/i);
+      await vi.advanceTimersByTimeAsync(60_000);
+      await call;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('returns an empty string when the model answers with nothing', async () => {
@@ -249,12 +278,14 @@ describe('streamChat', () => {
     expect(body.temperature).toBe(0.4);
   });
 
-  it('throws with the status when the stream never opens', async () => {
-    const f = fakeFetch({ ok: false, status: 429, body: null });
+  it('throws with the status when the stream never opens, releasing the socket', async () => {
+    const cancel = vi.fn(async () => {});
+    const f = fakeFetch({ ok: false, status: 429, body: { cancel } });
     const run = async () => {
       for await (const _t of streamChat(cfg, msgs, { temperature: 0.7, fetchImpl: inject(f) }));
     };
     await expect(run()).rejects.toThrow('openrouter HTTP 429');
+    expect(cancel).toHaveBeenCalled();
   });
 
   it('throws when a 200 arrives without a body', async () => {
@@ -316,6 +347,32 @@ describe('streamChat', () => {
       await vi.advanceTimersByTimeAsync(46_000);
       await run;
       expect(out).toEqual(['a', 'b', 'c']);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('counts keepalive frames as signs of life, not as silence', async () => {
+    // The free 120B primary can spend well over 20 s on its first token while
+    // sending ": OPENROUTER PROCESSING" the whole time. The parser drops those
+    // frames, so the idle watchdog has to watch raw bytes, not parsed tokens.
+    vi.useFakeTimers();
+    try {
+      const keepalive = ': OPENROUTER PROCESSING\n\n';
+      const f = vi.fn(async (_url: string, init: RequestInit) => ({
+        ok: true,
+        status: 200,
+        body: paced(init.signal as AbortSignal, 15_000, [keepalive, keepalive, frame('a')]),
+      }));
+      const out: string[] = [];
+      const run = (async () => {
+        for await (const t of streamChat(cfg, msgs, { temperature: 0.7, fetchImpl: inject(f) })) {
+          out.push(t);
+        }
+      })();
+      await vi.advanceTimersByTimeAsync(46_000);
+      await run;
+      expect(out).toEqual(['a']); // first token at 45 s, twice the idle budget
     } finally {
       vi.useRealTimers();
     }
@@ -383,14 +440,32 @@ describe('streamChat', () => {
     await expect(run()).rejects.toThrow(/abort/i);
   });
 
-  it('serves canned tokens in mock mode without a key or a network call', async () => {
-    const mockCfg = loadConfig({ MOCK_LLM: '1' });
-    const f = vi.fn();
-    const out: string[] = [];
-    for await (const t of streamChat(mockCfg, msgs, { temperature: 0.7, fetchImpl: inject(f) })) {
-      out.push(t);
+  it('serves canned tokens in mock mode, paced, without a key or a network call', async () => {
+    vi.useFakeTimers();
+    try {
+      const mockCfg = loadConfig({ MOCK_LLM: '1' });
+      const f = vi.fn();
+      const out: string[] = [];
+      const run = (async () => {
+        for await (const t of streamChat(mockCfg, msgs, {
+          temperature: 0.7,
+          fetchImpl: inject(f),
+        })) {
+          out.push(t);
+        }
+      })();
+
+      await vi.advanceTimersByTimeAsync(29);
+      expect(out).toEqual([]); // 30 ms apart, not dumped in one go
+      await vi.advanceTimersByTimeAsync(1);
+      expect(out).toEqual(['mock ']);
+
+      await vi.advanceTimersByTimeAsync(19 * 30);
+      await run;
+      expect(out).toEqual(Array(20).fill('mock '));
+      expect(f).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
     }
-    expect(out).toEqual(Array(20).fill('mock '));
-    expect(f).not.toHaveBeenCalled();
   });
 });

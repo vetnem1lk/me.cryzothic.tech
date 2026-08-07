@@ -111,7 +111,12 @@ export async function callBuffered(
       ac.signal,
     );
     const res = await call(CHAT_URL, init);
-    if (!res.ok) throw new Error(`openrouter HTTP ${res.status}`);
+    if (!res.ok) {
+      // Free-tier 429s are steady state, not an exception — let the socket go
+      // instead of leaving an unread body pinned to the connection pool.
+      res.body?.cancel().catch(() => {});
+      throw new Error(`openrouter HTTP ${res.status}`);
+    }
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     return (data.choices?.[0]?.message?.content ?? '').trim();
   } finally {
@@ -151,6 +156,17 @@ export async function* streamChat(
   };
   armIdle(); // covers the connect and the wait for the first token too
 
+  // "Idle" means no BYTES from upstream, not no tokens: OpenRouter sends
+  // ": OPENROUTER PROCESSING" keepalives while a slow model thinks, and the
+  // parser drops those — watching parsed tokens would kill a stream that is
+  // alive but simply has a long time-to-first-token.
+  async function* alive(src: AsyncIterable<Uint8Array>) {
+    for await (const chunk of src) {
+      armIdle();
+      yield chunk;
+    }
+  }
+
   try {
     const init = chatRequestInit(
       cfg,
@@ -164,15 +180,15 @@ export async function* streamChat(
       signal,
     );
     const res = await call(CHAT_URL, init);
-    if (!res.ok) throw new Error(`openrouter HTTP ${res.status}`);
+    if (!res.ok) {
+      res.body?.cancel().catch(() => {}); // same: don't hold a socket for an error body
+      throw new Error(`openrouter HTTP ${res.status}`);
+    }
     if (!res.body) throw new Error('openrouter returned no response body');
 
-    for await (const chunk of parseChatSSE(res.body)) {
+    for await (const chunk of parseChatSSE(alive(res.body))) {
       if (chunk.error) throw new Error(chunk.error);
-      if (chunk.content) {
-        armIdle();
-        yield chunk.content;
-      }
+      if (chunk.content) yield chunk.content;
     }
   } finally {
     // Also runs when the consumer walks away mid-stream, so no timer outlives
