@@ -27,3 +27,9 @@ cryx.deploy.json
 *.njsproj
 *.sln
 *.sw?
+
+# server secrets & private prompts (public repo!)
+.env*
+!.env.example
+server/prompts/*
+!server/prompts/README.md

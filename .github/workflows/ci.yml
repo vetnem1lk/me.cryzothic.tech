@@ -18,3 +18,6 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - name: server tests
+        working-directory: server
+        run: npm ci && npm run lint && npm test
