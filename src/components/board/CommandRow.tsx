@@ -3,17 +3,19 @@
 // discoverability layer for commands.ts, and a click runs the command.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { Fragment, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import { COMMAND_ROW } from './commands';
+import { wheelPx, wheelStep } from './wheelMath';
 
 const DRIFT_SPEED = 14; // px/s — slow marquee-style drift
 const RESUME_DELAY_MS = 2500; // idle time after manual scroll before drift resumes
+const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 
 // ponytail: third sanctioned infinite loop (founder-requested, after the
 // marquee and the TextType label) — reduced-motion renders a static row.
 export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) {
   const rowRef = useRef<HTMLDivElement>(null);
-  const motionOk = matchMedia('(prefers-reduced-motion: no-preference)').matches;
+  const motionOk = matchMedia(MOTION_QUERY).matches;
 
   useGSAP(
     () => {
@@ -31,6 +33,12 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
         idleTimer = window.setTimeout(() => {
           if (!row.matches(':hover') && !row.matches(':focus-within')) paused = false;
         }, RESUME_DELAY_MS);
+      };
+      // Pointer gone / focus gone means the reason to pause is gone: drift
+      // resumes immediately. The idle delay stays only for wheel and touch.
+      const resumeNow = () => {
+        window.clearTimeout(idleTimer);
+        if (!row.matches(':hover') && !row.matches(':focus-within')) paused = false;
       };
       // Seamless wrap over the duplicated half — covers drift AND manual scroll.
       // Period is the first track's border box, NOT scrollWidth / 2: the row's own
@@ -52,17 +60,24 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
           row.scrollLeft += px;
         }
       };
-      const onWheel = () => {
+      // deltaY is what a mouse wheel emits over a horizontal strip; deltaX covers
+      // trackpads. Non-passive because a consumed wheel must not also scroll the page.
+      const onWheel = (e: WheelEvent) => {
+        const period = (row.firstElementChild as HTMLElement | null)?.offsetWidth ?? 0;
+        const next = wheelStep(row.scrollLeft, wheelPx(e, row.clientWidth), period, Infinity);
+        if (next === null) return;
+        e.preventDefault();
+        row.scrollLeft = next;
         pause();
         resumeSoon();
       };
 
       row.addEventListener('scroll', wrap, { passive: true });
       row.addEventListener('pointerenter', pause);
-      row.addEventListener('pointerleave', resumeSoon);
+      row.addEventListener('pointerleave', resumeNow);
       row.addEventListener('focusin', pause);
-      row.addEventListener('focusout', resumeSoon);
-      row.addEventListener('wheel', onWheel, { passive: true });
+      row.addEventListener('focusout', resumeNow);
+      row.addEventListener('wheel', onWheel, { passive: false });
       row.addEventListener('touchstart', pause, { passive: true });
       row.addEventListener('touchend', resumeSoon, { passive: true });
       gsap.ticker.add(tick);
@@ -72,9 +87,9 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
         window.clearTimeout(idleTimer);
         row.removeEventListener('scroll', wrap);
         row.removeEventListener('pointerenter', pause);
-        row.removeEventListener('pointerleave', resumeSoon);
+        row.removeEventListener('pointerleave', resumeNow);
         row.removeEventListener('focusin', pause);
-        row.removeEventListener('focusout', resumeSoon);
+        row.removeEventListener('focusout', resumeNow);
         row.removeEventListener('wheel', onWheel);
         row.removeEventListener('touchstart', pause);
         row.removeEventListener('touchend', resumeSoon);
@@ -82,6 +97,29 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
     },
     { scope: rowRef },
   );
+
+  // Reduced-motion: no drift, no loop — but the row is still a horizontal
+  // scroller and a mouse wheel still only emits vertical deltas.
+  useEffect(() => {
+    const row = rowRef.current;
+    // Read once on mount, like the useGSAP body above. Re-running on a
+    // mid-session flip would tear this listener down while useGSAP never
+    // re-runs, leaving the row with no wheel handler at all.
+    if (!row || matchMedia(MOTION_QUERY).matches) return;
+    const onWheel = (e: WheelEvent) => {
+      const next = wheelStep(
+        row.scrollLeft,
+        wheelPx(e, row.clientWidth),
+        0,
+        row.scrollWidth - row.clientWidth,
+      );
+      if (next === null) return;
+      e.preventDefault();
+      row.scrollLeft = next;
+    };
+    row.addEventListener('wheel', onWheel, { passive: false });
+    return () => row.removeEventListener('wheel', onWheel);
+  }, []);
 
   const track = (hidden: boolean) => (
     <div aria-hidden={hidden || undefined} className="flex shrink-0 items-center gap-2 pr-2">

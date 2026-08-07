@@ -256,10 +256,10 @@ export default function TargetCursor({
         spinTl?.kill()
         document.body.classList.remove('custom-cursor')
       }
-      // ponytail: no scroll/resize re-sync of a locked rect. The command row is
-      // the one scrollable .cursor-target strip: drift pauses on hover, so only
-      // a manual wheel-scroll while hovering can shift buttons under a locked
-      // rect — cosmetic; add an elementFromPoint re-sync if it ever matters.
+      // ponytail: no scroll/resize re-sync of a locked rect.
+      // The command row is the one scrollable .cursor-target strip; wheel-scroll
+      // under a locked cursor shifts buttons beneath the frozen rect until the
+      // next pointermove re-locks — visible for a frame, cosmetic, accepted.
     },
     {
       dependencies: [
