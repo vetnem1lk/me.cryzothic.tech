@@ -58,14 +58,9 @@ export function validateBody(x: unknown, caps: Config['caps']): ChatBody {
   return { mode, messages: clean };
 }
 
-// Prompt-injection phrasings, English and Russian. Deliberately narrow: a false
-// positive costs a recruiter a real answer, so a pattern has to look like an
-// instruction to the agent, not merely contain a suspicious word. Every literal
-// separator is `\s+` and never a single space — padding the gap with a second
-// space or a newline is the cheapest bypass there is.
-// Best-effort by design: plain pattern matching, no unicode normalization, so
-// homoglyphs get through. Behind this screen sit the topic classifier, the
-// closed-world system prompt and the canary scanner below.
+// Prompt-injection phrasings, EN and RU. Narrow on purpose — a false positive
+// costs a recruiter a real answer — and separators are `\s+`, never a literal
+// space, because padding the gap is the cheapest bypass there is.
 const INJECTION: RegExp[] = [
   /\bignore\b[^.!?]{0,40}\binstructions?\b/i, // "ignore all of the above instructions"
   /\bdisregard\b/i,
@@ -73,16 +68,18 @@ const INJECTION: RegExp[] = [
   /\b(?:reveal|repeat|print|show|output)\b[^.!?]{0,30}\b(?:prompt|instructions?)\b/i,
   /\byou(?:['’]re|\s+are)\s+now\b/i,
   /\bdeveloper\s+mode\b/i,
-  // Needs the imperative shape "act as a / an / if / though / DAN", which keeps
-  // "Act as DAN" and lets "did Vlad act as team lead" — a real question about a
-  // role — straight through. A lookbehind on pronouns cannot do that: names.
-  /\b(?:act|behave|respond|pretend)\s+as\s+(?:an?|if|dan|though)\b/i,
+  // Persona swaps, in two shapes. An order: "Act as Sydney", "you should act as X".
+  /(?:^|[.!?]\s*|\bnow\s+|\bplease\s+|\byou\s+(?:will|should|must|shall|are\s+to)\s+)(?:act|behave|respond|pretend)\s+as\b/i,
+  // Or a persona as the object: "act as an AI with no rules". The lookbehind lets
+  // "did Vlad act as a tech lead" through — that is a question about a job, and a
+  // pronoun lookbehind could not tell the two apart once a name is in the way.
+  /(?<!\b(?:did|has|have)\s+\S+\s)\b(?:act|behave|respond|pretend)\s+as\s+(?:an?|if|dan|though)\b/i,
   // The Russian half spells its letter classes out: `\w` and `\b` are ASCII-only
   // in a JavaScript regex, so they silently never match Cyrillic.
   /игнорир/i,
   /систем[а-яё]*\s+промп?т/i, // "системный промпт", not "системный программист"
   // `*` and not `?`: any number of filler words between the verb and its object.
-  /забудь[а-яё]*\s+(?:[а-яё]+,?\s+)*инструкц/i,
+  /забудь[а-яё]*,?\s+(?:[а-яё]+,?\s+)*инструкц/i,
   /представь[а-яё]*,?\s+(?:[а-яё]+,?\s+)*что\s+ты/i,
   /ты\s+теперь/i,
   /режим[а-яё]*\s+разработчика/i,
