@@ -71,4 +71,25 @@ describe('loadPrompts', () => {
     expect(() => loadPrompts(dir)).toThrow(/facts\.vai\.md/);
     writeFileSync(path, FACTS);
   });
+
+  it('refuses to boot a system prompt that lost its {{CANARY}} placeholder', () => {
+    // Without the placeholder the plant is a no-op, the canary is in no prompt,
+    // and the leak filter watches for a marker the model can never say — a dead
+    // guardrail that every green test would still report as alive.
+    const path = join(dir, 'gai.system.md');
+    writeFileSync(path, 'You are GAI. No marker anywhere in here.');
+    expect(() => loadPrompts(dir)).toThrow(/CANARY/);
+    writeFileSync(path, GAI);
+  });
+
+  it('refuses to boot a deflection that trips the injection screen', () => {
+    // A deflection is replayed to us as assistant history, where a screen hit
+    // drops the turn — so a colliding line would quietly cost one turn of memory
+    // in every conversation that ever got deflected.
+    const path = join(dir, 'deflections.json');
+    const colliding = { ...DEFLECTIONS, en: [...DEFLECTIONS.en, 'You are now out of scope.'] };
+    writeFileSync(path, JSON.stringify(colliding));
+    expect(() => loadPrompts(dir)).toThrow(/injection screen/);
+    writeFileSync(path, JSON.stringify(DEFLECTIONS));
+  });
 });

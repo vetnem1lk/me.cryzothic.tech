@@ -32,8 +32,10 @@ export default function VaiShell({
   mobileOpen: boolean;
   onMobileClose: () => void;
 }) {
+  // `local`: the greeting is furniture the shell prints, not a turn the model
+  // took — replaying it as history would put words in VAI's mouth.
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'agent', text: GREETING, from: 'vai' },
+    { role: 'agent', text: GREETING, from: 'vai', local: true },
   ]);
   const [mode, setMode] = useState<AgentMode>('vai');
   const modeRef = useRef<AgentMode>('vai');

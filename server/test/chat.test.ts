@@ -431,27 +431,43 @@ describe('POST /api/chat — rate limits', () => {
   });
 
   it('spends one shared daily budget across all visitors', async () => {
+    // Valid bodies throughout: the budget buys model calls, so an answer is the
+    // only thing that may spend one.
     const capped = loadConfig({ OPENROUTER_API_KEY: 'test-key', DAILY_CAP: '2' });
-    const url = serve({ cfg: capped, prompts, fetchImpl: inject(fakeOpenRouter()) });
-    const from = (ip: string) => post(url, bad, { 'cf-connecting-ip': ip });
+    const url = serve({ cfg: capped, prompts, fetchImpl: inject(fakeOpenRouter({ tokens: ['ok'] })) });
+    const from = async (ip: string) => {
+      const res = await post(url, ask('hi', 'gai'), { 'cf-connecting-ip': ip });
+      return { status: res.status, body: await res.text() };
+    };
 
-    expect((await from('198.51.100.1')).status).toBe(400);
-    expect((await from('198.51.100.2')).status).toBe(400);
+    expect((await from('198.51.100.1')).status).toBe(200);
+    expect((await from('198.51.100.2')).status).toBe(200);
 
     const spent = await from('198.51.100.3'); // a fresh IP does not buy a fresh budget
     expect(spent.status).toBe(429);
-    expect(((await spent.json()) as { error: { message: string } }).error.message).toMatch(
+    expect((JSON.parse(spent.body) as { error: { message: string } }).error.message).toMatch(
       /temporarily unavailable/i,
     );
   });
 
-  it('spends the daily budget on answers only, not on every hit of the path', async () => {
-    // A GET or a preflight costs no model call, so it must not cost budget either.
-    const capped = loadConfig({ OPENROUTER_API_KEY: 'test-key', DAILY_CAP: '2' });
-    const url = serve({ cfg: capped, prompts, fetchImpl: inject(fakeOpenRouter()) });
+  it('never spends it on a request that failed the body gate', async () => {
+    // A cross-origin `text/plain` POST is CORS-simple: the browser blocks reading
+    // the response, never the sending of the request. Any third-party page can
+    // fire these all day; they all die at validateBody, and a request that never
+    // reaches a model must not cost the site its day.
+    const capped = loadConfig({ OPENROUTER_API_KEY: 'test-key', DAILY_CAP: '1' });
+    const url = serve({ cfg: capped, prompts, fetchImpl: inject(fakeOpenRouter({ tokens: ['ok'] })) });
 
-    for (let i = 0; i < 4; i++) expect((await fetch(`${url}/api/chat`)).status).toBe(404);
-    expect((await post(url, bad)).status).toBe(400); // budget untouched
+    expect((await fetch(`${url}/api/chat`)).status).toBe(404); // a GET never reaches the route
+    for (let i = 0; i < 3; i++) {
+      const junk = await post(url, 'burn the budget', { 'content-type': 'text/plain' });
+      expect(junk.status).toBe(400);
+      await junk.text();
+    }
+
+    const answer = await post(url, ask('hi', 'gai')); // the single unit is still there
+    expect(answer.status).toBe(200);
+    expect(readSse(await answer.text()).text).toBe('ok');
   });
 
   it('leaves the health probe unlimited', async () => {

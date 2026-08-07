@@ -4,6 +4,8 @@
 import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+// No cycle: gates.ts imports only `type` from here, and a type import is erased.
+import { screenInjection } from './gates.js';
 
 export interface Prompts {
   vaiSystem: string;
@@ -19,12 +21,30 @@ export function loadPrompts(dir: string): Prompts {
   const canary = `CNRY-${randomBytes(6).toString('hex')}`;
   const plant = (template: string) => template.replaceAll('{{CANARY}}', canary);
 
-  return {
-    // VAI's grounding corpus is a separate file so facts can be redeployed
-    // without touching the rules; the rules reference it as "the FACTS section".
-    vaiSystem: plant(`${read('vai.system.md')}\n\nFACTS\n${read('facts.vai.md')}`),
-    gaiSystem: plant(read('gai.system.md')),
-    canary,
-    deflections: JSON.parse(read('deflections.json')) as Prompts['deflections'],
-  };
+  // VAI's grounding corpus is a separate file so facts can be redeployed without
+  // touching the rules; the rules reference it as "the FACTS section".
+  const vaiSystem = plant(`${read('vai.system.md')}\n\nFACTS\n${read('facts.vai.md')}`);
+  const gaiSystem = plant(read('gai.system.md'));
+  // The prompts are hand-edited and private, so nothing else would notice a lost
+  // placeholder: the plant silently does nothing, the canary is in no prompt, and
+  // the leak filter spends the deploy watching for a marker the model has never
+  // seen. Every test stays green while the guardrail is dead.
+  if (!vaiSystem.includes(canary) || !gaiSystem.includes(canary)) {
+    throw new Error(
+      'a system prompt is missing its {{CANARY}} placeholder — the leak filter would be dead',
+    );
+  }
+
+  const deflections = JSON.parse(read('deflections.json')) as Prompts['deflections'];
+  // A deflection comes back to us as an assistant turn in the replayed history,
+  // where a screen hit drops the turn. A colliding line is therefore not a
+  // deflection that fails — it is one turn of memory quietly lost from every
+  // conversation that was ever deflected. Cheaper to catch at boot than to
+  // explain later.
+  const colliding = [...deflections.en, ...deflections.ru].find(screenInjection);
+  if (colliding) {
+    throw new Error(`a deflection trips the injection screen — rephrase it: ${colliding}`);
+  }
+
+  return { vaiSystem, gaiSystem, canary, deflections };
 }

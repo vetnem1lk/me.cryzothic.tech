@@ -248,6 +248,30 @@ describe('callBuffered', () => {
     }
   });
 
+  it('drops the call when the caller hangs up', async () => {
+    // The classifier runs while the visitor's SSE connection is open. Closing the
+    // tab mid-classification has to reach upstream, or a departed visitor keeps
+    // paying for a verdict nobody will read.
+    const ac = new AbortController();
+    const f = vi.fn(
+      (_url: string, init: RequestInit) =>
+        new Promise<never>((_resolve, reject) => {
+          (init.signal as AbortSignal).addEventListener('abort', () => reject(new Error('aborted')), {
+            once: true,
+          });
+        }),
+    );
+    const call = expect(
+      callBuffered(cfg, msgs, cfg.classifierModel, {
+        maxTokens: 4,
+        fetchImpl: inject(f),
+        signal: ac.signal,
+      }),
+    ).rejects.toThrow(/abort/i);
+    ac.abort();
+    await call;
+  });
+
   it('returns an empty string when the model answers with nothing', async () => {
     const f = fakeFetch({ ok: true, status: 200, json: async () => ({ choices: [] }) });
     await expect(

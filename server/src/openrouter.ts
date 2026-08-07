@@ -99,16 +99,20 @@ export async function callBuffered(
   cfg: Config,
   messages: ChatMsg[],
   model: string,
-  opts: { maxTokens: number; fetchImpl?: typeof fetch },
+  opts: { maxTokens: number; fetchImpl?: typeof fetch; signal?: AbortSignal },
 ): Promise<string> {
   const call = opts.fetchImpl ?? fetch;
+  // Same composition as streamChat: our watchdog drives `ac`, and the caller's
+  // signal (the visitor closed the tab) folds in through AbortSignal.any, which
+  // is already aborted when that signal fired before we got here.
   const ac = new AbortController();
+  const signal = opts.signal ? AbortSignal.any([opts.signal, ac.signal]) : ac.signal;
   const total = setTimeout(() => ac.abort(), TOTAL_MS);
   try {
     const init = chatRequestInit(
       cfg,
       { messages, models: [model], stream: false, maxTokens: opts.maxTokens, temperature: 0 },
-      ac.signal,
+      signal,
     );
     const res = await call(CHAT_URL, init);
     if (!res.ok) {

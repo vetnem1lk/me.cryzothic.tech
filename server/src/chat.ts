@@ -7,6 +7,7 @@ import { ipKeyGenerator, rateLimit } from 'express-rate-limit';
 import type { Config } from './config.js';
 import type { Prompts } from './prompts.js';
 import {
+  GateError,
   makeCanaryScanner,
   pickDeflection,
   screenInjection,
@@ -72,26 +73,27 @@ export function ipLimiter(): RequestHandler {
 // The whole site shares one day's worth of model calls, so a bad afternoon costs
 // a bounded number of free-tier requests. Keyed by date, which resets it at UTC
 // midnight without a timer or a stored counter.
-export function dailyFuse(cfg: Config): RequestHandler {
+//
+// Not a middleware: as one it ran before the body was parsed, and a cross-origin
+// `text/plain` POST is CORS-simple — the browser blocks reading the response,
+// never the sending of the request, so any third-party page could have burned the
+// whole day on 400s. handleChat calls this once the body is known to be real, and
+// what it spends is what an answer actually costs.
+export function dailyFuse(cfg: Config): () => void {
   let day = '';
   let spent = 0;
-  return (req, res, next) => {
-    // Only an answer costs a model call, so only a POST costs budget — a GET or
-    // a CORS preflight on this path must not spend it.
-    if (req.method !== 'POST' || req.path !== '/api/chat') return next();
+  return () => {
     const today = new Date().toISOString().slice(0, 10);
     if (today !== day) {
       day = today;
       spent = 0;
     }
     if (++spent > cfg.dailyCap) {
-      sendJsonError(res, {
-        status: 429,
-        message: 'VAI is temporarily unavailable — today’s budget is spent. Try again tomorrow.',
-      });
-      return;
+      throw new GateError(
+        429,
+        'VAI is temporarily unavailable — today’s budget is spent. Try again tomorrow.',
+      );
     }
-    next();
   };
 }
 
@@ -209,7 +211,12 @@ function openSse(res: Response, canary: string): Sse {
 
 // Fail-open on purpose: a classifier outage must not turn the chat into a wall of
 // deflections, and the grounded system prompt still refuses off-topic questions.
-async function isOnTopic(cfg: Config, userText: string, fetchImpl?: typeof fetch): Promise<boolean> {
+async function isOnTopic(
+  cfg: Config,
+  userText: string,
+  signal: AbortSignal,
+  fetchImpl?: typeof fetch,
+): Promise<boolean> {
   if (cfg.mockLlm) return true; // mock mode means no network, for this call too
   const verdict = await callBuffered(
     cfg,
@@ -218,7 +225,9 @@ async function isOnTopic(cfg: Config, userText: string, fetchImpl?: typeof fetch
       { role: 'user', content: userText },
     ],
     cfg.classifierModel,
-    { maxTokens: 4, fetchImpl },
+    // A visitor who closed the tab is not owed a verdict: the same signal that
+    // stops the answering stream stops the call that gates it.
+    { maxTokens: 4, fetchImpl, signal },
   ).catch(() => 'ON');
   return !verdict.toUpperCase().startsWith('OFF');
 }
@@ -250,7 +259,7 @@ async function relay(
   // validateBody guarantees the last message is a user turn, so this can neither
   // empty the array nor change who speaks last.
   const history = body.messages.filter((m) => m.role === 'user' || !screenInjection(m.content));
-  if (body.mode === 'vai' && !(await isOnTopic(cfg, userText, fetchImpl))) {
+  if (body.mode === 'vai' && !(await isOnTopic(cfg, userText, sse.signal, fetchImpl))) {
     return sse.finish(pickDeflection(prompts, userText, seq++));
   }
 
@@ -273,6 +282,7 @@ async function relay(
 export async function handleChat(
   cfg: Config,
   prompts: Prompts,
+  fuse: () => void,
   req: Request,
   res: Response,
   fetchImpl?: typeof fetch,
@@ -280,8 +290,10 @@ export async function handleChat(
   let body: ChatBody;
   try {
     body = validateBody(req.body, cfg.caps);
+    fuse(); // budget is spent here and nowhere else: after the body proved real
   } catch (err) {
-    // Nothing has been written yet, so this can still be a real status code.
+    // Nothing has been written yet, so this can still be a real status code —
+    // 400 from the caps, 429 from the fuse.
     sendJsonError(res, err);
     return;
   }

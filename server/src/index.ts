@@ -63,8 +63,11 @@ export function createApp(deps: AppDeps = {}) {
   // turned away before anything parses its body, let alone calls a model.
   // 16kb, not 8: the caps count characters and this counts bytes, and Cyrillic
   // costs two per character — 6000 legal characters weigh ~13kb on the wire.
-  app.use(ipLimiter(), dailyFuse(cfg), express.json({ limit: '16kb' }));
-  app.post('/api/chat', (req, res) => handleChat(cfg, prompts, req, res, deps.fetchImpl));
+  app.use(ipLimiter(), express.json({ limit: '16kb' }));
+  // One counter per app, spent inside handleChat once the body has passed the
+  // caps — see dailyFuse for why it cannot sit out here as a middleware.
+  const fuse = dailyFuse(cfg);
+  app.post('/api/chat', (req, res) => handleChat(cfg, prompts, fuse, req, res, deps.fetchImpl));
 
   // Unmatched route: JSON like everything else here, not Express's HTML page.
   app.use((_req, res) => sendJsonError(res, { status: 404, message: 'not found' }));

@@ -1,3 +1,5 @@
+// What the /code view shows: its own source, imported `?raw` so the bundle carries
+// the real files and the exhibit can never drift from the code it claims to be.
 import appSrc from '../../../App.tsx?raw';
 import cssSrc from '../../../index.css?raw';
 import cursorSrc from '../../TargetCursor.tsx?raw';
