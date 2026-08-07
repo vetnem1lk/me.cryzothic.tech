@@ -44,6 +44,7 @@ describe('runCommand', () => {
       '/nda',
       '/loot',
       '/contact',
+      '/3d',
     ]);
     const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(Boolean);
     expect(new Set(routes).size).toBe(routes.length);

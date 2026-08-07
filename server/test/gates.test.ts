@@ -35,7 +35,10 @@ const PROMPTS: Prompts = {
   vaiSystem: 'vai rules',
   gaiSystem: 'gai rules',
   canary: CANARY,
-  deflections: { en: ['en-0', 'en-1', 'en-2'], ru: ['ru-0', 'ru-1'] },
+  deflections: {
+    vai: { en: ['en-0', 'en-1', 'en-2'], ru: ['ru-0', 'ru-1'] },
+    gai: { en: ['gai-en-0'], ru: ['gai-ru-0'] },
+  },
 };
 
 describe('validateBody', () => {
@@ -199,31 +202,42 @@ describe('screenInjection', () => {
 });
 
 describe('pickDeflection', () => {
+  // The two modes deflect for different reasons, so they answer differently. VAI
+  // sends you to GAI ("not my dataset"); GAI has nowhere to send you, and only
+  // ever deflects on an injection — so its lines are a refusal, not a redirect.
+  it('selects the pool by mode, then by script', () => {
+    expect(pickDeflection(PROMPTS, 'gai', 'hello', 0)).toBe('gai-en-0');
+    expect(pickDeflection(PROMPTS, 'gai', 'привет', 0)).toBe('gai-ru-0');
+    expect(pickDeflection(PROMPTS, 'vai', 'hello', 0)).toBe('en-0');
+  });
+
   it('answers in Russian when the question has Cyrillic in it', () => {
-    expect(pickDeflection(PROMPTS, 'Что он делал в Donut-Engine?', 0)).toBe('ru-0');
-    expect(pickDeflection(PROMPTS, 'What did he do?', 0)).toBe('en-0');
+    expect(pickDeflection(PROMPTS, 'vai', 'Что он делал в Donut-Engine?', 0)).toBe('ru-0');
+    expect(pickDeflection(PROMPTS, 'vai', 'What did he do?', 0)).toBe('en-0');
   });
 
   it('rotates through the pool by n', () => {
-    expect([0, 1, 2, 3, 4].map((n) => pickDeflection(PROMPTS, 'hi', n)))
+    expect([0, 1, 2, 3, 4].map((n) => pickDeflection(PROMPTS, 'vai', 'hi', n)))
       .toEqual(['en-0', 'en-1', 'en-2', 'en-0', 'en-1']);
-    expect([0, 1, 2].map((n) => pickDeflection(PROMPTS, 'привет', n)))
+    expect([0, 1, 2].map((n) => pickDeflection(PROMPTS, 'vai', 'привет', n)))
       .toEqual(['ru-0', 'ru-1', 'ru-0']);
   });
 
   it('stays inside the pool for a negative counter', () => {
-    expect(pickDeflection(PROMPTS, 'hi', -1)).toBe('en-1');
-    expect(pickDeflection(PROMPTS, 'hi', -4)).toBe('en-1');
+    expect(pickDeflection(PROMPTS, 'vai', 'hi', -1)).toBe('en-1');
+    expect(pickDeflection(PROMPTS, 'vai', 'hi', -4)).toBe('en-1');
   });
 
   it('throws a 500 instead of returning undefined when a pool is empty or missing', () => {
-    const empty: Prompts = { ...PROMPTS, deflections: { en: [], ru: ['ru-0'] } };
-    expect(() => pickDeflection(empty, 'hello', 0)).toThrow(/deflection/i);
-    expect(statusOf(() => pickDeflection(empty, 'hello', 0))).toBe(500);
-    expect(pickDeflection(empty, 'привет', 0)).toBe('ru-0');
+    const pools = PROMPTS.deflections;
+    const empty: Prompts = { ...PROMPTS, deflections: { ...pools, vai: { en: [], ru: ['ru-0'] } } };
+    expect(() => pickDeflection(empty, 'vai', 'hello', 0)).toThrow(/deflection/i);
+    expect(statusOf(() => pickDeflection(empty, 'vai', 'hello', 0))).toBe(500);
+    expect(pickDeflection(empty, 'vai', 'привет', 0)).toBe('ru-0');
+    expect(pickDeflection(empty, 'gai', 'hello', 0)).toBe('gai-en-0'); // other mode unaffected
 
     const missing: Prompts = { ...PROMPTS, deflections: {} as Prompts['deflections'] };
-    expect(statusOf(() => pickDeflection(missing, 'hello', 0))).toBe(500);
+    expect(statusOf(() => pickDeflection(missing, 'vai', 'hello', 0))).toBe(500);
   });
 });
 

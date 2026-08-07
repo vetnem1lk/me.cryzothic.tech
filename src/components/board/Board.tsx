@@ -42,7 +42,9 @@ export default function Board() {
         <Marquee />
         <div className="min-h-0 flex-1 md:grid md:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
           <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
-          <div aria-hidden className="sep-tri md:hidden" />
+          {/* Mobile: plain air between chat and board. On md+ the columns sit
+              side by side and the shell's dashed right border divides them. */}
+          <div aria-hidden className="h-4 md:hidden" />
           <Stage />
         </div>
       </div>

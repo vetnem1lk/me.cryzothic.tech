@@ -8,6 +8,7 @@ import appSrc from '../../../App.tsx?raw';
 import cssSrc from '../../../index.css?raw';
 import cursorSrc from '../../TargetCursor.tsx?raw';
 import boardSrc from '../Board.tsx?raw';
+import commandRowSrc from '../CommandRow.tsx?raw';
 import stageSrc from '../Stage.tsx?raw';
 import textTypeSrc from '../TextType.tsx?raw';
 import vaiSrc from '../VaiShell.tsx?raw';
@@ -15,6 +16,7 @@ import apiTransportSrc from '../apiTransport.ts?raw';
 import commandsSrc from '../commands.ts?raw';
 import drainSrc from '../drain.ts?raw';
 import transportSrc from '../transport.ts?raw';
+import wheelMathSrc from '../wheelMath.ts?raw';
 
 export interface CodeFile {
   path: string;
@@ -39,6 +41,7 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/index.css', content: cssSrc },
       { path: 'src/components/TargetCursor.tsx', content: cursorSrc },
       { path: 'src/components/board/Board.tsx', content: boardSrc },
+      { path: 'src/components/board/CommandRow.tsx', content: commandRowSrc },
       { path: 'src/components/board/Stage.tsx', content: stageSrc },
       { path: 'src/components/board/TextType.tsx', content: textTypeSrc },
       { path: 'src/components/board/VaiShell.tsx', content: vaiSrc },
@@ -46,6 +49,7 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/commands.ts', content: commandsSrc },
       { path: 'src/components/board/drain.ts', content: drainSrc },
       { path: 'src/components/board/transport.ts', content: transportSrc },
+      { path: 'src/components/board/wheelMath.ts', content: wheelMathSrc },
     ],
   },
   {

@@ -67,7 +67,8 @@ me.cryzothic.tech/
 │           ├── transport.ts         # the chat contract the UI codes against
 │           ├── apiTransport.ts      # its live implementation: POST + SSE reader
 │           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
-│           ├── *.test.ts            # vitest: commands, drain, transport
+│           ├── wheelMath.ts         # pure wheel→scrollLeft math for the command row
+│           ├── *.test.ts            # vitest: commands, drain, transport, wheelMath
 │           └── views/               # Briefing · Loot · Contact · CodeBase · ThreeDView · Placeholder
 │               └── codebaseManifest.ts  # what /code displays, imported `?raw`
 ├── server/                          # the VAI/GAI API — see server/README.md
@@ -78,6 +79,7 @@ me.cryzothic.tech/
 │   │   ├── gates.ts                 # size caps, injection screen, canary scanner
 │   │   ├── chat.ts                  # /api/chat: limits → gates → classifier → SSE relay
 │   │   └── openrouter.ts            # request shape, SSE parser, model fallback, watchdogs
+│   ├── scripts/boot-check.ts        # loads the private prompts as boot does (npm run boot-check)
 │   ├── test/                        # vitest suite per module, network never touched
 │   ├── evals/                       # guardrail + grounding probes against a live instance
 │   ├── prompts/                     # PRIVATE, gitignored (README only)

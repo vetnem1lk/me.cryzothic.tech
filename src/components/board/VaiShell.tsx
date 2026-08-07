@@ -4,6 +4,7 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation } from 'wouter';
 import { navigate } from 'wouter/use-browser-location';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
@@ -35,7 +36,15 @@ export default function VaiShell({
   // `local`: the greeting is furniture the shell prints, not a turn the model
   // took — replaying it as history would put words in VAI's mouth.
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'agent', text: GREETING, from: 'vai', local: true },
+    {
+      role: 'agent',
+      text: GREETING,
+      from: 'vai',
+      local: true,
+      // Straight to the route, not a synthesized /3d — the visitor asked for the
+      // engine bay, not for a command echoed back at them.
+      actions: [{ label: 'Try the engine', to: '/3d' }],
+    },
   ]);
   const [mode, setMode] = useState<AgentMode>('vai');
   const modeRef = useRef<AgentMode>('vai');
@@ -107,6 +116,18 @@ export default function VaiShell({
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [messages]);
+
+  // Navigation is the sheet's exit: on a phone the shell covers the board, so a
+  // route change — an action link, or any /command that navigates — means the
+  // visitor chose a destination hidden behind the overlay. Only a *change*
+  // closes it; opening the sheet leaves the location alone and re-runs this.
+  const [location] = useLocation();
+  const prevLoc = useRef(location);
+  useEffect(() => {
+    if (location === prevLoc.current) return;
+    prevLoc.current = location;
+    if (mobileOpen) onMobileClose();
+  }, [location, mobileOpen, onMobileClose]);
 
   function switchMode(next: AgentMode) {
     if (next === modeRef.current) return;
@@ -296,14 +317,31 @@ export default function VaiShell({
                   _
                 </span>
               )}
+              {/* `!m.pending` keeps a focusable control out of an aria-hidden
+                  subtree — the two are mutually exclusive by construction. It
+                  also keeps the offer off a half-typed line. Real links, not
+                  buttons: middle-click, open-in-new-tab and the links rotor all
+                  work, and wouter still routes the plain click. */}
+              {m.actions && !m.pending && (
+                <span className="mt-1.5 flex flex-wrap gap-2">
+                  {m.actions.map((a) => (
+                    <Link
+                      key={a.label}
+                      href={a.to}
+                      className="cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent"
+                    >
+                      {a.label}
+                    </Link>
+                  ))}
+                </span>
+              )}
             </p>
           ),
         )}
       </div>
       <CommandRow onRun={submit} />
-      <div aria-hidden className="sep-tri" />
       <form
-        className="relative p-2"
+        className="relative border-t border-dashed border-neutral-800 p-2"
         onSubmit={(e) => {
           e.preventDefault();
           const v = inputRef.current?.value ?? '';

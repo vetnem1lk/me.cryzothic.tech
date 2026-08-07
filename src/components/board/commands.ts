@@ -27,6 +27,7 @@ const HELP = [
   '/loadout — equipped stack',
   '/lore — random lore drop',
   '/joke — one gamedev joke',
+  '/3d — open the engine bay',
   '/career /skills /nda /loot /contact — jump to a sector',
 ].join('\n');
 
@@ -50,6 +51,7 @@ const COMMANDS: Record<string, () => CommandResult> = {
   '/nda': () => ({ text: 'Accessing the redacted files…', navigateTo: '/nda' }),
   '/loot': () => ({ text: 'Opening the loot table.', navigateTo: '/loot' }),
   '/contact': () => ({ text: 'Boss fight initiated. Bring an offer.', navigateTo: '/contact' }),
+  '/3d': () => ({ text: 'Opening the engine bay.', navigateTo: '/3d' }),
 };
 
 // Hidden aliases — accepted when typed, never listed (no visible duplicates).

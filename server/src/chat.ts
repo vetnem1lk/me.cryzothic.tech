@@ -259,7 +259,7 @@ async function relay(
   // gets a deflection. Any user turn counts, not only the newest — parking the
   // payload behind an innocent follow-up is the cheapest bypass there is.
   if (body.messages.some((m) => m.role === 'user' && screenInjection(m.content))) {
-    return sse.finish(pickDeflection(prompts, userText, seq++));
+    return sse.finish(pickDeflection(prompts, body.mode, userText, seq++));
   }
   // An `assistant` turn is our own prose replayed by the browser. The label is
   // still attacker-controlled, but a hit is far more often VAI quoting itself —
@@ -272,7 +272,7 @@ async function relay(
   // empty the array nor change who speaks last.
   const history = body.messages.filter((m) => m.role === 'user' || !screenInjection(m.content));
   if (body.mode === 'vai' && !(await isOnTopic(cfg, userText, sse.signal, fetchImpl))) {
-    return sse.finish(pickDeflection(prompts, userText, seq++));
+    return sse.finish(pickDeflection(prompts, body.mode, userText, seq++));
   }
 
   const system = body.mode === 'vai' ? prompts.vaiSystem : prompts.gaiSystem;
