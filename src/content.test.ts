@@ -3,6 +3,7 @@
 // A missing translation is invisible at runtime (useT falls back to EN) — these
 // three assertions are what makes it visible at build time instead.
 import { describe, expect, test } from 'vitest';
+import { CHAPTERS } from './components/board/story';
 import content from './content.json';
 import { translate } from './i18n/I18nContext';
 
@@ -39,6 +40,17 @@ describe('content.json', () => {
     expect(interpolated.sort()).toEqual(['vai.error.status', 'vai.sys.ask']);
     expect(leaf(content.en, 'vai.sys.ask')).toContain('${mode}');
     expect(leaf(content.en, 'vai.error.status')).toContain('${status}');
+  });
+
+  // The /nda view zips this array against the store's chapter list by index — the
+  // photo, the quest and the copy for one tile come from three different files. A
+  // reordered or short array would pair the wrong story with the wrong picture and
+  // nothing would throw, so the two lists are compared against each other rather
+  // than each against a copy of the codes: reordering the store's QUESTS table is
+  // exactly the change a literal list here would wave through.
+  test('nda chapters match the store, one for one, in order', () => {
+    for (const lang of ['en', 'ru'] as const)
+      expect(content[lang].sector.nda.chapters.map((c) => c.code)).toEqual(CHAPTERS);
   });
 
   // The two language commands confirm in the language they switch to, not in the

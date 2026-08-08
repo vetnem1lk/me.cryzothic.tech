@@ -4,6 +4,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Lang } from '../i18n/locale'
 import { STRIP } from '../i18n/strip'
+// Taking a CV opens a chapter of the /nda story. The click is noted, never
+// intercepted — and only through these six import-free lines, so the store that
+// reads them stays board-side and out of the entry bundle.
+import { markCvDownloaded } from './board/cvFlag'
 
 /* These labels name the language of the *file*, so they read the same on /ru as on /. */
 const CV_LINKS = [
@@ -77,7 +81,10 @@ function CvDropdown({ lang }: { lang: Lang }) {
               role="menuitem"
               href={href}
               download
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                markCvDownloaded()
+                setOpen(false)
+              }}
               className="cursor-target block px-3 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
             >
               {menuLabel}
@@ -109,7 +116,7 @@ export default function FastPath({ lang }: { lang: Lang }) {
         <CvDropdown lang={lang} />
         <nav aria-label={STRIP[lang].quickActions} className="hidden items-center gap-2 md:flex">
           {CV_LINKS.map(({ href, label }) => (
-            <a key={label} href={href} download className={CV_BUTTON}>
+            <a key={label} href={href} download onClick={markCvDownloaded} className={CV_BUTTON}>
               {label}
             </a>
           ))}

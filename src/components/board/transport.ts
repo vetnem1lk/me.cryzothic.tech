@@ -22,6 +22,13 @@ export interface ChatMessage {
   local?: boolean;
   /** Links shown under this line — the shell's offer, not the model's words. */
   actions?: ChatAction[];
+  /**
+   * A case-file photo shown under this line. Furniture like `actions`, and stripped
+   * on the same terms: `history()` maps role and text alone, so an attachment never
+   * reaches the wire. `alt` is the text already resolved, unlike the dictionary key
+   * the command registry hands over.
+   */
+  image?: { src: string; alt: string };
 }
 
 // The two agent names are proper nouns — the same in both languages, so they stay

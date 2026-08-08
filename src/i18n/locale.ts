@@ -3,8 +3,13 @@
 export type Lang = 'en' | 'ru';
 
 // Segment-aware on purpose: '/rules' must stay EN even though it starts with 'ru'.
-export const langFromPath = (path: string): Lang =>
-  path === '/ru' || path.startsWith('/ru/') ? 'ru' : 'en';
+// Case-folded because wouter matches the router base case-insensitively, so a
+// hand-typed '/RU/career' mounts the Russian router regardless — the language
+// read off the same URL must not be the one thing that disagrees with it.
+export const langFromPath = (path: string): Lang => {
+  const p = path.toLowerCase();
+  return p === '/ru' || p.startsWith('/ru/') ? 'ru' : 'en';
+};
 
 export const pickInitialLocale = (navLang: string | undefined): Lang =>
   navLang?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
@@ -14,6 +19,12 @@ export const mirrorPath = (path: string): string => {
   if (langFromPath(path) === 'ru') return path.slice(3) || '/';
   return path === '/' ? '/ru' : `/ru${path}`;
 };
+
+// What the greeting chip links to: the mirrored location, whole. `~` escapes the
+// router base, and the query and hash ride along — a switch that drops
+// ?utm_source loses the campaign that paid for the visit.
+export const mirrorTarget = (pathname: string, search: string, hash: string): string =>
+  '~' + mirrorPath(pathname) + search + hash;
 
 // Where the /en and /ru commands land: the same place, in the language they name.
 // Directed, unlike mirrorPath, which only knows how to flip — asking for the

@@ -50,7 +50,8 @@ this repo ships the guardrails and the tests but cannot run the agent as deploye
 ```
 me.cryzothic.tech/
 ├── src/                             # the front end
-│   ├── main.tsx                     # browser entry: mounts App
+│   ├── main.tsx                     # browser entry: mounts App, arms preload recovery
+│   ├── preloadRecovery.ts           # one reload when a redeploy strands a tab's lazy chunk
 │   ├── App.tsx                      # shell: CV strip + cursor eager, board lazy
 │   ├── index.css                    # Tailwind + theme tokens + the few hand-written effects
 │   ├── content.json                 # EN/RU board dictionary — lazy chunk only, never `?raw`
@@ -59,7 +60,7 @@ me.cryzothic.tech/
 │   │   ├── locale.test.ts           # vitest: the URL<->language pins, incl. /rules staying EN
 │   │   ├── I18nContext.ts           # Lang context + dotted-path lookup, EN fallback
 │   │   └── strip.ts                 # the only dictionary on the entry path (FastPath copy)
-│   ├── *.test.ts                    # vitest: dictionary parity, the /ru emitter
+│   ├── *.test.ts                    # vitest: dictionary parity, the /ru emitter, preload recovery
 │   └── components/
 │       ├── FastPath.tsx             # pinned CV/contact strip — the thirty-second path
 │       ├── TargetCursor.tsx         # crosshair cursor, fine pointers only
@@ -75,8 +76,11 @@ me.cryzothic.tech/
 │           ├── apiTransport.ts      # its live implementation: POST + SSE reader
 │           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
 │           ├── wheelMath.ts         # pure wheel→scrollLeft math for the command row
-│           ├── *.test.ts            # vitest: commands, drain, transport, wheelMath
+│           ├── story.ts             # /nda chapters: quests, photo slots, unlock state, lore queue
+│           ├── cvFlag.ts            # the one boolean the CV links set, session-only
+│           ├── *.test.ts            # vitest: commands, drain, story, transport, wheelMath
 │           └── views/               # Briefing · Career · Skills · Nda · Loot · Contact · CodeBase · ThreeDView
+│               ├── Lightbox.tsx     # native <dialog> photo viewer for the /nda chapters
 │               ├── codebaseManifest.ts  # what /code displays, imported `?raw`
 │               └── *.test.ts        # vitest: the file /code opens on
 ├── server/                          # the VAI/GAI API — see server/README.md
@@ -95,7 +99,7 @@ me.cryzothic.tech/
 ├── scripts/
 │   ├── emit-ru-html.mjs             # post-build: writes dist/ru/index.html (RU head, canonical, og-ru)
 │   └── emit-ru-html.d.mts           # its types, so the vitest import stays outside the app program
-├── public/                          # CV PDFs, icons, og image, robots.txt, llms.txt
+├── public/                          # CV PDFs, photos/ for the /nda story, icons, og image, robots.txt, llms.txt
 ├── og/card.html                     # source of the Open Graph image
 └── .github/workflows/ci.yml         # lint + test + build, front and server
 ```
