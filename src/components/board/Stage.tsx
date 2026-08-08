@@ -39,7 +39,12 @@ export default function Stage() {
       if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
       gsap.from(viewRef.current, { autoAlpha: 0, y: 8, duration: 0.2, ease: 'power1.out' });
     },
-    { dependencies: [location] },
+    // revertOnUpdate is load-bearing, not tidiness. `from` renders immediately and
+    // captures the element's CURRENT values as its END values, so a second route
+    // change inside the 0.2s window froze the view at a partial opacity — and every
+    // later fade re-captured that dimmer value, a one-way ratchet only a reload
+    // cleared. Reverting first hands each new tween a clean opacity 1 to aim at.
+    { dependencies: [location], revertOnUpdate: true },
   );
 
   return (
