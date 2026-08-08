@@ -1,0 +1,200 @@
+{
+  "en": {
+    "meta": {
+      "title": "Vladislav Klimentev · C++ Developer",
+      "description": "Vladislav Klimentev - C++/Qt developer (tools / gameplay). Interactive portfolio, CV downloads, contacts."
+    },
+    "marquee": {
+      "status": "UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev"
+    },
+    "nav": {
+      "home": "~/",
+      "career": "career",
+      "skills": "skills",
+      "nda": "nda",
+      "loot": "loot",
+      "contact": "contact",
+      "code": "code_base",
+      "threed": "3D_view",
+      "cloning": "cloning code_base…"
+    },
+    "briefing": {
+      "tagline": "C++ developer — tools / gameplay. Pick a sector, or ask VAI about me · GAI about anything."
+    },
+    "sector": {
+      "career": { "title": "Career Progression" },
+      "skills": { "title": "Core Competencies" },
+      "nda": { "title": "Secret Project Files (NDA)" }
+    },
+    "loot": {
+      "title": "Loot Table (Resume)",
+      "note": "PDF ⇩ — one click, no quest required",
+      "tier": {
+        "epic": "epic drop",
+        "common": "common, parser-safe"
+      },
+      "item": {
+        "enVisual": "Resume EN — visual",
+        "ruVisual": "Resume RU — visual",
+        "enAts": "Resume EN — ATS plain",
+        "ruAts": "Resume RU — ATS plain"
+      }
+    },
+    "contact": {
+      "title": "Boss Fight (Direct Contact)",
+      "boss": "Boss: Vlad — accepts offers",
+      "hp": "HP ∞ — direct contact is the only move that lands",
+      "emailLabel": "Email",
+      "githubSub": "vetnem1lk — this site is open source",
+      "telegramSub": "@cryzoth — fastest response"
+    },
+    "threed": {
+      "mode": "engine bay — wireframe mode",
+      "note": "A hand-drawn SVG wireframe — no 3D library on board."
+    },
+    "vai": {
+      "greeting": "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.",
+      "close": "[x] close",
+      "modeGroup": "agent mode",
+      "cta": {
+        "engine": "Try the engine"
+      },
+      "sys": {
+        "ask": "ask ${mode}",
+        "modeVai": "[sys] mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
+        "modeGai": "[sys] mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
+        "empty": "[sys] empty response — try again.",
+        "transport": "[sys] transport error — try again."
+      },
+      "error": {
+        "connection": "connection failed — try again.",
+        "status": "request failed (${status})",
+        "cut": "the answer was cut short — try again."
+      }
+    },
+    "commands": {
+      "whoami": "Vladislav Klimentev — C++ developer (Qt tools platform in production; custom C++ glTF engine; TG mini-games). Target: gamedev — tools / gameplay.",
+      "ls": "donut-engine/      C++17 glTF renderer, Qt Quick integration\nsed-pro-platform/  Qt Widgets + MySQL, data-driven UI (NDA)\ncyberhockey2077/   neon air-hockey TG mini app\nthis-site/         React 19 + GSAP, open source",
+      "loadout": "main weapon: C++17\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React",
+      "career": "Jumping to career progression.",
+      "skills": "Jumping to core competencies.",
+      "nda": "Accessing the redacted files…",
+      "loot": "Opening the loot table.",
+      "contact": "Boss fight initiated. Bring an offer.",
+      "threed": "Opening the engine bay.",
+      "catResume": "Opening the loot table — 4 PDFs, pick your rarity.",
+      "help": "/help — this list\nwhoami — who is Vlad\nls projects — project list\n/loadout — equipped stack\n/lore — random lore drop\n/joke — one gamedev joke\n/3d — open the engine bay\n/career /skills /nda /loot /contact — jump to a sector",
+      "joke": {
+        "1": "Why do C++ gamedevs ship on time? They handle their exceptions before the exceptions handle them.",
+        "2": "A designer walks into a bar. The bar was data-driven, so nobody had to recompile.",
+        "3": "I'd tell you a UDP joke, but you might not get it — and I wouldn't resend it.",
+        "4": "99 little bugs in the code… take one down, patch it around: 127 little bugs in the code."
+      },
+      "lore": {
+        "1": "Lore drop: became team lead 9 months after joining — small team, fast trust loop.",
+        "2": "Lore drop: co-authored a physics paper on point-defect evolution in FCC crystals (2023, RINC-indexed).",
+        "3": "Lore drop: laureate of the Altai Krai professional-mastery olympiad in IT (2023).",
+        "4": "Lore drop: the Sed-Pro platform UI is data-driven — non-programmers reconfigure tools straight from the database."
+      }
+    }
+  },
+  "ru": {
+    "meta": {
+      "title": "Владислав Климентьев · C++ разработчик",
+      "description": "Владислав Климентьев — C++/Qt разработчик (инструменты / геймплей). Интерактивное портфолио, резюме в PDF, контакты."
+    },
+    "marquee": {
+      "status": "РАЗБЛОКИРОВАНО: портфолио C++ / Qt разработчика · цель: геймдев"
+    },
+    "nav": {
+      "home": "~/",
+      "career": "карьера",
+      "skills": "навыки",
+      "nda": "nda",
+      "loot": "лут",
+      "contact": "контакт",
+      "code": "code_base",
+      "threed": "3D_view",
+      "cloning": "клонирую code_base…"
+    },
+    "briefing": {
+      "tagline": "C++ разработчик — инструменты / геймплей. Выберите сектор или спросите VAI обо мне · GAI о чём угодно."
+    },
+    "sector": {
+      "career": { "title": "Карьерный рост" },
+      "skills": { "title": "Ключевые навыки" },
+      "nda": { "title": "Секретные файлы проектов (NDA)" }
+    },
+    "loot": {
+      "title": "Таблица лута (резюме)",
+      "note": "PDF ⇩ — один клик, квест не нужен",
+      "tier": {
+        "epic": "эпический дроп",
+        "common": "обычный, читается парсером"
+      },
+      "item": {
+        "enVisual": "Резюме EN — визуальное",
+        "ruVisual": "Резюме RU — визуальное",
+        "enAts": "Резюме EN — простое, под ATS",
+        "ruAts": "Резюме RU — простое, под ATS"
+      }
+    },
+    "contact": {
+      "title": "Бой с боссом (прямой контакт)",
+      "boss": "Босс: Влад — принимает офферы",
+      "hp": "HP ∞ — проходит только прямой контакт",
+      "emailLabel": "Почта",
+      "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
+      "telegramSub": "@cryzoth — отвечаю быстрее всего"
+    },
+    "threed": {
+      "mode": "отсек движка — каркасный режим",
+      "note": "Каркас нарисован руками в SVG — 3D-библиотек на борту нет."
+    },
+    "vai": {
+      "greeting": "Обнаружен игрок 1. Добро пожаловать в билд. Я VAI — спрашивайте про Влада или наберите /help для команд шелла.",
+      "close": "[x] закрыть",
+      "modeGroup": "режим агента",
+      "cta": {
+        "engine": "Запустить движок"
+      },
+      "sys": {
+        "ask": "спросить ${mode}",
+        "modeVai": "[sys] режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
+        "modeGai": "[sys] режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
+        "empty": "[sys] пустой ответ — попробуйте ещё раз.",
+        "transport": "[sys] ошибка транспорта — попробуйте ещё раз."
+      },
+      "error": {
+        "connection": "соединение не удалось — попробуйте ещё раз.",
+        "status": "запрос не прошёл (${status})",
+        "cut": "ответ оборвался — попробуйте ещё раз."
+      }
+    },
+    "commands": {
+      "whoami": "Владислав Климентьев — C++ разработчик (Qt-платформа инструментов в продакшене; свой C++ движок с glTF; мини-игры в Telegram). Цель — геймдев: инструменты / геймплей.",
+      "ls": "donut-engine/      C++17, glTF-рендер, интеграция с Qt Quick\nsed-pro-platform/  Qt Widgets + MySQL, интерфейс из данных (NDA)\ncyberhockey2077/   неоновый аэрохоккей, Telegram mini app\nthis-site/         React 19 + GSAP, открытый код",
+      "loadout": "основное оружие: C++17\nвторое оружие: Qt (Widgets + Quick)\nветка навыков: Unreal Engine — качается\nпобочные квесты: TypeScript · React",
+      "career": "Перехожу к карьерному росту.",
+      "skills": "Перехожу к ключевым навыкам.",
+      "nda": "Открываю засекреченные файлы…",
+      "loot": "Открываю таблицу лута.",
+      "contact": "Бой с боссом начат. Приходите с оффером.",
+      "threed": "Открываю отсек движка.",
+      "catResume": "Открываю таблицу лута — 4 PDF, выбирайте редкость.",
+      "help": "/help — этот список\nwhoami — кто такой Влад\nls projects — список проектов\n/loadout — экипированный стек\n/lore — случайный факт из лора\n/joke — шутка про геймдев\n/3d — открыть отсек движка\n/career /skills /nda /loot /contact — прыжок в сектор",
+      "joke": {
+        "1": "Почему C++ геймдевы укладываются в срок? Они обрабатывают исключения раньше, чем исключения обработают их.",
+        "2": "Дизайнер заходит в бар. Бар оказался data-driven, так что пересобирать никого не пришлось.",
+        "3": "— Почему в билде текстуры летают отдельно от модели? — Это не баг, это ранний доступ.",
+        "4": "Было 99 багов в коде. Один пофиксил — стало 127."
+      },
+      "lore": {
+        "1": "Из лора: стал ведущим программистом через девять месяцев после прихода — маленькая команда, быстрый кредит доверия.",
+        "2": "Из лора: соавтор научной статьи «Эволюция точечных дефектов в кристалле ГЦК» (2023, индексация РИНЦ).",
+        "3": "Из лора: лауреат Краевой олимпиады профессионального мастерства по ИТ-специальностям (2023).",
+        "4": "Из лора: интерфейс платформы «Сэд-Про» описан данными — непрограммисты перенастраивают инструменты прямо из базы."
+      }
+    }
+  }
+}
