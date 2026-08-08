@@ -131,7 +131,7 @@
           "guessPrompt": "Which number is on the medal?",
           "guessHint": "Guess",
           "cvHint": "Take a CV from the loot table and this file opens itself.",
-          "newChapter": "New file unlocked",
+          "newChapter": "new file unlocked — /lore reads it out.",
           "close": "Close the file"
         },
         "chapters": [
@@ -275,7 +275,9 @@
         "2": "Lore drop: co-authored a physics paper on point-defect evolution in FCC crystals (2023, RINC-indexed).",
         "3": "Lore drop: laureate of the Altai Krai professional-mastery olympiad in IT (2023).",
         "4": "Lore drop: the Sed-Pro platform UI is data-driven — non-programmers reconfigure tools straight from the database."
-      }
+      },
+      "declassified": "Code accepted. That cover comes off — the file is open on the board.",
+      "declassifyMiss": "That code opens nothing. Every code is printed on its own file in /nda — exactly one of them answers to me."
     }
   },
   "ru": {
@@ -410,7 +412,7 @@
           "guessPrompt": "Какое число на медали?",
           "guessHint": "Угадать",
           "cvHint": "Заберите резюме из таблицы лута — файл откроется сам.",
-          "newChapter": "Открыт новый файл",
+          "newChapter": "открыт новый файл — /lore его зачитает.",
           "close": "Закрыть файл"
         },
         "chapters": [
@@ -554,7 +556,9 @@
         "2": "Из лора: соавтор научной статьи «Эволюция точечных дефектов в кристалле ГЦК» (2023, индексация РИНЦ).",
         "3": "Из лора: лауреат Краевой олимпиады профессионального мастерства по ИТ-специальностям (2023).",
         "4": "Из лора: интерфейс платформы «Сэд-Про» описан данными — непрограммисты перенастраивают инструменты прямо из базы."
-      }
+      },
+      "declassified": "Код принят. Обложка снята — файл открыт на доске.",
+      "declassifyMiss": "Этот код ничего не открывает. Коды напечатаны на самих файлах в /nda — мне отвечает ровно один из них."
     }
   }
 }

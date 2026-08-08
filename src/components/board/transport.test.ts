@@ -365,6 +365,24 @@ describe('history', () => {
     ]);
   });
 
+  test('strips a photo from the wire — an attachment is furniture, not conversation', () => {
+    const withPhoto: ChatMessage[] = [
+      {
+        role: 'agent',
+        text: 'hi',
+        from: 'vai',
+        image: { src: '/photos/ch-02-640.avif', alt: 'a packed conference hall' },
+      },
+      { role: 'user', text: 'q', from: 'vai' },
+    ];
+    // Exact equality, like the actions pin above: this also fails if a line ever
+    // gets dropped from history for carrying a picture.
+    expect(history(withPhoto, 'vai')).toEqual([
+      { role: 'assistant', content: 'hi' },
+      { role: 'user', content: 'q' },
+    ]);
+  });
+
   test('a turn that produced no text is left out', () => {
     const failed: ChatMessage[] = [
       { role: 'user', text: 'q', from: 'vai' },

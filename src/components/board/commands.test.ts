@@ -2,10 +2,23 @@
 // dictionary key that exists in both languages, hidden aliases land on the same
 // result, and unknown input returns null — the signal the terminal reads as
 // "this one is for the model".
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import content from '../../content.json';
 import { translate } from '../../i18n/I18nContext';
 import { COMMAND_ROW, runCommand } from './commands';
+import {
+  CHAPTERS,
+  DECLASSIFY_CHAPTER,
+  QUESTS,
+  clickUnlock,
+  isUnlocked,
+  photoSlug,
+  resetStory,
+} from './story';
+
+// The story store is module state, and this file opens files in it: without a reset
+// a chapter left in the lore queue would be read out by the next test's /lore.
+beforeEach(() => resetStory());
 
 describe('runCommand', () => {
   it('answers a known verb', () => {
@@ -85,5 +98,66 @@ describe('runCommand', () => {
     const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(Boolean);
     expect(routes).toHaveLength(6);
     expect(new Set(routes).size).toBe(routes.length);
+  });
+});
+
+// The two commands that reach into the /nda story: one opens a file, the other reads
+// out whatever has been opened. Both answer with a photo, and neither names a file
+// number here — the store's quest table is what says which chapter is which.
+describe('the story commands', () => {
+  const CLICK = CHAPTERS.find((c) => QUESTS[c] === 'click') as (typeof CHAPTERS)[number];
+
+  const resolves = (key: string) => {
+    for (const lang of ['en', 'ru'] as const)
+      expect(translate(lang, key), `${lang}:${key}`).not.toBe(key);
+  };
+
+  it('/declassify stays hidden — off the command row and out of /help', () => {
+    expect(COMMAND_ROW.some((c) => c.includes('declassify'))).toBe(false);
+    for (const lang of ['en', 'ru'] as const)
+      expect(content[lang].commands.help, lang).not.toContain('declassify');
+  });
+
+  it('opens the one designated file, and answers the same way when asked twice', () => {
+    const first = runCommand(`/declassify ${DECLASSIFY_CHAPTER.toLowerCase()}`);
+    expect(first?.textKey).toBe('commands.declassified');
+    // Exact: the log gets the small derivative, not the one the viewer loads.
+    expect(first?.image?.src).toBe(`/photos/${photoSlug(DECLASSIFY_CHAPTER)}-640.avif`);
+    expect(isUnlocked(DECLASSIFY_CHAPTER)).toBe(true);
+    // The store's lock answers once and then null for good, which is right for an
+    // unlock and wrong for a line of chat: asking again is not a mistake.
+    expect(runCommand(`/declassify ${DECLASSIFY_CHAPTER}`)).toEqual(first);
+  });
+
+  it('refuses every other code — working ones included — and opens nothing', () => {
+    const other = CHAPTERS.find((c) => c !== DECLASSIFY_CHAPTER);
+    for (const raw of [`/declassify ${other}`, '/declassify file-99', '/declassify']) {
+      const r = runCommand(raw);
+      expect(r?.textKey, raw).toBe('commands.declassifyMiss');
+      expect(r?.image, raw).toBeUndefined();
+    }
+    expect(CHAPTERS.some(isUnlocked)).toBe(false);
+  });
+
+  it('/lore reads a freshly opened file before returning to its rotation', () => {
+    clickUnlock(CLICK);
+    const r = runCommand('/lore');
+    expect(r?.textKey).toBe(`sector.nda.chapters.${CHAPTERS.indexOf(CLICK)}.story`);
+    expect(r?.image?.src).toContain(photoSlug(CLICK));
+    // Queue drained: the next one is a lore drop again, and a lore drop has no photo.
+    expect(runCommand('/lore')?.image).toBeUndefined();
+  });
+
+  it('every string these two answer with resolves in both languages', () => {
+    clickUnlock(CLICK);
+    const lore = runCommand('/lore');
+    // The chapter keys carry an array index — content.json's chapters are a list,
+    // and the resolver walks it like any other object. That is the pin.
+    resolves(lore!.textKey);
+    resolves(lore!.image!.alt);
+    const opened = runCommand(`/declassify ${DECLASSIFY_CHAPTER}`);
+    resolves(opened!.textKey);
+    resolves(opened!.image!.alt);
+    resolves(runCommand('/declassify')!.textKey);
   });
 });
