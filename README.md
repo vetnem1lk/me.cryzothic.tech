@@ -76,7 +76,9 @@ me.cryzothic.tech/
 │           ├── apiTransport.ts      # its live implementation: POST + SSE reader
 │           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
 │           ├── wheelMath.ts         # pure wheel→scrollLeft math for the command row
-│           ├── *.test.ts            # vitest: commands, drain, transport, wheelMath
+│           ├── story.ts             # /nda chapters: unlock state, quests, lore queue
+│           ├── cvFlag.ts            # the one boolean the CV links set, session-only
+│           ├── *.test.ts            # vitest: commands, drain, story, transport, wheelMath
 │           └── views/               # Briefing · Career · Skills · Nda · Loot · Contact · CodeBase · ThreeDView
 │               ├── codebaseManifest.ts  # what /code displays, imported `?raw`
 │               └── *.test.ts        # vitest: the file /code opens on

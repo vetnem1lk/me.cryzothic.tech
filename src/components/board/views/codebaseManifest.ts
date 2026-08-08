@@ -14,7 +14,9 @@ import textTypeSrc from '../TextType.tsx?raw';
 import vaiSrc from '../VaiShell.tsx?raw';
 import apiTransportSrc from '../apiTransport.ts?raw';
 import commandsSrc from '../commands.ts?raw';
+import cvFlagSrc from '../cvFlag.ts?raw';
 import drainSrc from '../drain.ts?raw';
+import storySrc from '../story.ts?raw';
 import transportSrc from '../transport.ts?raw';
 import wheelMathSrc from '../wheelMath.ts?raw';
 import careerSrc from './Career.tsx?raw';
@@ -55,7 +57,9 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/VaiShell.tsx', content: vaiSrc },
       { path: 'src/components/board/apiTransport.ts', content: apiTransportSrc },
       { path: 'src/components/board/commands.ts', content: commandsSrc },
+      { path: 'src/components/board/cvFlag.ts', content: cvFlagSrc },
       { path: 'src/components/board/drain.ts', content: drainSrc },
+      { path: 'src/components/board/story.ts', content: storySrc },
       { path: 'src/components/board/transport.ts', content: transportSrc },
       { path: 'src/components/board/wheelMath.ts', content: wheelMathSrc },
       { path: 'src/components/board/views/Career.tsx', content: careerSrc },

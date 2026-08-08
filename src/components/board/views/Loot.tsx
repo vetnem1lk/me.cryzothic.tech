@@ -2,6 +2,7 @@
 // ATS parser and a human want very different documents — offering both beats
 // guessing which one is on the other end of the download.
 import { useT } from '../../../i18n/I18nContext';
+import { markCvDownloaded } from '../cvFlag';
 
 // The file names are fixed assets; only the drop's label and rarity are copy.
 const LOOT = [
@@ -37,6 +38,8 @@ export default function Loot() {
           key={l.href}
           href={l.href}
           download
+          // Noted, not intercepted: taking any drop opens a chapter of the /nda story.
+          onClick={markCvDownloaded}
           className="cursor-target rounded-md border border-dashed border-accent/50 p-4 hover:border-accent"
         >
           <span className="block font-mono text-xs tracking-widest text-accent uppercase">
