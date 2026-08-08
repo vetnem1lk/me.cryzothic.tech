@@ -2,7 +2,7 @@
 // Deliberately no library — two locales do not justify one (stack lock, T5c). The
 // language itself is never stored here; it is derived from the URL by locale.ts and
 // handed down, so the address bar stays the single source of truth.
-import { createContext, useCallback, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import content from '../content.json';
 import type { Lang } from './locale';
 
@@ -35,9 +35,7 @@ export function translate(
 
 export function useT() {
   const lang = useLang();
-  // Identity is stable per language because callers put `t` in effect dependency arrays.
-  return useCallback(
-    (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars),
-    [lang],
-  );
+  // A plain closure, not useCallback: nothing memoizes on `t`, so a stable
+  // identity would buy nothing.
+  return (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars);
 }

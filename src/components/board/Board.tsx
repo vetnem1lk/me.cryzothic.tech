@@ -8,10 +8,10 @@
 // the address bar puts every route out of reach and leaves the stage blank.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Router } from 'wouter';
 import { usePathname } from 'wouter/use-browser-location';
-import { LangProvider } from '../../i18n/I18nContext';
+import { LangProvider, translate } from '../../i18n/I18nContext';
 import { langFromPath } from '../../i18n/locale';
 import Marquee from './Marquee';
 import Stage from './Stage';
@@ -29,6 +29,13 @@ export default function Board() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const scope = useRef<HTMLDivElement>(null);
   const lang = langFromPath(usePathname());
+
+  // Title only — spec D3 bans runtime mutation of canonical/hreflang (crawlers do not
+  // run our JS, so those must stay the static head scripts/emit-ru-html.mjs emits), but
+  // the tab title is read by a human whose language switch never reloads the page.
+  useEffect(() => {
+    document.title = translate(lang, 'meta.title');
+  }, [lang]);
 
   useGSAP(
     () => {
