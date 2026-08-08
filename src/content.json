@@ -120,7 +120,7 @@
         "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line."
       },
       "nda": {
-        "title": "Classified Files (NDA)",
+        "title": "NDA — New position",
         "intro": "Seven files, seven covers, and none of them lift the same way. One opens for a number, one only opens for VAI, one opens itself once you have taken a CV. The two project dossiers this sector started as are folded into the archive at the bottom.",
         "labels": {
           "classified": "classified",
@@ -402,7 +402,7 @@
         "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно."
       },
       "nda": {
-        "title": "Засекреченные файлы (NDA)",
+        "title": "NDA — новая должность",
         "intro": "Семь файлов, семь обложек — и снимаются они по-разному. Одному нужно число, один открывается только для VAI, ещё один откроется сам, когда заберёте резюме. Два проектных досье, с которых начинался этот сектор, свёрнуты в архив внизу.",
         "labels": {
           "classified": "засекречено",
