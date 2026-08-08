@@ -53,6 +53,12 @@ me.cryzothic.tech/
 │   ├── main.tsx                     # browser entry: mounts App
 │   ├── App.tsx                      # shell: CV strip + cursor eager, board lazy
 │   ├── index.css                    # Tailwind + theme tokens + the few hand-written effects
+│   ├── content.json                 # EN/RU board dictionary — lazy chunk only, never `?raw`
+│   ├── i18n/
+│   │   ├── locale.ts                # pure URL<->language math: /ru/* is the whole state
+│   │   ├── I18nContext.ts           # Lang context + dotted-path lookup, EN fallback
+│   │   └── strip.ts                 # the only dictionary on the entry path (FastPath copy)
+│   ├── *.test.ts                    # vitest: dictionary parity, locale math, the /ru emitter
 │   └── components/
 │       ├── FastPath.tsx             # pinned CV/contact strip — the thirty-second path
 │       ├── TargetCursor.tsx         # crosshair cursor, fine pointers only
@@ -84,6 +90,7 @@ me.cryzothic.tech/
 │   ├── evals/                       # guardrail + grounding probes against a live instance
 │   ├── prompts/                     # PRIVATE, gitignored (README only)
 │   └── .env.example                 # settings, names only
+├── scripts/emit-ru-html.mjs         # post-build: writes dist/ru/index.html (RU head, canonical, og-ru)
 ├── public/                          # CV PDFs, icons, og image, robots.txt, llms.txt
 ├── og/card.html                     # source of the Open Graph image
 └── .github/workflows/ci.yml         # lint + test + build, front and server
