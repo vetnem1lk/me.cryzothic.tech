@@ -1,5 +1,7 @@
-// The only dictionary on the entry path: FastPath strip copy. Everything else lives
-// in content.json inside the lazy Board chunk. Keep this file tiny — every byte here
+// The only dictionary on the entry path: FastPath strip copy plus the one line that
+// covers the wait for the board. Everything else lives in content.json inside the lazy
+// Board chunk — which is exactly why `loading` is here and not there: it is the label
+// shown *while that chunk is still in flight*. Keep this file tiny — every byte here
 // is paid by a visitor who may never scroll past the header.
 //
 // The two CV menu labels are NOT here on purpose: «English · PDF» / «Русский · PDF»
@@ -8,7 +10,14 @@ import type { Lang } from './locale';
 
 export const STRIP: Record<
   Lang,
-  { name: string; role: string; cvMenu: string; quickActions: string; email: string }
+  {
+    name: string;
+    role: string;
+    cvMenu: string;
+    quickActions: string;
+    email: string;
+    loading: string;
+  }
 > = {
   en: {
     name: 'Vladislav Klimentev',
@@ -16,6 +25,7 @@ export const STRIP: Record<
     cvMenu: 'CV language',
     quickActions: 'Quick actions',
     email: 'Email',
+    loading: 'loading board…',
   },
   ru: {
     name: 'Владислав Климентьев',
@@ -23,5 +33,6 @@ export const STRIP: Record<
     cvMenu: 'Язык резюме',
     quickActions: 'Быстрые действия',
     email: 'Почта',
+    loading: 'загрузка панели…',
   },
-} as const;
+};
