@@ -53,6 +53,12 @@ me.cryzothic.tech/
 │   ├── main.tsx                     # browser entry: mounts App
 │   ├── App.tsx                      # shell: CV strip + cursor eager, board lazy
 │   ├── index.css                    # Tailwind + theme tokens + the few hand-written effects
+│   ├── content.json                 # EN/RU board dictionary — lazy chunk only, never `?raw`
+│   ├── i18n/
+│   │   ├── locale.ts                # pure URL<->language math: /ru/* is the whole state
+│   │   ├── I18nContext.ts           # Lang context + dotted-path lookup, EN fallback
+│   │   └── strip.ts                 # the only dictionary on the entry path (FastPath copy)
+│   ├── *.test.ts                    # vitest: dictionary parity, locale math, the /ru emitter
 │   └── components/
 │       ├── FastPath.tsx             # pinned CV/contact strip — the thirty-second path
 │       ├── TargetCursor.tsx         # crosshair cursor, fine pointers only
@@ -69,8 +75,9 @@ me.cryzothic.tech/
 │           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
 │           ├── wheelMath.ts         # pure wheel→scrollLeft math for the command row
 │           ├── *.test.ts            # vitest: commands, drain, transport, wheelMath
-│           └── views/               # Briefing · Loot · Contact · CodeBase · ThreeDView · Placeholder
-│               └── codebaseManifest.ts  # what /code displays, imported `?raw`
+│           └── views/               # Briefing · Career · Skills · Nda · Loot · Contact · CodeBase · ThreeDView
+│               ├── codebaseManifest.ts  # what /code displays, imported `?raw`
+│               └── *.test.ts        # vitest: the file /code opens on
 ├── server/                          # the VAI/GAI API — see server/README.md
 │   ├── src/
 │   │   ├── index.ts                 # express app: CORS, limiter, routes
@@ -84,6 +91,9 @@ me.cryzothic.tech/
 │   ├── evals/                       # guardrail + grounding probes against a live instance
 │   ├── prompts/                     # PRIVATE, gitignored (README only)
 │   └── .env.example                 # settings, names only
+├── scripts/
+│   ├── emit-ru-html.mjs             # post-build: writes dist/ru/index.html (RU head, canonical, og-ru)
+│   └── emit-ru-html.d.mts           # its types, so the vitest import stays outside the app program
 ├── public/                          # CV PDFs, icons, og image, robots.txt, llms.txt
 ├── og/card.html                     # source of the Open Graph image
 └── .github/workflows/ci.yml         # lint + test + build, front and server

@@ -17,6 +17,13 @@ import commandsSrc from '../commands.ts?raw';
 import drainSrc from '../drain.ts?raw';
 import transportSrc from '../transport.ts?raw';
 import wheelMathSrc from '../wheelMath.ts?raw';
+import careerSrc from './Career.tsx?raw';
+import ndaSrc from './Nda.tsx?raw';
+import skillsSrc from './Skills.tsx?raw';
+import i18nContextSrc from '../../../i18n/I18nContext.ts?raw';
+import localeSrc from '../../../i18n/locale.ts?raw';
+import stripSrc from '../../../i18n/strip.ts?raw';
+import emitRuHtmlSrc from '../../../../scripts/emit-ru-html.mjs?raw';
 
 export interface CodeFile {
   path: string;
@@ -50,6 +57,14 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/drain.ts', content: drainSrc },
       { path: 'src/components/board/transport.ts', content: transportSrc },
       { path: 'src/components/board/wheelMath.ts', content: wheelMathSrc },
+      { path: 'src/components/board/views/Career.tsx', content: careerSrc },
+      { path: 'src/components/board/views/Nda.tsx', content: ndaSrc },
+      { path: 'src/components/board/views/Skills.tsx', content: skillsSrc },
+      { path: 'src/i18n/I18nContext.ts', content: i18nContextSrc },
+      { path: 'src/i18n/locale.ts', content: localeSrc },
+      { path: 'src/i18n/strip.ts', content: stripSrc },
+      // files[0] is the exhibit's landing file, so src/ leads and scripts/ trails ASCII.
+      { path: 'scripts/emit-ru-html.mjs', content: emitRuHtmlSrc },
     ],
   },
   {

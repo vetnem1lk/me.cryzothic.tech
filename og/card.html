@@ -8,6 +8,14 @@
     src: url('../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
     font-weight: 100 800;
   }
+  /* Declared after the latin face and range-limited, so Cyrillic resolves here
+     and every latin glyph still comes from the face the EN card already proved. */
+  @font-face {
+    font-family: 'JetBrains Mono Variable';
+    src: url('../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-cyrillic-wght-normal.woff2') format('woff2-variations');
+    font-weight: 100 800;
+    unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+  }
   * { margin: 0; box-sizing: border-box; }
   body {
     width: 1200px; height: 630px; background: #0a0a0a; color: #f5f5f5;
@@ -42,11 +50,17 @@
   <div class="frame">
     <span class="corner tl"></span><span class="corner tr"></span>
     <span class="corner bl"></span><span class="corner br"></span>
-    <span class="status">UNLOCKED: C++ / Qt Developer Portfolio</span>
+    <span class="status" data-ru="РАЗБЛОКИРОВАНО: портфолио C++ / Qt разработчика">UNLOCKED: C++ / Qt Developer Portfolio</span>
     <div class="face"></div>
-    <h1>Vladislav Klimentev</h1>
-    <div class="role">C++ Developer — Tools / Gameplay</div>
-    <div class="proof">Qt platform in production · custom C++ engine · me.cryzothic.tech</div>
+    <h1 data-ru="Владислав Климентьев">Vladislav Klimentev</h1>
+    <div class="role" data-ru="C++ разработчик — инструменты / геймплей">C++ Developer — Tools / Gameplay</div>
+    <div class="proof" data-ru="Qt-платформа в проде · собственный движок на C++ · me.cryzothic.tech">Qt platform in production · custom C++ engine · me.cryzothic.tech</div>
   </div>
+  <script>
+    // ?lang=ru renders the RU twin into public/og-ru.png. One card file rather than
+    // two, so a layout tweak can never drift between the two languages.
+    if (new URLSearchParams(location.search).get('lang') === 'ru')
+      for (const el of document.querySelectorAll('[data-ru]')) el.textContent = el.dataset.ru;
+  </script>
 </body>
 </html>

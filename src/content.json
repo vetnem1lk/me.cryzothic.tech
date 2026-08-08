@@ -1,0 +1,466 @@
+{
+  "en": {
+    "meta": {
+      "title": "Vladislav Klimentev · C++ Developer",
+      "description": "Vladislav Klimentev - C++/Qt developer (tools / gameplay). Interactive portfolio, CV downloads, contacts.",
+      "ogDescription": "C++/Qt developer heading into game development (tools / gameplay). CV and contacts in one click."
+    },
+    "marquee": {
+      "status": "UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev"
+    },
+    "nav": {
+      "home": "~/",
+      "career": "career",
+      "skills": "skills",
+      "nda": "nda",
+      "loot": "loot",
+      "contact": "contact",
+      "code": "code_base",
+      "threed": "3D_view",
+      "cloning": "cloning code_base…"
+    },
+    "briefing": {
+      "tagline": "C++ developer — tools / gameplay. Pick a sector, or ask VAI about me · GAI about anything."
+    },
+    "sector": {
+      "career": {
+        "title": "Career Progression",
+        "entries": [
+          {
+            "period": "Dec 2024 — present",
+            "role": "Programmer → Lead Programmer",
+            "place": "Sed-Pro LLC · Barnaul, Russia",
+            "tech": "C++ · Qt Widgets · MySQL",
+            "bullets": [
+              "Promoted to Lead nine months in: the project needed one of three programmers to own it and I took it — tech stack, task scoping and deadlines are mine, with 1–2 engineers reporting.",
+              "Built an SQL-first tools platform (\"no-code, but SQL-code\"): forms, widgets and button logic are defined in MySQL and the Qt Widgets client renders them, so the configurator reshapes screens without a C++ rebuild.",
+              "Automated the order → delivery pipeline for 30 designers, chief project engineers and structural engineers included: the project assembles itself and nobody hands files or tasks over in person — by the director's assessment the cycle got noticeably faster.",
+              "Designed sheet-level file versioning (DWG / XLSX / PDF) and the electronic document flow, so a designer works on one slice of a project without needing the whole picture.",
+              "Runs daily inside a working architecture and engineering bureau — real users on a real deadline, not a demo."
+            ]
+          },
+          {
+            "period": "Feb 2024 — Mar 2024",
+            "role": "Software Engineering Intern",
+            "place": "Industrial automation plant (NDA) · fuel-station and tanker equipment",
+            "tech": "C/C++ · microcontrollers · C# · Astra Linux",
+            "bullets": [
+              "Programmed and configured microcontrollers for fuel-tanker and fuel-station equipment — embedded C/C++ against real hardware limits.",
+              "Migrated a production server to Astra Linux (C#).",
+              "Left by choice after two months: the industrial / microcontroller field was not the direction I wanted — game development was."
+            ]
+          },
+          {
+            "period": "2023 — 2024",
+            "role": "Independent projects & self-study",
+            "place": "Barnaul, Russia",
+            "tech": "C++17 · Qt · QML · OpenGL · CMake",
+            "bullets": [
+              "The stretch between college and full-time work: own projects and self-teaching, with non-specialty work alongside.",
+              "Donut-Engine started here — a game engine written from scratch in C++17 / Qt / QML: OpenGL renderer, glTF 2.0 import with PBR materials, Qt Quick integration. Solo project, all engine code is mine."
+            ]
+          }
+        ],
+        "levelUpsTitle": "Level-ups",
+        "levelUps": [
+          "2023 — Laureate, Altai Krai olympiad of professional mastery, IT specialties (Ministry of Education of Altai Krai).",
+          "2023 — Diploma II degree, regional student olympiad \"Information Technologies\" РСО_ИТ'2023, Gorno-Altaisk State University.",
+          "2023 — Co-authored \"Evolution of point defects in an FCC crystal\", VI International research and practice conference, Moscow; proceedings indexed in RSCI (eLibrary.ru).",
+          "2023 — Altai State University College: Information Systems and Programming.",
+          "2022 — Certificates: C++ Programming · Intro to Programming (C++) · Game Development on Unreal Engine · Gamification: Introduction.",
+          "2021 — Hackathon Barnaul, participant."
+        ]
+      },
+      "skills": {
+        "title": "Core Competencies",
+        "groups": [
+          {
+            "name": "Main weapon — C++",
+            "items": ["C++17", "C", "STL", "Boost", "OOP", "Data structures & algorithms"]
+          },
+          {
+            "name": "Tools & desktop",
+            "items": [
+              "Qt",
+              "Qt Widgets",
+              "Qt Quick / QML",
+              "CMake",
+              "Git",
+              "Data-driven UI — forms and logic defined in SQL"
+            ]
+          },
+          {
+            "name": "Graphics & 3D",
+            "items": [
+              "OpenGL",
+              "glTF 2.0 import",
+              "PBR materials — base color, metallic-roughness, normal maps",
+              "Vector and matrix math, from writing the renderer"
+            ]
+          },
+          {
+            "name": "Data & platforms",
+            "items": ["MySQL", "SQL", "C#", "Astra Linux", "Embedded C/C++ — microcontrollers"]
+          },
+          {
+            "name": "Side quests",
+            "items": [
+              "TypeScript",
+              "React",
+              "Node.js",
+              "WebSocket",
+              "Real-time game loop and custom physics"
+            ]
+          },
+          {
+            "name": "Skill tree — leveling",
+            "items": ["Unreal Engine — C++ gameplay"]
+          }
+        ],
+        "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line."
+      },
+      "nda": {
+        "title": "Secret Project Files (NDA)",
+        "intro": "Two projects cannot be shown in full: one sits under an NDA, the other is a commercial product still being prepared for market. Here is everything that can be said out loud.",
+        "labels": {
+          "classified": "classified",
+          "declassified": "declassified"
+        },
+        "files": [
+          {
+            "code": "FILE-01",
+            "name": "Fuel-station and tanker equipment · industrial automation plant",
+            "classified": ["Company name", "Source code and schematics", "Site and infrastructure detail"],
+            "declassified": [
+              "Feb 2024 – Mar 2024, software engineering intern, Barnaul area.",
+              "Programmed and configured microcontrollers for tanker and fuel-station equipment; migrated a production server to Astra Linux (C#).",
+              "The industry can be named, the company cannot — sensitive infrastructure."
+            ]
+          },
+          {
+            "code": "FILE-02",
+            "name": "Sed-Pro platform · workspace automation for construction designers",
+            "classified": [
+              "Source code — a commercial product being prepared for market",
+              "Customer data and project files",
+              "Screenshots of the live workspace"
+            ],
+            "declassified": [
+              "SQL-first architecture: the database defines widgets, forms, buttons and their logic; the Qt Widgets client renders an interface over it.",
+              "Sheet-level versioning (DWG / XLSX / PDF), electronic document flow, task and file handoff between designers.",
+              "30 designer seats at a working architecture and engineering bureau; by the director's assessment the order → delivery cycle got noticeably faster.",
+              "I own the tech stack and the technical direction, and wrote most of the C++ myself."
+            ]
+          }
+        ],
+        "clearanceTitle": "Request clearance",
+        "clearance": "All of it is on the CV in dated form. Anything that needs a conversation rather than a document goes through the direct channels."
+      }
+    },
+    "loot": {
+      "title": "Loot Table (Resume)",
+      "note": "PDF ⇩ — one click, no quest required",
+      "tier": {
+        "epic": "epic drop",
+        "common": "common, parser-safe"
+      },
+      "item": {
+        "enVisual": "Resume EN — visual",
+        "ruVisual": "Resume RU — visual",
+        "enAts": "Resume EN — ATS plain",
+        "ruAts": "Resume RU — ATS plain"
+      }
+    },
+    "contact": {
+      "title": "Boss Fight (Direct Contact)",
+      "boss": "Boss: Vlad — accepts offers",
+      "hp": "HP ∞ — direct contact is the only move that lands",
+      "emailLabel": "Email",
+      "githubSub": "vetnem1lk — this site is open source",
+      "telegramSub": "@cryzoth — fastest response"
+    },
+    "threed": {
+      "mode": "engine bay — wireframe mode",
+      "note": "A hand-drawn SVG wireframe — no 3D library on board."
+    },
+    "vai": {
+      "greeting": "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.",
+      "close": "[x] close",
+      "modeGroup": "agent mode",
+      "cta": {
+        "engine": "Try the engine"
+      },
+      "sys": {
+        "ask": "ask ${mode}",
+        "modeVai": "[sys] mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
+        "modeGai": "[sys] mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
+        "empty": "[sys] empty response — try again.",
+        "transport": "[sys] transport error — try again."
+      },
+      "error": {
+        "connection": "connection failed — try again.",
+        "status": "request failed (${status})",
+        "cut": "the answer was cut short — try again."
+      }
+    },
+    "commands": {
+      "whoami": "Vladislav Klimentev — C++ developer (Qt tools platform in production; custom C++ glTF engine; TG mini-games). Target: gamedev — tools / gameplay.",
+      "ls": "donut-engine/      C++17 glTF renderer, Qt Quick integration\nsed-pro-platform/  Qt Widgets + MySQL, data-driven UI (NDA)\ncyberhockey2077/   neon air-hockey TG mini app\nthis-site/         React 19 + GSAP, open source",
+      "loadout": "main weapon: C++17\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React",
+      "career": "Jumping to career progression.",
+      "skills": "Jumping to core competencies.",
+      "nda": "Accessing the redacted files…",
+      "loot": "Opening the loot table.",
+      "contact": "Boss fight initiated. Bring an offer.",
+      "threed": "Opening the engine bay.",
+      "en": "Switching to English.",
+      "ru": "Переключаюсь на русский.",
+      "catResume": "Opening the loot table — 4 PDFs, pick your rarity.",
+      "help": "/help — this list\nwhoami — who is Vlad\nls projects — project list\n/loadout — equipped stack\n/lore — random lore drop\n/joke — one gamedev joke\n/3d — open the engine bay\n/career /skills /nda /loot /contact — jump to a sector\n/en /ru — switch language",
+      "joke": {
+        "1": "Why do C++ gamedevs ship on time? They handle their exceptions before the exceptions handle them.",
+        "2": "A designer walks into a bar. The bar was data-driven, so nobody had to recompile.",
+        "3": "I'd tell you a UDP joke, but you might not get it — and I wouldn't resend it.",
+        "4": "99 little bugs in the code… take one down, patch it around: 127 little bugs in the code."
+      },
+      "lore": {
+        "1": "Lore drop: became team lead 9 months after joining — small team, fast trust loop.",
+        "2": "Lore drop: co-authored a physics paper on point-defect evolution in FCC crystals (2023, RINC-indexed).",
+        "3": "Lore drop: laureate of the Altai Krai professional-mastery olympiad in IT (2023).",
+        "4": "Lore drop: the Sed-Pro platform UI is data-driven — non-programmers reconfigure tools straight from the database."
+      }
+    }
+  },
+  "ru": {
+    "meta": {
+      "title": "Владислав Климентьев · C++ разработчик",
+      "description": "Владислав Климентьев — C++/Qt разработчик (инструменты / геймплей). Интерактивное портфолио, резюме в PDF, контакты.",
+      "ogDescription": "C++/Qt разработчик, перехожу в геймдев (инструменты / геймплей). Резюме и контакты в один клик."
+    },
+    "marquee": {
+      "status": "РАЗБЛОКИРОВАНО: портфолио C++ / Qt разработчика · цель: геймдев"
+    },
+    "nav": {
+      "home": "~/",
+      "career": "карьера",
+      "skills": "навыки",
+      "nda": "nda",
+      "loot": "лут",
+      "contact": "контакт",
+      "code": "code_base",
+      "threed": "3D_view",
+      "cloning": "клонирую code_base…"
+    },
+    "briefing": {
+      "tagline": "C++ разработчик — инструменты / геймплей. Выберите сектор или спросите VAI обо мне · GAI о чём угодно."
+    },
+    "sector": {
+      "career": {
+        "title": "Карьерный рост",
+        "entries": [
+          {
+            "period": "декабрь 2024 — настоящее время",
+            "role": "Программист → ведущий программист",
+            "place": "ООО АК «Сэд-Про» · Барнаул",
+            "tech": "C++ · Qt Widgets · MySQL",
+            "bullets": [
+              "Стал ведущим программистом через девять месяцев после прихода: проекту нужен был человек, который возьмёт его на себя, — из трёх программистов это сделал я. Отвечаю за технический стек, декомпозицию задач и сроки, в подчинении 1–2 программиста.",
+              "Разработал SQL-first платформу («no-code, но SQL-code»): формы, виджеты и логика кнопок описаны в MySQL, клиент на Qt Widgets их отрисовывает — экраны перенастраиваются без пересборки приложения.",
+              "Автоматизировал цикл «заявка → выдача проекта» для 30 проектировщиков, включая ГИПов и конструкторов: проект собирается автоматически, задачи и файлы больше не передают из рук в руки — по оценке директора цикл заметно ускорился.",
+              "Спроектировал поверсионную работу с файлами, где единица версии — лист (DWG / XLSX / PDF), и электронный документооборот: проектировщик работает со своим фрагментом, не зная проект целиком.",
+              "Платформа каждый день работает в действующем архитектурно-конструкторском бюро — живые пользователи и сроки, а не демо."
+            ]
+          },
+          {
+            "period": "февраль 2024 — март 2024",
+            "role": "Инженер-стажёр",
+            "place": "Завод промышленной автоматизации (NDA) · оборудование АЗС и топливных танкеров",
+            "tech": "C/C++ · микроконтроллеры · C# · Astra Linux",
+            "bullets": [
+              "Программировал и настраивал микроконтроллеры для оборудования АЗС и топливных танкеров — embedded C/C++ на реальном железе.",
+              "Перевёл рабочий сервер на Astra Linux (C#).",
+              "Через два месяца ушёл по собственному решению: промышленная разработка и микроконтроллеры не увлекли — хотел в геймдев."
+            ]
+          },
+          {
+            "period": "2023 — 2024",
+            "role": "Самостоятельные проекты и самообучение",
+            "place": "Барнаул",
+            "tech": "C++17 · Qt · QML · OpenGL · CMake",
+            "bullets": [
+              "Промежуток между колледжем и постоянной работой: собственные проекты и самообучение, параллельно — работа не по специальности.",
+              "Здесь начался Donut-Engine — игровой движок с нуля на C++17 / Qt / QML: рендер на OpenGL, импорт glTF 2.0 с PBR-материалами, интеграция в Qt Quick. Проект сольный, весь код движка мой."
+            ]
+          }
+        ],
+        "levelUpsTitle": "Достижения",
+        "levelUps": [
+          "2023 — лауреат Краевой олимпиады профессионального мастерства по ИТ-специальностям (Министерство образования Алтайского края).",
+          "2023 — диплом II степени региональной студенческой олимпиады «Информационные технологии» РСО_ИТ'2023, Горно-Алтайский государственный университет.",
+          "2023 — соавтор статьи «Эволюция точечных дефектов в кристалле ГЦК», VI Международная научно-практическая конференция, Москва; индексация РИНЦ (eLibrary.ru).",
+          "2023 — колледж АлтГУ: «Информационные системы и программирование».",
+          "2022 — сертификаты: C++ Programming · Intro to Programming (C++) · Game Development on Unreal Engine · Gamification: Introduction.",
+          "2021 — Hackathon Barnaul, участник."
+        ]
+      },
+      "skills": {
+        "title": "Ключевые навыки",
+        "groups": [
+          {
+            "name": "Основное оружие — C++",
+            "items": ["C++17", "C", "STL", "Boost", "ООП", "Алгоритмы и структуры данных"]
+          },
+          {
+            "name": "Разработка инструментов и десктоп",
+            "items": [
+              "Qt",
+              "Qt Widgets",
+              "Qt Quick / QML",
+              "CMake",
+              "Git",
+              "Data-driven UI — формы и логика описаны в SQL"
+            ]
+          },
+          {
+            "name": "Графика и 3D",
+            "items": [
+              "OpenGL",
+              "Импорт glTF 2.0",
+              "PBR-материалы — base color, metallic-roughness, normal maps",
+              "Векторная и матричная математика — из собственного рендера"
+            ]
+          },
+          {
+            "name": "Данные и платформы",
+            "items": ["MySQL", "SQL", "C#", "Astra Linux", "Embedded C/C++ — микроконтроллеры"]
+          },
+          {
+            "name": "Побочные квесты",
+            "items": [
+              "TypeScript",
+              "React",
+              "Node.js",
+              "WebSocket",
+              "Игровой цикл в реальном времени и своя физика"
+            ]
+          },
+          {
+            "name": "Ветка навыков — качается",
+            "items": ["Unreal Engine — геймплей на C++"]
+          }
+        ],
+        "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно."
+      },
+      "nda": {
+        "title": "Секретные файлы проектов (NDA)",
+        "intro": "Два проекта нельзя показать целиком: один под NDA, второй — коммерческий продукт, который ещё готовится к выходу на рынок. Ниже всё, что можно сказать вслух.",
+        "labels": {
+          "classified": "засекречено",
+          "declassified": "рассекречено"
+        },
+        "files": [
+          {
+            "code": "FILE-01",
+            "name": "Оборудование АЗС и топливных танкеров · завод промышленной автоматизации",
+            "classified": ["Название компании", "Исходный код и схемы", "Детали объекта и инфраструктуры"],
+            "declassified": [
+              "Февраль — март 2024, инженер-стажёр, Барнаул и окрестности.",
+              "Программировал и настраивал микроконтроллеры для танкерного и заправочного оборудования; перевёл рабочий сервер на Astra Linux (C#).",
+              "Отрасль назвать можно, компанию — нет: чувствительная инфраструктура."
+            ]
+          },
+          {
+            "code": "FILE-02",
+            "name": "Платформа «Сэд-Про» · автоматизация работы проектировщиков",
+            "classified": [
+              "Исходный код — коммерческий продукт готовится к выходу на рынок",
+              "Данные заказчиков и проектные файлы",
+              "Скриншоты рабочего пространства"
+            ],
+            "declassified": [
+              "SQL-first архитектура: база описывает виджеты, формы, кнопки и их логику, клиент на Qt Widgets отрисовывает интерфейс поверх неё.",
+              "Версионирование по листам (DWG / XLSX / PDF), электронный документооборот, передача задач и файлов между проектировщиками.",
+              "30 рабочих мест проектировщиков в действующем архитектурно-конструкторском бюро; по оценке директора цикл «заявка → выдача» заметно ускорился.",
+              "Отвечаю за стек и техническое направление, основную часть C++-кода написал сам."
+            ]
+          }
+        ],
+        "clearanceTitle": "Запросить доступ",
+        "clearance": "Всё это есть в резюме с датами. То, для чего нужен разговор, а не документ, — через прямые каналы."
+      }
+    },
+    "loot": {
+      "title": "Таблица лута (резюме)",
+      "note": "PDF ⇩ — один клик, квест не нужен",
+      "tier": {
+        "epic": "эпический дроп",
+        "common": "обычный, читается парсером"
+      },
+      "item": {
+        "enVisual": "Резюме EN — визуальное",
+        "ruVisual": "Резюме RU — визуальное",
+        "enAts": "Резюме EN — простое, под ATS",
+        "ruAts": "Резюме RU — простое, под ATS"
+      }
+    },
+    "contact": {
+      "title": "Бой с боссом (прямой контакт)",
+      "boss": "Босс: Влад — принимает офферы",
+      "hp": "HP ∞ — проходит только прямой контакт",
+      "emailLabel": "Почта",
+      "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
+      "telegramSub": "@cryzoth — отвечаю быстрее всего"
+    },
+    "threed": {
+      "mode": "отсек движка — каркасный режим",
+      "note": "Каркас нарисован руками в SVG — 3D-библиотек на борту нет."
+    },
+    "vai": {
+      "greeting": "Обнаружен игрок 1. Добро пожаловать в билд. Я VAI — спрашивайте про Влада или наберите /help для команд шелла.",
+      "close": "[x] закрыть",
+      "modeGroup": "режим агента",
+      "cta": {
+        "engine": "Запустить движок"
+      },
+      "sys": {
+        "ask": "спросить ${mode}",
+        "modeVai": "[sys] режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
+        "modeGai": "[sys] режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
+        "empty": "[sys] пустой ответ — попробуйте ещё раз.",
+        "transport": "[sys] ошибка транспорта — попробуйте ещё раз."
+      },
+      "error": {
+        "connection": "соединение не удалось — попробуйте ещё раз.",
+        "status": "запрос не прошёл (${status})",
+        "cut": "ответ оборвался — попробуйте ещё раз."
+      }
+    },
+    "commands": {
+      "whoami": "Владислав Климентьев — C++ разработчик (Qt-платформа инструментов в продакшене; свой C++ движок с glTF; мини-игры в Telegram). Цель — геймдев: инструменты / геймплей.",
+      "ls": "donut-engine/      C++17, glTF-рендер, интеграция с Qt Quick\nsed-pro-platform/  Qt Widgets + MySQL, интерфейс из данных (NDA)\ncyberhockey2077/   неоновый аэрохоккей, Telegram mini app\nthis-site/         React 19 + GSAP, открытый код",
+      "loadout": "основное оружие: C++17\nвторое оружие: Qt (Widgets + Quick)\nветка навыков: Unreal Engine — качается\nпобочные квесты: TypeScript · React",
+      "career": "Перехожу к карьерному росту.",
+      "skills": "Перехожу к ключевым навыкам.",
+      "nda": "Открываю засекреченные файлы…",
+      "loot": "Открываю таблицу лута.",
+      "contact": "Бой с боссом начат. Приходите с оффером.",
+      "threed": "Открываю отсек движка.",
+      "en": "Switching to English.",
+      "ru": "Переключаюсь на русский.",
+      "catResume": "Открываю таблицу лута — 4 PDF, выбирайте редкость.",
+      "help": "/help — этот список\nwhoami — кто такой Влад\nls projects — список проектов\n/loadout — экипированный стек\n/lore — случайный факт из лора\n/joke — шутка про геймдев\n/3d — открыть отсек движка\n/career /skills /nda /loot /contact — прыжок в сектор\n/en /ru — сменить язык",
+      "joke": {
+        "1": "Почему C++ геймдевы укладываются в срок? Они обрабатывают исключения раньше, чем исключения обработают их.",
+        "2": "Дизайнер заходит в бар. Бар оказался data-driven, так что пересобирать никого не пришлось.",
+        "3": "— Почему в билде текстуры летают отдельно от модели? — Это не баг, это ранний доступ.",
+        "4": "Было 99 багов в коде. Один пофиксил — стало 127."
+      },
+      "lore": {
+        "1": "Из лора: стал ведущим программистом через девять месяцев после прихода — маленькая команда, быстрый кредит доверия.",
+        "2": "Из лора: соавтор научной статьи «Эволюция точечных дефектов в кристалле ГЦК» (2023, индексация РИНЦ).",
+        "3": "Из лора: лауреат Краевой олимпиады профессионального мастерства по ИТ-специальностям (2023).",
+        "4": "Из лора: интерфейс платформы «Сэд-Про» описан данными — непрограммисты перенастраивают инструменты прямо из базы."
+      }
+    }
+  }
+}

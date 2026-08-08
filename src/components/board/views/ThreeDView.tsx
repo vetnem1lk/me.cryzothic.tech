@@ -4,9 +4,11 @@
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef } from 'react';
+import { useT } from '../../../i18n/I18nContext';
 
 // No infinite loops here (T3b.6), and not a .cursor-target: it performs no action.
 export default function ThreeDView() {
+  const t = useT();
   const scope = useRef<HTMLElement>(null);
   const cubeRef = useRef<SVGSVGElement>(null);
   const qx = useRef<((v: number) => void) | null>(null);
@@ -64,11 +66,9 @@ export default function ThreeDView() {
         </svg>
       </div>
       <p className="font-mono text-xs tracking-widest text-neutral-500 uppercase">
-        engine bay — wireframe mode
+        {t('threed.mode')}
       </p>
-      <p className="max-w-md text-center text-sm text-neutral-400">
-        A hand-drawn SVG wireframe — no 3D library on board.
-      </p>
+      <p className="max-w-md text-center text-sm text-neutral-400">{t('threed.note')}</p>
     </section>
   );
 }

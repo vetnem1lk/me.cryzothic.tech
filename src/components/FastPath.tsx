@@ -2,7 +2,10 @@
 // reachable without waiting for the board or working out the game shell. A
 // recruiter with thirty seconds should still leave with the PDF.
 import { useEffect, useRef, useState } from 'react'
+import type { Lang } from '../i18n/locale'
+import { STRIP } from '../i18n/strip'
 
+/* These labels name the language of the *file*, so they read the same on /ru as on /. */
 const CV_LINKS = [
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf',
@@ -21,7 +24,7 @@ const CV_BUTTON =
 
 /* Mobile-only replacement for the two CV buttons: one button, a dashed dropdown
    with the language choice. Desktop keeps the flat strip. */
-function CvDropdown() {
+function CvDropdown({ lang }: { lang: Lang }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -65,7 +68,7 @@ function CvDropdown() {
       {open && (
         <div
           role="menu"
-          aria-label="CV language"
+          aria-label={STRIP[lang].cvMenu}
           className="absolute top-full right-0 mt-2 w-44 overflow-hidden rounded-lg border border-dashed border-accent/45 bg-neutral-950/95 shadow-lg backdrop-blur-sm"
         >
           {CV_LINKS.map(({ href, label, menuLabel }) => (
@@ -86,7 +89,7 @@ function CvDropdown() {
   )
 }
 
-export default function FastPath() {
+export default function FastPath({ lang }: { lang: Lang }) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur-sm">
       <div className="mx-auto flex h-12 max-w-[1600px] items-center justify-between gap-4 px-4">
@@ -99,14 +102,12 @@ export default function FastPath() {
             style={{ mask: 'url(/face-icon-tight.svg) center / contain no-repeat' }}
           />
           <span className="truncate font-semibold tracking-tight text-neutral-100">
-            Vladislav Klimentev
+            {STRIP[lang].name}
           </span>
-          <span className="hidden text-sm text-neutral-400 md:inline">
-            C++ Developer · Tools / Gameplay
-          </span>
+          <span className="hidden text-sm text-neutral-400 md:inline">{STRIP[lang].role}</span>
         </div>
-        <CvDropdown />
-        <nav aria-label="Quick actions" className="hidden items-center gap-2 md:flex">
+        <CvDropdown lang={lang} />
+        <nav aria-label={STRIP[lang].quickActions} className="hidden items-center gap-2 md:flex">
           {CV_LINKS.map(({ href, label }) => (
             <a key={label} href={href} download className={CV_BUTTON}>
               {label}
@@ -132,7 +133,7 @@ export default function FastPath() {
             href="mailto:klimentev.vlad@gmail.com"
             className="cursor-target px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white"
           >
-            Email
+            {STRIP[lang].email}
           </a>
         </nav>
       </div>

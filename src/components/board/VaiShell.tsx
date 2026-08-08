@@ -5,16 +5,15 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { navigate } from 'wouter/use-browser-location';
+import { usePathname } from 'wouter/use-browser-location';
+import { useLang, useT } from '../../i18n/I18nContext';
+import { mirrorPath, pathForLang } from '../../i18n/locale';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
 import { EMPTY, push, take, type DrainState } from './drain';
-import { MODE_HINT, MODE_NAME, history, type AgentMode, type ChatMessage } from './transport';
-
-const GREETING =
-  "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.";
+import { MODE_NAME, history, type AgentMode, type ChatMessage } from './transport';
 
 const TYPE_SPEED = { min: 45, max: 180 };
 const CURSOR_BLINK = 0.5; // seconds per half-blink, matching the input's own cursor
@@ -33,19 +32,17 @@ export default function VaiShell({
   mobileOpen: boolean;
   onMobileClose: () => void;
 }) {
-  // `local`: the greeting is furniture the shell prints, not a turn the model
-  // took — replaying it as history would put words in VAI's mouth.
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'agent',
-      text: GREETING,
-      from: 'vai',
-      local: true,
-      // Straight to the route, not a synthesized /3d — the visitor asked for the
-      // engine bay, not for a command echoed back at them.
-      actions: [{ label: 'Try the engine', to: '/3d' }],
-    },
-  ]);
+  const t = useT();
+  const lang = useLang();
+  // Base-unaware, unlike the router's own location: the mirror is computed on the
+  // real address bar, and the `~` puts the resulting link outside the base again.
+  const pathname = usePathname();
+  // Base-aware navigation — the whole point of taking it from the router instead of
+  // the browser-location module: `/loot` from a command becomes `/ru/loot` under
+  // the RU base. Commands stay unprefixed; wouter prepends.
+  const [location, navigate] = useLocation();
+
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mode, setMode] = useState<AgentMode>('vai');
   const modeRef = useRef<AgentMode>('vai');
   // ponytail: promise-chain serialization — replies land in submit order even
@@ -82,6 +79,31 @@ export default function VaiShell({
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Only one line is ever pending: the queue answers one question at a time.
   const pendingId = messages.find((m) => m.pending)?.id;
+
+  // The greeting is furniture the shell prints, not a turn the model took — hence
+  // `local`, and hence derived per render instead of seeded into the log: a
+  // language switch does not remount this component, so a greeting held in state
+  // would keep its old words and hand the chip a stale path to mirror.
+  const greeting: ChatMessage = {
+    role: 'agent',
+    text: t('vai.greeting'),
+    from: 'vai',
+    local: true,
+    actions: [
+      // Straight to the route, not a synthesized /3d — the visitor asked for the
+      // engine bay, not for a command echoed back at them.
+      { label: t('vai.cta.engine'), to: '/3d' },
+      // Always written in the language it leads to, so it reads as an offer to
+      // whoever cannot read the page they are on.
+      { label: lang === 'ru' ? 'English' : 'Русский', to: '~' + mirrorPath(pathname) },
+    ],
+  };
+
+  // One string, three jobs: the field's accessible name, its placeholder and the
+  // label that types itself while the field is empty. `C:\>` and `/help` are shell
+  // syntax, not prose, so only the verb between them is translated.
+  const ask = t('vai.sys.ask', { mode: MODE_NAME[mode] });
+  const prompt = `C:\\> ${ask} · /help`;
 
   useGSAP(
     () => {
@@ -120,8 +142,12 @@ export default function VaiShell({
   // Navigation is the sheet's exit: on a phone the shell covers the board, so a
   // route change — an action link, or any /command that navigates — means the
   // visitor chose a destination hidden behind the overlay. Only a *change*
-  // closes it; opening the sheet leaves the location alone and re-runs this.
-  const [location] = useLocation();
+  // closes it; opening the sheet leaves the location alone and re-runs this. A
+  // language switch — the chip, or the /en and /ru commands — mirrors the path,
+  // so base-relative it is the same location (/career -> /career) and the sheet
+  // stays open on purpose: the visitor stays where they were, in the other
+  // language. That only holds while those two commands mirror instead of jumping
+  // to the root; the base-relative location would change and this would fire.
   const prevLoc = useRef(location);
   useEffect(() => {
     if (location === prevLoc.current) return;
@@ -133,7 +159,10 @@ export default function VaiShell({
     if (next === modeRef.current) return;
     modeRef.current = next;
     setMode(next);
-    setMsgs((m) => [...m, { role: 'sys', text: MODE_HINT[next] }]);
+    setMsgs((m) => [
+      ...m,
+      { role: 'sys', text: t(next === 'vai' ? 'vai.sys.modeVai' : 'vai.sys.modeGai') },
+    ]);
   }
 
   /**
@@ -162,7 +191,7 @@ export default function VaiShell({
           // it does owe the visitor a reason: the error path wrote one already,
           // a clean stream that said nothing has to say so itself.
           if (!st.buf && !failed) {
-            setMsgs((m) => [...m, { role: 'sys', text: '[sys] empty response — try again.' }]);
+            setMsgs((m) => [...m, { role: 'sys', text: t('vai.sys.empty') }]);
           }
           setMsgs((all) =>
             all
@@ -187,19 +216,21 @@ export default function VaiShell({
         // a turn index through every line.
         history(messagesRef.current, turnMode, askId),
         {
-          onToken: (t) => {
-            st = push(st, t);
+          onToken: (tok) => {
+            st = push(st, tok);
           },
           onDone: () => {
             st = { ...st, doneFeeding: true };
           },
-          onError: (msg) => {
+          onError: (msg, vars) => {
             // Ending the feed is what closes the turn: the loop types out
             // whatever arrived, drops the cursor and lets the queue move on.
             // The service's own watchdogs mean a stalled stream lands here too.
             failed = true;
             st = { ...st, doneFeeding: true };
-            setMsgs((m) => [...m, { role: 'sys', text: `[sys] ${msg}` }]);
+            // A `vai.error.*` key resolves; a message the service sent is not a
+            // key and comes back out of `t` unchanged, still English.
+            setMsgs((m) => [...m, { role: 'sys', text: `[sys] ${t(msg, vars)}` }]);
           },
         },
         ac.signal,
@@ -221,11 +252,25 @@ export default function VaiShell({
     queueRef.current = queueRef.current
       .then(async () => {
         if (cmd) {
+          // The registry answers with a dictionary key; the language is whatever
+          // the URL said when the visitor pressed Enter. /en and /ru are the two
+          // that then change it — their confirmation is written in the language
+          // they switch to, so it still matches the page it lands on.
           setMsgs((m) => [
             ...m,
-            { role: 'agent', text: cmd.text, from: requestMode, local: true },
+            { role: 'agent', text: t(cmd.textKey), from: requestMode, local: true },
           ]);
-          if (cmd.navigateTo) navigate(cmd.navigateTo);
+          if (cmd.navigateLang) {
+            // Same sector, other language. Read off the address bar rather than
+            // the render that queued this, because a command can sit in the queue
+            // behind a whole model answer while the visitor keeps clicking — the
+            // mirror has to be of where they are now. `~` then puts the result
+            // outside the router base, which is where the other language lives.
+            const to = pathForLang(cmd.navigateLang, window.location.pathname);
+            // Already reading that language: pathForLang is a no-op and so is the
+            // command. Pushing the identical URL would only litter the history.
+            if (to !== window.location.pathname) navigate('~' + to);
+          } else if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
         // An empty pending line is the thinking state: the cursor blinks alone
@@ -237,7 +282,7 @@ export default function VaiShell({
         await runTurn(text, requestMode, askId, replyId);
       })
       .catch(() => {
-        setMsgs((m) => [...m, { role: 'sys', text: '[sys] transport error — try again.' }]);
+        setMsgs((m) => [...m, { role: 'sys', text: t('vai.sys.transport') }]);
       });
   }
 
@@ -256,7 +301,7 @@ export default function VaiShell({
           {MODE_NAME[mode]}
         </span>
         <div className="flex items-center gap-3">
-          <div role="group" aria-label="agent mode" className="flex font-mono text-[11px]">
+          <div role="group" aria-label={t('vai.modeGroup')} className="flex font-mono text-[11px]">
             <button
               type="button"
               aria-pressed={mode === 'vai'}
@@ -280,7 +325,7 @@ export default function VaiShell({
               onClick={onMobileClose}
               className="cursor-target font-mono text-xs text-neutral-400 md:hidden"
             >
-              [x] close
+              {t('vai.close')}
             </button>
           )}
         </div>
@@ -291,7 +336,7 @@ export default function VaiShell({
         aria-live="polite"
         className="scroll-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm max-md:max-h-56"
       >
-        {messages.map((m, i) =>
+        {[greeting, ...messages].map((m, i) =>
           m.role === 'sys' ? (
             <p key={i} className="font-mono text-[11px] text-sep-mint/80">
               {m.text}
@@ -352,17 +397,19 @@ export default function VaiShell({
         <input
           ref={inputRef}
           name="prompt"
-          aria-label={`ask ${MODE_NAME[mode]}`}
+          aria-label={ask}
           autoComplete="off"
           // The service rejects anything longer; better a full field than a
           // round trip that comes back a 400.
           maxLength={500}
-          placeholder={`C:\\> ask ${MODE_NAME[mode]} · /help`}
+          placeholder={prompt}
           className="caret-terminal peer w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
         />
         <TextType
-          key={mode}
-          text={`C:\\> ask ${MODE_NAME[mode]} · /help`}
+          // Remounts on a language switch as well as a mode switch, so the label
+          // retypes from empty instead of resuming halfway through other words.
+          key={`${mode}-${lang}`}
+          text={prompt}
           variableSpeed={TYPE_SPEED}
           className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 font-mono text-sm peer-focus:hidden peer-not-placeholder-shown:hidden"
         />

@@ -4,7 +4,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { apiTransport } from './apiTransport';
 import {
-  MODE_HINT,
   MODE_NAME,
   history,
   type ChatMessage,
@@ -37,6 +36,7 @@ const stubFetch = (res: Response | (() => Promise<Response>)) => {
 function handlers() {
   const tokens: string[] = [];
   const errors: string[] = [];
+  const errorVars: (Record<string, string | number> | undefined)[] = [];
   let dones = 0;
   let settle!: () => void;
   const settled = new Promise<void>((resolve) => (settle = resolve));
@@ -46,8 +46,9 @@ function handlers() {
       dones++;
       settle();
     },
-    onError: (m) => {
+    onError: (m, vars) => {
       errors.push(m);
+      errorVars.push(vars);
       settle();
     },
   };
@@ -55,6 +56,7 @@ function handlers() {
     h,
     tokens,
     errors,
+    errorVars,
     settled,
     get dones() {
       return dones;
@@ -242,7 +244,8 @@ describe('apiTransport failures', () => {
     apiTransport.send('hi', 'vai', [], s.h);
     await s.settled;
 
-    expect(s.errors).toEqual(['request failed (502)']);
+    expect(s.errors).toEqual(['vai.error.status']);
+    expect(s.errorVars).toEqual([{ status: 502 }]);
   });
 
   test('a network failure reports exactly one friendly line', async () => {
@@ -255,7 +258,7 @@ describe('apiTransport failures', () => {
     await s.settled;
     await tick();
 
-    expect(s.errors).toEqual(['connection failed — try again.']);
+    expect(s.errors).toEqual(['vai.error.connection']);
     expect(s.dones).toBe(0);
   });
 
@@ -400,11 +403,8 @@ describe('history', () => {
 });
 
 describe('agent modes', () => {
-  test('mode hints expand both agent names', () => {
-    expect(MODE_HINT.vai).toContain('VladislavAI');
-    expect(MODE_HINT.gai).toContain('GlobalAI');
-  });
-
+  // The hints that expand these two names are prose and moved to content.json;
+  // content.test.ts pins them there, in both languages.
   test('mode names are the two terminal labels', () => {
     expect(MODE_NAME).toEqual({ vai: 'VAI', gai: 'GAI' });
   });

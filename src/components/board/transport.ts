@@ -24,12 +24,10 @@ export interface ChatMessage {
   actions?: ChatAction[];
 }
 
+// The two agent names are proper nouns — the same in both languages, so they stay
+// here rather than in the dictionary. The mode hints that expand them do not: they
+// are prose, and live under `vai.sys.mode*` in content.json.
 export const MODE_NAME: Record<AgentMode, string> = { vai: 'VAI', gai: 'GAI' };
-
-export const MODE_HINT: Record<AgentMode, string> = {
-  vai: "[sys] mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
-  gai: '[sys] mode: GAI — GlobalAI, general mode — not bound to the portfolio.',
-};
 
 /** One earlier turn, in the wire shape the service validates. */
 export interface HistoryMsg {
@@ -41,7 +39,14 @@ export interface HistoryMsg {
 export interface StreamHandlers {
   onToken(t: string): void;
   onDone(): void;
-  onError(message: string): void;
+  /**
+   * The transport reports *what* failed; the shell decides how to say it. Its own
+   * failures are reported as `vai.error.*` dictionary keys (with `vars` for the
+   * interpolated one), so they speak the visitor's language. A message the service
+   * sent is passed through verbatim and stays English — `useT()` returns an unknown
+   * key unchanged, which is exactly that passthrough.
+   */
+  onError(message: string, vars?: Record<string, string | number>): void;
 }
 
 // Budgets copied from the service's own limits (server/src/config.ts `caps`):

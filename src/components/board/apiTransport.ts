@@ -4,8 +4,9 @@
 import type { AgentMode, ChatTransport, HistoryMsg, StreamHandlers } from './transport';
 
 const ENDPOINT = '/api/chat';
-// Whatever actually broke, a visitor gets one line they can act on.
-const GENERIC = 'connection failed — try again.';
+// Whatever actually broke, a visitor gets one line they can act on — as a
+// dictionary key, because only the shell knows which language to say it in.
+const GENERIC = 'vai.error.connection';
 
 /** A frame payload is JSON; a broken one yields '' rather than throwing. */
 const field = (payload: string, key: 'message' | 't'): string => {
@@ -32,10 +33,10 @@ async function run(
     closed = true;
     h.onDone();
   };
-  const fail = (m: string) => {
+  const fail = (m: string, vars?: Record<string, string | number>) => {
     if (closed) return;
     closed = true;
-    h.onError(m);
+    h.onError(m, vars);
   };
   // The wire is fine, its consumer is not: a handler that throws must not reach
   // the visitor as `connection failed`, nor abandon the stream half-read. It
@@ -62,7 +63,8 @@ async function run(
       // service — anything else (a proxy's HTML 502) only gets to name its status.
       const data = (await res.json().catch(() => null)) as { error?: { message?: unknown } } | null;
       const m = data?.error?.message;
-      return fail(typeof m === 'string' && m ? m : `request failed (${res.status})`);
+      if (typeof m === 'string' && m) return fail(m);
+      return fail('vai.error.status', { status: res.status });
     }
     if (!res.body) return fail(GENERIC);
 
@@ -107,7 +109,7 @@ async function run(
     }
     // The body ended with no [DONE]: the answer was cut off in transit, and the
     // caller must not mistake a truncated reply for a finished one.
-    if (!handle(buf + dec.decode())) fail('the answer was cut short — try again.');
+    if (!handle(buf + dec.decode())) fail('vai.error.cut');
   } catch {
     // A visitor who moved on gets no error line; there is nothing to report.
     if (!signal?.aborted) fail(GENERIC);
