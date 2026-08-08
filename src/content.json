@@ -2,7 +2,8 @@
   "en": {
     "meta": {
       "title": "Vladislav Klimentev · C++ Developer",
-      "description": "Vladislav Klimentev - C++/Qt developer (tools / gameplay). Interactive portfolio, CV downloads, contacts."
+      "description": "Vladislav Klimentev - C++/Qt developer (tools / gameplay). Interactive portfolio, CV downloads, contacts.",
+      "ogDescription": "C++/Qt developer heading into game development (tools / gameplay). CV and contacts in one click."
     },
     "marquee": {
       "status": "UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev"
@@ -233,7 +234,8 @@
   "ru": {
     "meta": {
       "title": "Владислав Климентьев · C++ разработчик",
-      "description": "Владислав Климентьев — C++/Qt разработчик (инструменты / геймплей). Интерактивное портфолио, резюме в PDF, контакты."
+      "description": "Владислав Климентьев — C++/Qt разработчик (инструменты / геймплей). Интерактивное портфолио, резюме в PDF, контакты.",
+      "ogDescription": "C++/Qt разработчик, перехожу в геймдев (инструменты / геймплей). Резюме и контакты в один клик."
     },
     "marquee": {
       "status": "РАЗБЛОКИРОВАНО: портфолио C++ / Qt разработчика · цель: геймдев"

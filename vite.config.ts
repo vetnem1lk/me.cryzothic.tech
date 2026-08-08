@@ -8,6 +8,11 @@ export default defineConfig({
   // Dev only: the chat service runs as its own process, so /api/chat reaches it
   // same-origin here exactly as it does behind Caddy in production.
   server: { proxy: { '/api': 'http://127.0.0.1:13331' } },
+  // 2000, just under the smallest Cyrillic woff2 (2 028 B): the default 4096 base64s
+  // both cyrillic-ext subsets into the render-blocking CSS, where every EN visitor
+  // pays for glyphs only the RU page uses. They are the only assets in that window,
+  // so this splits exactly those two out as on-demand files.
+  build: { assetsInlineLimit: 2000 },
   // The site's own tests only; server/ is a separate npm project with its own suite.
   test: { include: ['src/**/*.test.{ts,tsx}'] },
 })

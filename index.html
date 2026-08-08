@@ -11,6 +11,12 @@
     />
     <meta name="theme-color" content="#0a0a0a" />
     <link rel="canonical" href="https://me.cryzothic.tech/" />
+    <!-- Absolute and identical in both emitted pages: scripts/emit-ru-html.mjs
+         copies this block through untouched, so each language points at the same
+         pair and neither one cross-canonicalizes. -->
+    <link rel="alternate" hreflang="en" href="https://me.cryzothic.tech/" />
+    <link rel="alternate" hreflang="ru" href="https://me.cryzothic.tech/ru/" />
+    <link rel="alternate" hreflang="x-default" href="https://me.cryzothic.tech/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://me.cryzothic.tech/" />
     <meta property="og:title" content="Vladislav Klimentev · C++ Developer" />
@@ -21,6 +27,8 @@
     <meta property="og:image" content="https://me.cryzothic.tech/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ru_RU" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://me.cryzothic.tech/og.png" />
     <title>Vladislav Klimentev · C++ Developer</title>
