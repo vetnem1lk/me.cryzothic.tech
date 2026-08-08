@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { usePathname } from 'wouter/use-browser-location';
 import { useLang, useT } from '../../i18n/I18nContext';
-import { mirrorPath, pathForLang } from '../../i18n/locale';
+import { mirrorTarget, pathForLang } from '../../i18n/locale';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
@@ -93,9 +93,15 @@ export default function VaiShell({
       // Straight to the route, not a synthesized /3d — the visitor asked for the
       // engine bay, not for a command echoed back at them.
       { label: t('vai.cta.engine'), to: '/3d' },
-      // Always written in the language it leads to, so it reads as an offer to
-      // whoever cannot read the page they are on.
-      { label: lang === 'ru' ? 'English' : 'Русский', to: '~' + mirrorPath(pathname) },
+      // The label is the command that does the same thing, so the chip teaches the
+      // shell instead of only using it — and being shell syntax rather than prose,
+      // it reads the same to whoever cannot read the page they are on. Query and
+      // hash come off the address bar at render; a chip the visitor clicks needs
+      // the value as it stands then, not a subscription.
+      {
+        label: lang === 'ru' ? '[/en]' : '[/ru]',
+        to: mirrorTarget(pathname, window.location.search, window.location.hash),
+      },
     ],
   };
 
@@ -269,7 +275,11 @@ export default function VaiShell({
             const to = pathForLang(cmd.navigateLang, window.location.pathname);
             // Already reading that language: pathForLang is a no-op and so is the
             // command. Pushing the identical URL would only litter the history.
-            if (to !== window.location.pathname) navigate('~' + to);
+            // The guard compares paths alone on purpose — the query and hash
+            // appended below are the ones already in the bar, so weighing them
+            // too would only ever compare each to itself.
+            if (to !== window.location.pathname)
+              navigate('~' + to + window.location.search + window.location.hash);
           } else if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
