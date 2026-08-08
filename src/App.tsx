@@ -31,10 +31,12 @@ export default function App() {
 
   // Autodetect runs on the bare root only, once per load. A deep link is already a
   // deliberate choice of language, so it is never redirected out from under the
-  // visitor; and replace: true keeps Back pointing at wherever they came from.
+  // visitor; and replace: true keeps Back pointing at wherever they came from. The
+  // query and hash ride along — a campaign's ?utm_source or a #contact anchor must
+  // survive the redirect, or the Russian visitor is the one who loses it.
   useEffect(() => {
     if (window.location.pathname === '/' && pickInitialLocale(navigator.language) === 'ru')
-      navigate('/ru', { replace: true });
+      navigate('/ru' + window.location.search + window.location.hash, { replace: true });
   }, []);
 
   return (

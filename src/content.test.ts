@@ -39,4 +39,14 @@ describe('content.json', () => {
     expect(leaf(content.en, 'vai.sys.ask')).toContain('${mode}');
     expect(leaf(content.en, 'vai.error.status')).toContain('${status}');
   });
+
+  // Moved here from transport.test.ts when the hints left MODE_HINT for the
+  // dictionary: whatever the language, the hint is what tells a visitor which of
+  // the two agents they are talking to, so the expansion has to survive a rewrite.
+  test('mode hints expand both agent names, in both languages', () => {
+    for (const lang of ['en', 'ru'] as const) {
+      expect(leaf(content[lang], 'vai.sys.modeVai')).toContain('VladislavAI');
+      expect(leaf(content[lang], 'vai.sys.modeGai')).toContain('GlobalAI');
+    }
+  });
 });
