@@ -12,7 +12,7 @@
       "home": "~/",
       "career": "career",
       "skills": "skills",
-      "nda": "nda",
+      "nda": "nda: new position",
       "loot": "loot",
       "contact": "contact",
       "code": "code_base",
@@ -235,6 +235,7 @@
       "close": "[x] close",
       "modeGroup": "agent mode",
       "cta": {
+        "story": "Play the story",
         "engine": "Try the engine"
       },
       "sys": {
@@ -293,7 +294,7 @@
       "home": "~/",
       "career": "карьера",
       "skills": "навыки",
-      "nda": "nda",
+      "nda": "nda: новая должность",
       "loot": "лут",
       "contact": "контакт",
       "code": "code_base",
@@ -516,6 +517,7 @@
       "close": "[x] закрыть",
       "modeGroup": "режим агента",
       "cta": {
+        "story": "Пройти историю",
         "engine": "Запустить движок"
       },
       "sys": {

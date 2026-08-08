@@ -142,6 +142,9 @@ export default function VaiShell({
     from: 'vai',
     local: true,
     actions: [
+      // First chip: the story is the one door here that is played rather than
+      // read. Same label as the briefing's own chip — one offer, two places.
+      { label: t('vai.cta.story'), to: '/nda' },
       // Straight to the route, not a synthesized /3d — the visitor asked for the
       // engine bay, not for a command echoed back at them.
       { label: t('vai.cta.engine'), to: '/3d' },
