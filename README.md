@@ -50,7 +50,8 @@ this repo ships the guardrails and the tests but cannot run the agent as deploye
 ```
 me.cryzothic.tech/
 ├── src/                             # the front end
-│   ├── main.tsx                     # browser entry: mounts App
+│   ├── main.tsx                     # browser entry: mounts App, arms preload recovery
+│   ├── preloadRecovery.ts           # one reload when a redeploy strands a tab's lazy chunk
 │   ├── App.tsx                      # shell: CV strip + cursor eager, board lazy
 │   ├── index.css                    # Tailwind + theme tokens + the few hand-written effects
 │   ├── content.json                 # EN/RU board dictionary — lazy chunk only, never `?raw`
@@ -59,7 +60,7 @@ me.cryzothic.tech/
 │   │   ├── locale.test.ts           # vitest: the URL<->language pins, incl. /rules staying EN
 │   │   ├── I18nContext.ts           # Lang context + dotted-path lookup, EN fallback
 │   │   └── strip.ts                 # the only dictionary on the entry path (FastPath copy)
-│   ├── *.test.ts                    # vitest: dictionary parity, the /ru emitter
+│   ├── *.test.ts                    # vitest: dictionary parity, the /ru emitter, preload recovery
 │   └── components/
 │       ├── FastPath.tsx             # pinned CV/contact strip — the thirty-second path
 │       ├── TargetCursor.tsx         # crosshair cursor, fine pointers only

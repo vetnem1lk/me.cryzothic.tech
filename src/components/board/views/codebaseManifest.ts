@@ -23,6 +23,7 @@ import skillsSrc from './Skills.tsx?raw';
 import i18nContextSrc from '../../../i18n/I18nContext.ts?raw';
 import localeSrc from '../../../i18n/locale.ts?raw';
 import stripSrc from '../../../i18n/strip.ts?raw';
+import preloadRecoverySrc from '../../../preloadRecovery.ts?raw';
 import emitRuHtmlSrc from '../../../../scripts/emit-ru-html.mjs?raw';
 
 export interface CodeFile {
@@ -63,6 +64,7 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/i18n/I18nContext.ts', content: i18nContextSrc },
       { path: 'src/i18n/locale.ts', content: localeSrc },
       { path: 'src/i18n/strip.ts', content: stripSrc },
+      { path: 'src/preloadRecovery.ts', content: preloadRecoverySrc },
       // files[0] is the exhibit's landing file, so src/ leads and scripts/ trails ASCII.
       { path: 'scripts/emit-ru-html.mjs', content: emitRuHtmlSrc },
     ],
