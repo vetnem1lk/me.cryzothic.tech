@@ -79,7 +79,7 @@ const COMMANDS: Record<string, () => CommandResult> = {
   '/3d': () => ({ textKey: 'commands.threed', navigateTo: '/3d' }),
   // The address bar is what picks the language, so switching it is a real
   // navigation — to the mirror of wherever the visitor is standing, never to the
-  // root: same sector, other language (spec §T5c decision 5).
+  // root: same sector, other language.
   '/en': () => ({ textKey: 'commands.en', navigateLang: 'en' }),
   '/ru': () => ({ textKey: 'commands.ru', navigateLang: 'ru' }),
 };
@@ -100,7 +100,7 @@ export const COMMAND_ROW = Object.keys(COMMANDS);
 const CODE = new RegExp(`\\b${DECLASSIFY_CHAPTER}\\b`, 'i');
 
 // ponytail: exact-match registry with one prefix branch beside it; fuzzy matching
-// arrives with the FAQ corpus (T6)
+// can arrive with a real FAQ corpus if one ever ships
 export function runCommand(raw: string): CommandResult | null {
   const key = raw.trim().toLowerCase().replace(/\s+/g, ' ');
   // The one command that takes an argument, so it is matched by prefix instead of
