@@ -3,17 +3,19 @@
 // character. The pacing math is drain.ts; the wire is apiTransport.ts.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation } from 'wouter';
 import { usePathname } from 'wouter/use-browser-location';
 import { useLang, useT } from '../../i18n/I18nContext';
-import { mirrorPath, pathForLang } from '../../i18n/locale';
+import { mirrorTarget, pathForLang } from '../../i18n/locale';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
 import { EMPTY, push, take, type DrainState } from './drain';
+import { CHAPTERS, DIMS, isUnlocked, photoSlug, subscribe, type ChapterId } from './story';
 import { MODE_NAME, history, type AgentMode, type ChatMessage } from './transport';
+import Lightbox from './views/Lightbox';
 
 const TYPE_SPEED = { min: 45, max: 180 };
 const CURSOR_BLINK = 0.5; // seconds per half-blink, matching the input's own cursor
@@ -24,6 +26,52 @@ const segClass = (active: boolean, side: 'l' | 'r') =>
       ? 'border-accent/60 text-accent'
       : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
   }`;
+
+// A number, so React can compare snapshots without a memo: the shell only cares how
+// many covers are off, not which.
+const openFileCount = () => CHAPTERS.filter(isUnlocked).length;
+
+// Which chapter a chat photo is of, read back off its own URL. The message carries
+// what it shows rather than an id — the wire shape stays two strings — and the slug
+// is the store's own cut, so this reverses it instead of parsing the file name.
+const chapterOf = (src: string) => CHAPTERS.find((c) => src.includes(photoSlug(c)));
+
+/**
+ * A photo attached to a line of the log: a thumbnail that opens the full one. The
+ * width and height are the file's measured size, which is what reserves its box
+ * before the bytes arrive — the log scrolls to the bottom when a message lands, not
+ * when an image finishes loading, so one that grew on arrival would push the line
+ * being read out of view. The `-640` derivative is a different size but the same
+ * shape, and the shape is all a reserved box needs.
+ */
+function ChatPhoto({
+  image,
+  onOpen,
+}: {
+  image: NonNullable<ChatMessage['image']>;
+  onOpen: (id: ChapterId) => void;
+}) {
+  const id = chapterOf(image.src);
+  if (!id) return null;
+  const [w, h] = DIMS[id];
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(id)}
+      className="cursor-target mt-1.5 block w-40 max-w-full"
+    >
+      <img
+        src={image.src}
+        alt={image.alt}
+        width={w}
+        height={h}
+        loading="lazy"
+        decoding="async"
+        className="h-auto w-full rounded border border-dashed border-accent/40"
+      />
+    </button>
+  );
+}
 
 export default function VaiShell({
   mobileOpen,
@@ -44,6 +92,10 @@ export default function VaiShell({
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mode, setMode] = useState<AgentMode>('vai');
+  // The chapter the viewer is open on, if a photo in the log was clicked. Its own
+  // instance, not the one /nda mounts: the terminal is on screen in every sector,
+  // and only one dialog is ever open anyway.
+  const [photo, setPhoto] = useState<ChapterId | null>(null);
   const modeRef = useRef<AgentMode>('vai');
   // ponytail: promise-chain serialization — replies land in submit order even
   // when a future live transport resolves out of order.
@@ -90,12 +142,21 @@ export default function VaiShell({
     from: 'vai',
     local: true,
     actions: [
+      // First chip: the story is the one door here that is played rather than
+      // read. Same label as the briefing's own chip — one offer, two places.
+      { label: t('vai.cta.story'), to: '/nda' },
       // Straight to the route, not a synthesized /3d — the visitor asked for the
       // engine bay, not for a command echoed back at them.
       { label: t('vai.cta.engine'), to: '/3d' },
-      // Always written in the language it leads to, so it reads as an offer to
-      // whoever cannot read the page they are on.
-      { label: lang === 'ru' ? 'English' : 'Русский', to: '~' + mirrorPath(pathname) },
+      // The label is the command that does the same thing, so the chip teaches the
+      // shell instead of only using it — and being shell syntax rather than prose,
+      // it reads the same to whoever cannot read the page they are on. Query and
+      // hash come off the address bar at render; a chip the visitor clicks needs
+      // the value as it stands then, not a subscription.
+      {
+        label: lang === 'ru' ? '[/en]' : '[/ru]',
+        to: mirrorTarget(pathname, window.location.search, window.location.hash),
+      },
     ],
   };
 
@@ -121,6 +182,12 @@ export default function VaiShell({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // A photo is open in the viewer, which owns the keyboard while it is: Esc
+      // closes the dialog and must not also close the sheet behind it, and `~` must
+      // not pull focus to a field the modal has made inert. Read off the document
+      // rather than the event's target, which is the same answer for both keys
+      // however focus happens to be placed.
+      if (document.querySelector('dialog[open]')) return;
       if (e.key === 'Escape' && mobileOpen) {
         onMobileClose();
         return;
@@ -138,6 +205,21 @@ export default function VaiShell({
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [messages]);
+
+  // Covers come off all over the board — a tile on /nda, a CV taken from the loot
+  // table — and the terminal is the one thing standing beside all of them, so it is
+  // what says a file just opened and names the command that reads it out. Written
+  // from an effect and never from the store's callback: /declassify opens its file
+  // in the middle of assembling that same turn, and a line pushed from in there
+  // would land above the visitor's own. The lore queue is left alone — it is /lore's.
+  const openFiles = useSyncExternalStore(subscribe, openFileCount);
+  const announced = useRef(openFiles);
+  useEffect(() => {
+    // Only growth is news. Anything else — a reset, a first read — just re-baselines.
+    if (openFiles > announced.current)
+      setMsgs((m) => [...m, { role: 'sys', text: `[sys] ${t('sector.nda.labels.newChapter')}` }]);
+    announced.current = openFiles;
+  }, [openFiles, t]);
 
   // Navigation is the sheet's exit: on a phone the shell covers the board, so a
   // route change — an action link, or any /command that navigates — means the
@@ -258,7 +340,15 @@ export default function VaiShell({
           // they switch to, so it still matches the page it lands on.
           setMsgs((m) => [
             ...m,
-            { role: 'agent', text: t(cmd.textKey), from: requestMode, local: true },
+            {
+              role: 'agent',
+              text: t(cmd.textKey),
+              from: requestMode,
+              local: true,
+              // The photo's alt is a dictionary key like the answer itself, and is
+              // resolved with it: what goes into the log is what is on the screen.
+              image: cmd.image && { ...cmd.image, alt: t(cmd.image.alt) },
+            },
           ]);
           if (cmd.navigateLang) {
             // Same sector, other language. Read off the address bar rather than
@@ -269,7 +359,11 @@ export default function VaiShell({
             const to = pathForLang(cmd.navigateLang, window.location.pathname);
             // Already reading that language: pathForLang is a no-op and so is the
             // command. Pushing the identical URL would only litter the history.
-            if (to !== window.location.pathname) navigate('~' + to);
+            // The guard compares paths alone on purpose — the query and hash
+            // appended below are the ones already in the bar, so weighing them
+            // too would only ever compare each to itself.
+            if (to !== window.location.pathname)
+              navigate('~' + to + window.location.search + window.location.hash);
           } else if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
@@ -362,6 +456,11 @@ export default function VaiShell({
                   _
                 </span>
               )}
+              {/* Same guard as the links below, for the same two reasons — and a
+                  real button, not a click handler on the image: opening the full
+                  photo is an action, so it has to be reachable from the keyboard.
+                  Its accessible name is the alt text inside it. */}
+              {m.image && !m.pending && <ChatPhoto image={m.image} onOpen={setPhoto} />}
               {/* `!m.pending` keeps a focusable control out of an aria-hidden
                   subtree — the two are mutually exclusive by construction. It
                   also keeps the offer off a half-typed line. Real links, not
@@ -414,6 +513,9 @@ export default function VaiShell({
           className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 font-mono text-sm peer-focus:hidden peer-not-placeholder-shown:hidden"
         />
       </form>
+      {/* The dialog lives in the top layer, so where it is mounted decides nothing
+          about where it appears — only which chapter it is asked for. */}
+      <Lightbox chapters={CHAPTERS} openAt={photo} onClose={() => setPhoto(null)} />
     </aside>
   );
 }

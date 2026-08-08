@@ -2,7 +2,7 @@
 // languages open in Russian, and how a path maps to its twin in the other
 // language. '/rules' and '/russian' are the traps — they must stay English.
 import { describe, expect, test } from 'vitest';
-import { langFromPath, mirrorPath, pathForLang, pickInitialLocale } from './locale';
+import { langFromPath, mirrorPath, mirrorTarget, pathForLang, pickInitialLocale } from './locale';
 
 describe('langFromPath', () => {
   test.each([
@@ -37,4 +37,24 @@ describe('pathForLang', () => {
     ['en', '/ru', '/'], ['ru', '/ru', '/ru'],
     ['en', '/rules', '/rules'], ['ru', '/rules', '/ru/rules'],
   ] as const)('%s + %s -> %s', (lang, from, to) => expect(pathForLang(lang, from)).toBe(to));
+});
+
+// A hand-typed or mail-client-mangled '/RU/career' is still the Russian page —
+// wouter's own base matching is case-insensitive, so accepting it here is what
+// keeps the language and the mounted router agreeing.
+describe('langFromPath case-insensitivity', () => {
+  test.each([
+    ['/RU/career', 'ru'], ['/Ru', 'ru'], ['/RULES', 'en'], ['/RUssian', 'en'],
+  ])('%s -> %s', (path, lang) => expect(langFromPath(path)).toBe(lang));
+});
+
+// The chip's href. A language switch that drops ?utm_source loses the campaign
+// that paid for the visit, and one that drops #contact drops the visitor
+// somewhere they did not ask to be.
+describe('mirrorTarget', () => {
+  test('preserves query and hash', () =>
+    expect(mirrorTarget('/career', '?utm=x', '#exp')).toBe('~/ru/career?utm=x#exp'));
+  test('ru -> en with query', () =>
+    expect(mirrorTarget('/ru/loot', '?a=1', '')).toBe('~/loot?a=1'));
+  test('bare root', () => expect(mirrorTarget('/', '', '')).toBe('~/ru'));
 });

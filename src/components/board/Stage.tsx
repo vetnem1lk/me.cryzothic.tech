@@ -17,11 +17,12 @@ import ThreeDView from './views/ThreeDView';
 const CodeBase = lazy(() => import('./views/CodeBase'));
 
 // The paths stay English on /ru too — they are the shell's unix fiction, not copy;
-// only the labels beside them are translated.
+// only the labels beside them are translated. The three pinned to the right edge
+// below are the interactive ones; /nda joined them when it stopped being a
+// dossier and became a story you play through.
 const NAV = [
   { href: '/career', key: 'nav.career' },
   { href: '/skills', key: 'nav.skills' },
-  { href: '/nda', key: 'nav.nda' },
   { href: '/loot', key: 'nav.loot' },
   { href: '/contact', key: 'nav.contact' },
 ];
@@ -62,6 +63,9 @@ export default function Stage() {
           </Link>
         ))}
         <span className="flex-1" aria-hidden />
+        <Link href="/nda" className={navClass}>
+          {t('nav.nda')}
+        </Link>
         <Link href="/code" className={navClass}>
           {t('nav.code')}
         </Link>
