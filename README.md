@@ -69,7 +69,7 @@ me.cryzothic.tech/
 │           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
 │           ├── wheelMath.ts         # pure wheel→scrollLeft math for the command row
 │           ├── *.test.ts            # vitest: commands, drain, transport, wheelMath
-│           └── views/               # Briefing · Loot · Contact · CodeBase · ThreeDView · Placeholder
+│           └── views/               # Briefing · Career · Skills · Nda · Loot · Contact · CodeBase · ThreeDView
 │               └── codebaseManifest.ts  # what /code displays, imported `?raw`
 ├── server/                          # the VAI/GAI API — see server/README.md
 │   ├── src/

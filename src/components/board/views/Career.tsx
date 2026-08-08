@@ -1,0 +1,40 @@
+// The /career view: the dated work history as a timeline, newest first, with the
+// olympiads and the paper listed underneath as "level-ups". The copy is authored
+// per language in content.json — this file only lays it out.
+import content from '../../../content.json';
+import { useLang } from '../../../i18n/I18nContext';
+
+export default function Career() {
+  const { title, entries, levelUpsTitle, levelUps } = content[useLang()].sector.career;
+
+  return (
+    <section className="flex flex-col gap-5 p-4">
+      <h2 className="font-mono text-sm tracking-widest text-accent uppercase">{title}</h2>
+      <ol className="flex flex-col gap-3">
+        {entries.map((e) => (
+          <li key={e.period} className="rounded-md border border-dashed border-accent/40 p-4">
+            <p className="font-mono text-[11px] tracking-widest text-accent uppercase">{e.period}</p>
+            <p className="mt-1 text-sm font-semibold text-neutral-100">{e.role}</p>
+            <p className="text-sm text-neutral-400">{e.place}</p>
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-neutral-300 marker:text-accent">
+              {e.bullets.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+            <p className="mt-3 font-mono text-[11px] text-neutral-500">{e.tech}</p>
+          </li>
+        ))}
+      </ol>
+      <div>
+        <h3 className="font-mono text-xs tracking-widest text-neutral-500 uppercase">
+          {levelUpsTitle}
+        </h3>
+        <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-neutral-300 marker:text-accent">
+          {levelUps.map((l) => (
+            <li key={l}>{l}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}

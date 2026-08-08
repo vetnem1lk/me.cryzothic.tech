@@ -1,9 +1,11 @@
 // The status bar across the top of the board — the line that tells a visitor
 // what this site is before any of the game furniture makes sense. The string is
 // repeated for width only, and every copy past the first is aria-hidden.
-const STATUS = 'UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev';
+import { useT } from '../../i18n/I18nContext';
 
 export default function Marquee() {
+  const status = useT()('marquee.status');
+
   return (
     <div
       data-dock
@@ -16,7 +18,7 @@ export default function Marquee() {
           className="marquee-track flex min-w-full shrink-0 justify-around gap-12 font-mono text-[11px] tracking-[0.2em] whitespace-nowrap text-neutral-500 uppercase"
         >
           {[0, 1, 2].map((i) => (
-            <span key={i} aria-hidden={i > 0 || undefined}>{STATUS}</span>
+            <span key={i} aria-hidden={i > 0 || undefined}>{status}</span>
           ))}
         </div>
       ))}

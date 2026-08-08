@@ -5,20 +5,25 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Suspense, lazy, useRef } from 'react';
 import { Link, Route, Switch, useLocation } from 'wouter';
+import { useT } from '../../i18n/I18nContext';
 import Briefing from './views/Briefing';
+import Career from './views/Career';
 import Contact from './views/Contact';
 import Loot from './views/Loot';
-import Placeholder from './views/Placeholder';
+import Nda from './views/Nda';
+import Skills from './views/Skills';
 import ThreeDView from './views/ThreeDView';
 
 const CodeBase = lazy(() => import('./views/CodeBase'));
 
+// The paths stay English on /ru too — they are the shell's unix fiction, not copy;
+// only the labels beside them are translated.
 const NAV = [
-  { href: '/career', label: 'career' },
-  { href: '/skills', label: 'skills' },
-  { href: '/nda', label: 'nda' },
-  { href: '/loot', label: 'loot' },
-  { href: '/contact', label: 'contact' },
+  { href: '/career', key: 'nav.career' },
+  { href: '/skills', key: 'nav.skills' },
+  { href: '/nda', key: 'nav.nda' },
+  { href: '/loot', key: 'nav.loot' },
+  { href: '/contact', key: 'nav.contact' },
 ];
 
 const navClass = (active: boolean) =>
@@ -27,6 +32,7 @@ const navClass = (active: boolean) =>
 export default function Stage() {
   const viewRef = useRef<HTMLDivElement>(null);
   const [location] = useLocation();
+  const t = useT();
 
   useGSAP(
     () => {
@@ -43,31 +49,31 @@ export default function Stage() {
     >
       <nav className="flex flex-wrap items-center gap-3 border-b border-dashed border-neutral-800 p-2 font-mono text-[13px] font-semibold">
         <Link href="/" className={navClass}>
-          ~/
+          {t('nav.home')}
         </Link>
         {NAV.map((n) => (
           <Link key={n.href} href={n.href} className={navClass}>
-            {n.label}
+            {t(n.key)}
           </Link>
         ))}
         <span className="flex-1" aria-hidden />
         <Link href="/code" className={navClass}>
-          code_base
+          {t('nav.code')}
         </Link>
         <Link href="/3d" className={navClass}>
-          3D_view
+          {t('nav.threed')}
         </Link>
       </nav>
       <div ref={viewRef} className="scroll-thin min-h-0 flex-1 md:overflow-y-auto">
         <Switch>
           <Route path="/career">
-            <Placeholder title="Career Progression" />
+            <Career />
           </Route>
           <Route path="/skills">
-            <Placeholder title="Core Competencies" />
+            <Skills />
           </Route>
           <Route path="/nda">
-            <Placeholder title="Secret Project Files (NDA)" />
+            <Nda />
           </Route>
           <Route path="/loot">
             <Loot />
@@ -78,7 +84,7 @@ export default function Stage() {
           <Route path="/code">
             <Suspense
               fallback={
-                <p className="p-4 font-mono text-xs text-neutral-500">cloning code_base…</p>
+                <p className="p-4 font-mono text-xs text-neutral-500">{t('nav.cloning')}</p>
               }
             >
               <CodeBase />
