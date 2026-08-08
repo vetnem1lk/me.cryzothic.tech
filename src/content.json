@@ -120,39 +120,85 @@
         "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line."
       },
       "nda": {
-        "title": "Secret Project Files (NDA)",
-        "intro": "Two projects cannot be shown in full: one sits under an NDA, the other is a commercial product still being prepared for market. Here is everything that can be said out loud.",
+        "title": "Classified Files (NDA)",
+        "intro": "Seven files, seven covers, and none of them lift the same way. One opens for a number, one only opens for VAI, one opens itself once you have taken a CV. The two project dossiers this sector started as are folded into the archive at the bottom.",
         "labels": {
           "classified": "classified",
-          "declassified": "declassified"
+          "declassified": "declassified",
+          "clickHint": "One click lifts this cover.",
+          "vaiHint": "This one does not open by hand. VAI knows the code — ask it.",
+          "knockHint": "Knock. The cats come out on the third one.",
+          "guessPrompt": "Which number is on the medal?",
+          "guessHint": "Guess",
+          "cvHint": "Take a CV from the loot table and this file opens itself.",
+          "newChapter": "New file unlocked"
         },
-        "files": [
+        "chapters": [
           {
             "code": "FILE-01",
-            "name": "Fuel-station and tanker equipment · industrial automation plant",
-            "classified": ["Company name", "Source code and schematics", "Site and infrastructure detail"],
-            "declassified": [
-              "Feb 2024 – Mar 2024, software engineering intern, Barnaul area.",
-              "Programmed and configured microcontrollers for tanker and fuel-station equipment; migrated a production server to Astra Linux (C#).",
-              "The industry can be named, the company cannot — sensitive infrastructure."
-            ]
+            "title": "Laureate, 2023",
+            "alt": "Vlad in a library holding a framed laureate diploma from the regional IT olympiad.",
+            "story": "Altai Krai olympiad of professional mastery, IT specialties, 2023 — laureate. He signs up for olympiads, hackathons and anything else interesting within reach; this one came back in a frame.",
+            "credit": "personal archive"
           },
           {
             "code": "FILE-02",
-            "name": "Sed-Pro platform · workspace automation for construction designers",
-            "classified": [
-              "Source code — a commercial product being prepared for market",
-              "Customer data and project files",
-              "Screenshots of the live workspace"
-            ],
-            "declassified": [
-              "SQL-first architecture: the database defines widgets, forms, buttons and their logic; the Qt Widgets client renders an interface over it.",
-              "Sheet-level versioning (DWG / XLSX / PDF), electronic document flow, task and file handoff between designers.",
-              "30 designer seats at a working architecture and engineering bureau; by the director's assessment the order → delivery cycle got noticeably faster.",
-              "I own the tech stack and the technical direction, and wrote most of the C++ myself."
-            ]
+            "title": "Somebody else's talk",
+            "alt": "Vlad in a packed conference hall, sitting among the audience with a lanyard badge on.",
+            "story": "Mid-row, badge still on, listening to somebody else. A hall full of strangers and one line in the file: if there is a conference in the room, he is in the room.",
+            "credit": "personal archive"
+          },
+          {
+            "code": "FILE-03",
+            "title": "Two cats and a shelf",
+            "alt": "Vlad holding two cats at home, a shelf of cups and framed diplomas on the wall behind them.",
+            "story": "Cats and dogs above everything else, and two of them here on the record. Behind them, the shelf of cups and framed diplomas that the CV compresses into a single line.",
+            "credit": "personal archive"
+          },
+          {
+            "code": "FILE-04",
+            "title": "Group start",
+            "alt": "Vlad with his bicycle at a city group ride, the other riders' faces covered.",
+            "story": "A city start, everybody else classified. He rides a lot — often to work — and turns up for the group rides, which is where this frame comes from.",
+            "credit": "personal archive"
+          },
+          {
+            "code": "FILE-05",
+            "title": "The badge",
+            "alt": "Vlad at a laptop wearing a lanyard badge that reads EXPERT in Russian.",
+            "story": "The badge says EXPERT. Read it as the target, not the title: an expert in crafting captivating worlds and deep game mechanics. Everything else in this archive is the run-up.",
+            "credit": "personal archive"
+          },
+          {
+            "code": "FILE-06",
+            "title": "Second place",
+            "alt": "Vlad at a cycling event holding prize certificates, a medal marked 2 around his neck.",
+            "story": "A cycling event, second place, and the medal says it in one character. Whatever number you typed was accepted — the podium was in a generous mood that day, and so is this file.",
+            "credit": "personal archive"
+          },
+          {
+            "code": "FILE-07",
+            "title": "Not his rocket",
+            "alt": "SpaceX Starship climbing above the clouds with the curve of Earth behind it.",
+            "story": "The one file here that did not come out of his own archive. Starship, on the way up, by SpaceX. Space and popular science are the standing off-hours interest, and the good frames come from people with better cameras.",
+            "credit": "Photo: SpaceX"
           }
         ],
+        "archive": {
+          "label": "Archive — the two project files",
+          "classified": [
+            "Company name of the industrial plant",
+            "Source code and schematics",
+            "Customer data, project files, workspace screenshots"
+          ],
+          "declassified": [
+            "Feb–Mar 2024, engineering intern near Barnaul: microcontrollers for tanker and fuel-station equipment, plus a production server migrated to Astra Linux (C#). The industry can be named, the company cannot.",
+            "Sed-Pro platform, SQL-first: the database defines widgets, forms, buttons and their logic; the Qt Widgets client renders an interface over it.",
+            "Sheet-level versioning (DWG / XLSX / PDF), electronic document flow, task and file handoff between designers.",
+            "30 designer seats at a working architecture and engineering bureau; by the director's assessment the order → delivery cycle got noticeably faster.",
+            "I own the tech stack and the technical direction, and wrote most of the C++ myself."
+          ]
+        },
         "clearanceTitle": "Request clearance",
         "clearance": "All of it is on the CV in dated form. Anything that needs a conversation rather than a document goes through the direct channels."
       }
@@ -352,39 +398,85 @@
         "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно."
       },
       "nda": {
-        "title": "Секретные файлы проектов (NDA)",
-        "intro": "Два проекта нельзя показать целиком: один под NDA, второй — коммерческий продукт, который ещё готовится к выходу на рынок. Ниже всё, что можно сказать вслух.",
+        "title": "Засекреченные файлы (NDA)",
+        "intro": "Семь файлов, семь обложек — и снимаются они по-разному. Одному нужно число, один открывается только для VAI, ещё один откроется сам, когда заберёте резюме. Два проектных досье, с которых начинался этот сектор, свёрнуты в архив внизу.",
         "labels": {
           "classified": "засекречено",
-          "declassified": "рассекречено"
+          "declassified": "рассекречено",
+          "clickHint": "Один клик — и обложка снята.",
+          "vaiHint": "Руками этот не открыть. Код знает VAI — спросите у него.",
+          "knockHint": "Постучите. На третий раз коты выйдут.",
+          "guessPrompt": "Какое число на медали?",
+          "guessHint": "Угадать",
+          "cvHint": "Заберите резюме из таблицы лута — файл откроется сам.",
+          "newChapter": "Открыт новый файл"
         },
-        "files": [
+        "chapters": [
           {
             "code": "FILE-01",
-            "name": "Оборудование АЗС и топливных танкеров · завод промышленной автоматизации",
-            "classified": ["Название компании", "Исходный код и схемы", "Детали объекта и инфраструктуры"],
-            "declassified": [
-              "Февраль — март 2024, инженер-стажёр, Барнаул и окрестности.",
-              "Программировал и настраивал микроконтроллеры для танкерного и заправочного оборудования; перевёл рабочий сервер на Astra Linux (C#).",
-              "Отрасль назвать можно, компанию — нет: чувствительная инфраструктура."
-            ]
+            "title": "Лауреат, 2023",
+            "alt": "Влад в библиотеке с дипломом лауреата краевой олимпиады по ИТ в рамке.",
+            "story": "Краевая олимпиада профессионального мастерства по ИТ-специальностям, 2023 — лауреат. Он записывается на олимпиады, хакатоны и вообще на всё интересное поблизости; это вернулось в рамке.",
+            "credit": "личный архив"
           },
           {
             "code": "FILE-02",
-            "name": "Платформа «Сэд-Про» · автоматизация работы проектировщиков",
-            "classified": [
-              "Исходный код — коммерческий продукт готовится к выходу на рынок",
-              "Данные заказчиков и проектные файлы",
-              "Скриншоты рабочего пространства"
-            ],
-            "declassified": [
-              "SQL-first архитектура: база описывает виджеты, формы, кнопки и их логику, клиент на Qt Widgets отрисовывает интерфейс поверх неё.",
-              "Версионирование по листам (DWG / XLSX / PDF), электронный документооборот, передача задач и файлов между проектировщиками.",
-              "30 рабочих мест проектировщиков в действующем архитектурно-конструкторском бюро; по оценке директора цикл «заявка → выдача» заметно ускорился.",
-              "Отвечаю за стек и техническое направление, основную часть C++-кода написал сам."
-            ]
+            "title": "Чужой доклад",
+            "alt": "Влад в переполненном зале конференции, сидит среди слушателей, на шее бейдж на ленте.",
+            "story": "Середина ряда, бейдж на месте, слушает чужой доклад. Полный зал незнакомых людей и одна строка в деле: если в зале идёт конференция — он в зале.",
+            "credit": "личный архив"
+          },
+          {
+            "code": "FILE-03",
+            "title": "Два кота и полка",
+            "alt": "Влад держит двух котов, на стене за ними полка с кубками и дипломами в рамках.",
+            "story": "Коты и собаки важнее всего остального, и двое — прямо здесь, в деле. За ними полка с кубками и дипломами, которую резюме сжимает до одной строки.",
+            "credit": "личный архив"
+          },
+          {
+            "code": "FILE-04",
+            "title": "Общий старт",
+            "alt": "Влад с велосипедом на городском общем старте, лица остальных участников закрыты.",
+            "story": "Городской старт, все остальные засекречены. Катается много — часто на работу — и выезжает на общие покатушки, откуда этот кадр и взялся.",
+            "credit": "личный архив"
+          },
+          {
+            "code": "FILE-05",
+            "title": "Бейдж",
+            "alt": "Влад за ноутбуком с бейджем на ленте, на бейдже написано «ЭКСПЕРТ».",
+            "story": "На бейдже написано «ЭКСПЕРТ». Это не должность, а цель: эксперт в области создания захватывающих миров и глубоких игровых механик. Всё остальное в архиве — разбег.",
+            "credit": "личный архив"
+          },
+          {
+            "code": "FILE-06",
+            "title": "Второе место",
+            "alt": "Влад на велособытии с сертификатами в руках и медалью с цифрой 2 на шее.",
+            "story": "Велозаезд, второе место, и медаль говорит это одним символом. Какое бы число вы ни ввели — его приняли: в тот день пьедестал был щедрым, и этот файл тоже.",
+            "credit": "личный архив"
+          },
+          {
+            "code": "FILE-07",
+            "title": "Не его ракета",
+            "alt": "Starship от SpaceX поднимается над облаками, за ним изгиб Земли.",
+            "story": "Единственный файл здесь не из его собственного архива. Starship на подъёме, снимок SpaceX. Космос и научпоп — постоянный интерес в свободное время, а хорошие кадры приходят от тех, у кого камера лучше.",
+            "credit": "Photo: SpaceX"
           }
         ],
+        "archive": {
+          "label": "Архив — два проектных файла",
+          "classified": [
+            "Название завода",
+            "Исходный код и схемы",
+            "Данные заказчиков, проектные файлы, скриншоты рабочего пространства"
+          ],
+          "declassified": [
+            "Февраль — март 2024, инженер-стажёр под Барнаулом: микроконтроллеры для танкерного и заправочного оборудования плюс перевод рабочего сервера на Astra Linux (C#). Отрасль назвать можно, компанию — нет.",
+            "Платформа «Сэд-Про», SQL-first: база описывает виджеты, формы, кнопки и их логику, клиент на Qt Widgets отрисовывает интерфейс поверх неё.",
+            "Версионирование по листам (DWG / XLSX / PDF), электронный документооборот, передача задач и файлов между проектировщиками.",
+            "30 рабочих мест проектировщиков в действующем архитектурно-конструкторском бюро; по оценке директора цикл «заявка → выдача» заметно ускорился.",
+            "Отвечаю за стек и техническое направление, основную часть C++-кода написал сам."
+          ]
+        },
         "clearanceTitle": "Запросить доступ",
         "clearance": "Всё это есть в резюме с датами. То, для чего нужен разговор, а не документ, — через прямые каналы."
       }
