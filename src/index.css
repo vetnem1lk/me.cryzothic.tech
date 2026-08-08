@@ -96,6 +96,25 @@ body.custom-cursor * {
   display: none;
 }
 
+/* Modal <dialog> — the three rules showModal() does not bring with it.
+   A dialog in the top layer leaves the document behind it scrollable, so the page
+   is locked while one is open; the gutter is reserved site-wide because otherwise
+   that lock takes the scrollbar away and shifts every line on the page sideways.
+   overscroll-behavior keeps a scroll that reaches the end of the viewer from
+   chaining out into whatever is underneath. The backdrop is styled in the JSX
+   (`backdrop:` utilities) and animated by nothing — GSAP cannot reach a
+   pseudo-element, which is why the fade lives on the figure instead. */
+html {
+  scrollbar-gutter: stable;
+}
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+dialog,
+dialog::backdrop {
+  overscroll-behavior: contain;
+}
+
 /* Terminal caret — accent underscore where supported (Chromium 144+),
    accent bar caret elsewhere (doc-verified 2026-08-06: Firefox/Safari have
    no caret-shape yet). Blink is native — visually matches TextType's 0.5s. */

@@ -8,12 +8,13 @@
 // where what is withheld is printed next to what is not.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link } from 'wouter';
 import content from '../../../content.json';
 import { useLang, useT } from '../../../i18n/I18nContext';
 import {
   CHAPTERS,
+  DIMS,
   QUESTS,
   clickUnlock,
   getVersion,
@@ -21,24 +22,12 @@ import {
   isUnlocked,
   knock,
   knockCount,
+  photoSlug,
   subscribe,
   syncCvQuest,
   type ChapterId,
 } from '../story';
-
-// The intrinsic size of each `-1280` derivative, measured on the encoded files. Three
-// of them are narrower than the slot name suggests, because the encoder refused to
-// upscale a small original — so the width/height attributes and the `w` descriptor
-// both come from here and never from the file name. Wrong numbers are layout shift.
-const DIMS: Record<ChapterId, [number, number]> = {
-  'FILE-01': [799, 600],
-  'FILE-02': [855, 1280],
-  'FILE-03': [1280, 1703],
-  'FILE-04': [1280, 853],
-  'FILE-05': [960, 1280],
-  'FILE-06': [1280, 2279],
-  'FILE-07': [1280, 720],
-};
+import Lightbox from './Lightbox';
 
 const SIZES = '(max-width: 767px) 45vw, 220px';
 
@@ -58,8 +47,21 @@ export default function Nda() {
     content[useLang()].sector.nda;
   const t = useT();
   const scope = useRef<HTMLElement>(null);
+  const [openAt, setOpenAt] = useState<ChapterId | null>(null);
+  // The control a visitor pressed goes away with the cover it lifted, and focus goes
+  // with it — to <body>, which restarts tabbing at the top of the page. The photo
+  // that replaced it is the honest landing place, so the quest names it on the way
+  // out and the effect below hands focus over once it has actually rendered.
+  const justOpened = useRef<ChapterId | null>(null);
 
   useSyncExternalStore(subscribe, getVersion);
+
+  useEffect(() => {
+    const id = justOpened.current;
+    if (!id) return;
+    justOpened.current = null;
+    scope.current?.querySelector<HTMLElement>(`[data-photo="${id}"]`)?.focus();
+  });
 
   // Two ways in, and neither announces itself. The flag may already be set when this
   // view mounts — the loot table is a route away, the pinned CV strip is on every
@@ -111,7 +113,9 @@ export default function Nda() {
                 with nothing saying what it counts or what pressing it does. */}
             <button
               type="button"
-              onClick={() => knock(id)}
+              onClick={() => {
+                if (knock(id)) justOpened.current = id;
+              }}
               aria-describedby={`${id}-hint`}
               className={CHIP}
             >
@@ -131,7 +135,7 @@ export default function Nda() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                guess(id);
+                if (guess(id)) justOpened.current = id;
               }}
               className="flex items-center gap-2"
             >
@@ -156,7 +160,13 @@ export default function Nda() {
         return <p className="text-xs text-neutral-400">{labels.vaiHint}</p>;
       default:
         return (
-          <button type="button" onClick={() => clickUnlock(id)} className={CHIP}>
+          <button
+            type="button"
+            onClick={() => {
+              if (clickUnlock(id)) justOpened.current = id;
+            }}
+            className={CHIP}
+          >
             {labels.clickHint}
           </button>
         );
@@ -174,7 +184,7 @@ export default function Nda() {
         {CHAPTERS.map((id, i) => {
           const ch = chapters[i];
           const [w, h] = DIMS[id];
-          const p = `ch-${id.slice(5)}`;
+          const p = photoSlug(id);
           return (
             <li
               key={id}
@@ -183,22 +193,33 @@ export default function Nda() {
             >
               {isUnlocked(id) ? (
                 <figure>
-                  <picture>
-                    <source
-                      type="image/avif"
-                      srcSet={`/photos/${p}-640.avif 640w, /photos/${p}-1280.avif ${w}w`}
-                      sizes={SIZES}
-                    />
-                    <img
-                      src={`/photos/${p}-1280.jpg`}
-                      alt={ch.alt}
-                      width={w}
-                      height={h}
-                      loading="lazy"
-                      decoding="async"
-                      className={`cursor-target ${BOX} w-full object-cover`}
-                    />
-                  </picture>
+                  {/* A real button, not a click handler on the image: the tile is
+                      cropped to a square, so opening the uncropped photo is an action
+                      and has to be reachable from the keyboard. Its accessible name is
+                      the alt text inside it — no aria-label, which would hide that. */}
+                  <button
+                    type="button"
+                    data-photo={id}
+                    onClick={() => setOpenAt(id)}
+                    className="cursor-target block w-full"
+                  >
+                    <picture>
+                      <source
+                        type="image/avif"
+                        srcSet={`/photos/${p}-640.avif 640w, /photos/${p}-1280.avif ${w}w`}
+                        sizes={SIZES}
+                      />
+                      <img
+                        src={`/photos/${p}-1280.jpg`}
+                        alt={ch.alt}
+                        width={w}
+                        height={h}
+                        loading="lazy"
+                        decoding="async"
+                        className={`${BOX} w-full object-cover`}
+                      />
+                    </picture>
+                  </button>
                   <figcaption className="p-3">
                     <p className={`${CAPS} text-accent`}>{ch.code}</p>
                     <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
@@ -265,6 +286,8 @@ export default function Nda() {
           ))}
         </div>
       </div>
+
+      <Lightbox chapters={CHAPTERS} openAt={openAt} onClose={() => setOpenAt(null)} />
     </section>
   );
 }

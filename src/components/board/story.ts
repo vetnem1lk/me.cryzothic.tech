@@ -1,7 +1,7 @@
-// Session-only progress for the /nda story: which chapters are open, how far the
-// quest guarding each one has got, and the queue /lore reads freshly opened
-// chapters from. Nothing survives a reload — module state, no storage — so every
-// visit starts with all seven covers down.
+// The chapter table for the /nda story, and the session-only progress over it:
+// which quest guards each chapter, which photo it is, which ones are open, and the
+// queue /lore reads freshly opened chapters from. Nothing survives a reload —
+// module state, no storage — so every visit starts with all seven covers down.
 //
 // Board-side only: this file reads the CV flag, and cvFlag.ts must never read
 // back, so the entry bundle keeps paying for six lines instead of this store.
@@ -35,6 +35,35 @@ export const QUESTS: Record<ChapterId, Quest> = {
 };
 
 export const CHAPTERS = Object.keys(QUESTS) as ChapterId[];
+
+// `FILE-03` → `ch-03`. The tile and the viewer both build photo URLs, so the cut
+// that turns a chapter id into a file slug is made once, here.
+export const photoSlug = (id: ChapterId): string => `ch-${id.slice(5)}`;
+
+/**
+ * One step along a list of chapters, wrapping at both ends. The viewer walks the
+ * open ones with the arrow keys — covered chapters are skipped by never being in
+ * the list — and a set of one, or a chapter not in the list at all, goes nowhere.
+ */
+export function nextChapter(open: ChapterId[], current: ChapterId, step: number): ChapterId {
+  const i = open.indexOf(current);
+  return i < 0 || open.length < 2 ? current : open[(i + step + open.length) % open.length];
+}
+
+// The intrinsic size of each `-1280` derivative, measured on the encoded files.
+// Three of them are narrower than the slot name suggests, because the encoder
+// refused to upscale a small original — so the width/height attributes and the `w`
+// descriptor both come from here and never from the file name. Wrong numbers are
+// layout shift.
+export const DIMS: Record<ChapterId, [number, number]> = {
+  'FILE-01': [799, 600],
+  'FILE-02': [855, 1280],
+  'FILE-03': [1280, 1703],
+  'FILE-04': [1280, 853],
+  'FILE-05': [960, 1280],
+  'FILE-06': [1280, 2279],
+  'FILE-07': [1280, 720],
+};
 
 // Derived, never written twice: the table above is the only place the mapping lives.
 export const DECLASSIFY_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'declassify') as ChapterId;

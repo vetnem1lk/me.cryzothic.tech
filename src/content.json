@@ -131,7 +131,8 @@
           "guessPrompt": "Which number is on the medal?",
           "guessHint": "Guess",
           "cvHint": "Take a CV from the loot table and this file opens itself.",
-          "newChapter": "New file unlocked"
+          "newChapter": "New file unlocked",
+          "close": "Close the file"
         },
         "chapters": [
           {
@@ -409,7 +410,8 @@
           "guessPrompt": "Какое число на медали?",
           "guessHint": "Угадать",
           "cvHint": "Заберите резюме из таблицы лута — файл откроется сам.",
-          "newChapter": "Открыт новый файл"
+          "newChapter": "Открыт новый файл",
+          "close": "Закрыть файл"
         },
         "chapters": [
           {

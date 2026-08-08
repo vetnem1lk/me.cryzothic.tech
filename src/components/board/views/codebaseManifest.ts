@@ -20,6 +20,7 @@ import storySrc from '../story.ts?raw';
 import transportSrc from '../transport.ts?raw';
 import wheelMathSrc from '../wheelMath.ts?raw';
 import careerSrc from './Career.tsx?raw';
+import lightboxSrc from './Lightbox.tsx?raw';
 import ndaSrc from './Nda.tsx?raw';
 import skillsSrc from './Skills.tsx?raw';
 import i18nContextSrc from '../../../i18n/I18nContext.ts?raw';
@@ -63,6 +64,7 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/transport.ts', content: transportSrc },
       { path: 'src/components/board/wheelMath.ts', content: wheelMathSrc },
       { path: 'src/components/board/views/Career.tsx', content: careerSrc },
+      { path: 'src/components/board/views/Lightbox.tsx', content: lightboxSrc },
       { path: 'src/components/board/views/Nda.tsx', content: ndaSrc },
       { path: 'src/components/board/views/Skills.tsx', content: skillsSrc },
       { path: 'src/i18n/I18nContext.ts', content: i18nContextSrc },

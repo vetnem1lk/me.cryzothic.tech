@@ -169,3 +169,36 @@ describe('the cv quest', () => {
     expect(story.syncCvQuest()).toBeNull(); // no re-unlock on the next render tick
   });
 });
+
+// The viewer walks the open chapters with the arrow keys, and every way that can go
+// wrong is off-by-one arithmetic: the ends must wrap, a lone chapter must not move,
+// and a covered neighbour must be stepped straight over rather than landed on.
+describe('stepping across the open chapters', () => {
+  const step = (open: story.ChapterId[], from: story.ChapterId, d: number) =>
+    story.nextChapter(open, from, d);
+
+  test('a set of one goes nowhere in either direction', () => {
+    expect(step([CLICK], CLICK, 1)).toBe(CLICK);
+    expect(step([CLICK], CLICK, -1)).toBe(CLICK);
+  });
+
+  test('the ends wrap, both ways', () => {
+    const three = CHAPTERS.slice(0, 3);
+    expect(step(three, three[2], 1)).toBe(three[0]);
+    expect(step(three, three[0], -1)).toBe(three[2]);
+  });
+
+  test('a covered neighbour is stepped over, not landed on', () => {
+    // Two quests with at least one chapter standing between them, left covered.
+    story.clickUnlock(CLICK);
+    story.guess(GUESS);
+    const open = CHAPTERS.filter(story.isUnlocked);
+    expect(open).toHaveLength(2);
+    expect(CHAPTERS.indexOf(open[1]) - CHAPTERS.indexOf(open[0])).toBeGreaterThan(1);
+    expect(step(open, open[0], 1)).toBe(open[1]); // the covered ones in between are not in the list
+    expect(step(open, open[1], 1)).toBe(open[0]); // and past the last one it wraps
+  });
+
+  test('a chapter that is not in the list stays put', () =>
+    expect(step([CLICK, KNOCK], GUESS, 1)).toBe(GUESS));
+});
