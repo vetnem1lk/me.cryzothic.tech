@@ -4,6 +4,7 @@
 // three assertions are what makes it visible at build time instead.
 import { describe, expect, test } from 'vitest';
 import content from './content.json';
+import { translate } from './i18n/I18nContext';
 
 const paths = (o: unknown, p = ''): string[] =>
   typeof o === 'string'
@@ -38,6 +39,24 @@ describe('content.json', () => {
     expect(interpolated.sort()).toEqual(['vai.error.status', 'vai.sys.ask']);
     expect(leaf(content.en, 'vai.sys.ask')).toContain('${mode}');
     expect(leaf(content.en, 'vai.error.status')).toContain('${status}');
+  });
+
+  // The two language commands confirm in the language they switch to, not in the
+  // one the visitor typed from — the line lands in the log next to a page that
+  // already speaks it. So both dictionaries carry the same two strings on purpose;
+  // this is not a missed translation.
+  test('language-switch confirmations read in the target language', () => {
+    expect(content.ru.commands.en).toBe(content.en.commands.en);
+    expect(content.en.commands.ru).toBe(content.ru.commands.ru);
+  });
+
+  // The passthrough is a contract, not an accident: a service error arrives as
+  // prose, not as a key, and has to reach the screen unchanged (still English)
+  // instead of being swallowed or rendered blank. Pinned on the pure resolver —
+  // useT is a hook and these tests run without a renderer.
+  test('a non-key string passes through unchanged, in either language', () => {
+    const prose = 'Upstream is out of budget for today. Try again tomorrow.';
+    for (const lang of ['en', 'ru'] as const) expect(translate(lang, prose)).toBe(prose);
   });
 
   // Moved here from transport.test.ts when the hints left MODE_HINT for the

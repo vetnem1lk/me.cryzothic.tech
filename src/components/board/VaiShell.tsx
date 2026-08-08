@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { usePathname } from 'wouter/use-browser-location';
 import { useLang, useT } from '../../i18n/I18nContext';
-import { mirrorPath } from '../../i18n/locale';
+import { mirrorPath, pathForLang } from '../../i18n/locale';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
 import TextType from './TextType';
@@ -36,7 +36,7 @@ export default function VaiShell({
   const lang = useLang();
   // Base-unaware, unlike the router's own location: the mirror is computed on the
   // real address bar, and the `~` puts the resulting link outside the base again.
-  const raw = usePathname();
+  const pathname = usePathname();
   // Base-aware navigation — the whole point of taking it from the router instead of
   // the browser-location module: `/loot` from a command becomes `/ru/loot` under
   // the RU base. Commands stay unprefixed; wouter prepends.
@@ -95,7 +95,7 @@ export default function VaiShell({
       { label: t('vai.cta.engine'), to: '/3d' },
       // Always written in the language it leads to, so it reads as an offer to
       // whoever cannot read the page they are on.
-      { label: lang === 'ru' ? 'English' : 'Русский', to: '~' + mirrorPath(raw) },
+      { label: lang === 'ru' ? 'English' : 'Русский', to: '~' + mirrorPath(pathname) },
     ],
   };
 
@@ -143,9 +143,11 @@ export default function VaiShell({
   // route change — an action link, or any /command that navigates — means the
   // visitor chose a destination hidden behind the overlay. Only a *change*
   // closes it; opening the sheet leaves the location alone and re-runs this. A
-  // language switch is base-relative-identical (/career -> /career) and so leaves
-  // the sheet open on purpose — the visitor stays where they were, in the other
-  // language.
+  // language switch — the chip, or the /en and /ru commands — mirrors the path,
+  // so base-relative it is the same location (/career -> /career) and the sheet
+  // stays open on purpose: the visitor stays where they were, in the other
+  // language. That only holds while those two commands mirror instead of jumping
+  // to the root; the base-relative location would change and this would fire.
   const prevLoc = useRef(location);
   useEffect(() => {
     if (location === prevLoc.current) return;
@@ -214,8 +216,8 @@ export default function VaiShell({
         // a turn index through every line.
         history(messagesRef.current, turnMode, askId),
         {
-          onToken: (t) => {
-            st = push(st, t);
+          onToken: (tok) => {
+            st = push(st, tok);
           },
           onDone: () => {
             st = { ...st, doneFeeding: true };
@@ -250,11 +252,25 @@ export default function VaiShell({
     queueRef.current = queueRef.current
       .then(async () => {
         if (cmd) {
+          // The registry answers with a dictionary key; the language is whatever
+          // the URL said when the visitor pressed Enter. /en and /ru are the two
+          // that then change it — their confirmation is written in the language
+          // they switch to, so it still matches the page it lands on.
           setMsgs((m) => [
             ...m,
-            { role: 'agent', text: cmd.text, from: requestMode, local: true },
+            { role: 'agent', text: t(cmd.textKey), from: requestMode, local: true },
           ]);
-          if (cmd.navigateTo) navigate(cmd.navigateTo);
+          if (cmd.navigateLang) {
+            // Same sector, other language. Read off the address bar rather than
+            // the render that queued this, because a command can sit in the queue
+            // behind a whole model answer while the visitor keeps clicking — the
+            // mirror has to be of where they are now. `~` then puts the result
+            // outside the router base, which is where the other language lives.
+            const to = pathForLang(cmd.navigateLang, window.location.pathname);
+            // Already reading that language: pathForLang is a no-op and so is the
+            // command. Pushing the identical URL would only litter the history.
+            if (to !== window.location.pathname) navigate('~' + to);
+          } else if (cmd.navigateTo) navigate(cmd.navigateTo);
           return;
         }
         // An empty pending line is the thinking state: the cursor blinks alone

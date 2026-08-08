@@ -2,7 +2,7 @@
 // languages open in Russian, and how a path maps to its twin in the other
 // language. '/rules' and '/russian' are the traps — they must stay English.
 import { describe, expect, test } from 'vitest';
-import { langFromPath, mirrorPath, pickInitialLocale } from './locale';
+import { langFromPath, mirrorPath, pathForLang, pickInitialLocale } from './locale';
 
 describe('langFromPath', () => {
   test.each([
@@ -24,4 +24,17 @@ describe('mirrorPath', () => {
     ['/ru', '/'], ['/ru/', '/'], ['/ru/career', '/career'],
   ])('%s -> %s', (from, to) => expect(mirrorPath(from)).toBe(to));
   test('round-trip', () => expect(mirrorPath(mirrorPath('/ru/loot'))).toBe('/ru/loot'));
+});
+
+// What /en and /ru ask for: the same place, in the named language. Asking for the
+// language you are already reading is a no-op, NOT a flip — that is the whole
+// difference from mirrorPath, which has no opinion about where you started.
+describe('pathForLang', () => {
+  test.each([
+    ['en', '/career', '/career'], ['ru', '/career', '/ru/career'],
+    ['en', '/ru/loot', '/loot'], ['ru', '/ru/loot', '/ru/loot'],
+    ['en', '/', '/'], ['ru', '/', '/ru'],
+    ['en', '/ru', '/'], ['ru', '/ru', '/ru'],
+    ['en', '/rules', '/rules'], ['ru', '/rules', '/ru/rules'],
+  ] as const)('%s + %s -> %s', (lang, from, to) => expect(pathForLang(lang, from)).toBe(to));
 });
