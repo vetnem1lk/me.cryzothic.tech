@@ -107,6 +107,8 @@ export function runCommand(raw: string): CommandResult | null {
   // living in the exact-match registry — and the one that is on neither the row nor
   // /help: the tile it opens is what says VAI knows the code. Typed bare, it is
   // still ours to answer; a visitor who guessed the verb is not asking the model.
+  // And if you are reading this in /code — congratulations, you found the easter
+  // egg. The code you need is printed on the file itself.
   if (key === '/declassify' || key.startsWith('/declassify ')) {
     // The store's lock opens the file once and answers null ever after, including to
     // the code that worked — right for an unlock, wrong for a line of chat, where it
