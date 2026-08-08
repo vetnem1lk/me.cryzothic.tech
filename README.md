@@ -56,9 +56,10 @@ me.cryzothic.tech/
 │   ├── content.json                 # EN/RU board dictionary — lazy chunk only, never `?raw`
 │   ├── i18n/
 │   │   ├── locale.ts                # pure URL<->language math: /ru/* is the whole state
+│   │   ├── locale.test.ts           # vitest: the URL<->language pins, incl. /rules staying EN
 │   │   ├── I18nContext.ts           # Lang context + dotted-path lookup, EN fallback
 │   │   └── strip.ts                 # the only dictionary on the entry path (FastPath copy)
-│   ├── *.test.ts                    # vitest: dictionary parity, locale math, the /ru emitter
+│   ├── *.test.ts                    # vitest: dictionary parity, the /ru emitter
 │   └── components/
 │       ├── FastPath.tsx             # pinned CV/contact strip — the thirty-second path
 │       ├── TargetCursor.tsx         # crosshair cursor, fine pointers only

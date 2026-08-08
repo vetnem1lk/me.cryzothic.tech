@@ -1,6 +1,4 @@
 # graphify scan scope for the site repo (me.cryzothic.tech).
-# Mandatory per vault graphify-conventions: without this file graphify falls back
-# to .gitignore, which also hides CLAUDE.md / cryx.deploy.json from the graph.
 # Excluded: vendored deps, build output, binary/derivative assets.
 node_modules/
 dist/

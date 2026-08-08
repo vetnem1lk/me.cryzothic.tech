@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   // Dev only: the chat service runs as its own process, so /api/chat reaches it
-  // same-origin here exactly as it does behind Caddy in production.
+  // same-origin here exactly as it does behind the reverse proxy in production.
   server: { proxy: { '/api': 'http://127.0.0.1:13331' } },
   // 2000, just under the smallest Cyrillic woff2 (2 028 B): the default 4096 base64s
   // both cyrillic-ext subsets into the render-blocking CSS, where every EN visitor
