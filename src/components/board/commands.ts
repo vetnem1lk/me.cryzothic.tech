@@ -77,6 +77,7 @@ const COMMANDS: Record<string, () => CommandResult> = {
   '/loot': () => ({ textKey: 'commands.loot', navigateTo: '/loot' }),
   '/contact': () => ({ textKey: 'commands.contact', navigateTo: '/contact' }),
   '/3d': () => ({ textKey: 'commands.threed', navigateTo: '/3d' }),
+  '/code': () => ({ textKey: 'commands.code', navigateTo: '/code' }),
   // The address bar is what picks the language, so switching it is a real
   // navigation — to the mirror of wherever the visitor is standing, never to the
   // root: same sector, other language.

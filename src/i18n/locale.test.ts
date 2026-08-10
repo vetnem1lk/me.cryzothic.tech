@@ -22,6 +22,12 @@ describe('mirrorPath', () => {
   test.each([
     ['/', '/ru'], ['/career', '/ru/career'], ['/3d', '/ru/3d'],
     ['/ru', '/'], ['/ru/', '/'], ['/ru/career', '/career'],
+    // The case-folded prefix again, this time on the mirror rather than on the
+    // language read: a hand-typed '/RU/career' mounts the Russian router, so the
+    // chip beside it must offer the English page and not '/ru/RU/career'. Cutting
+    // the prefix by length is what makes that hold — a case-sensitive string
+    // replace would leave this path untouched and send the visitor nowhere.
+    ['/RU/career', '/career'],
   ])('%s -> %s', (from, to) => expect(mirrorPath(from)).toBe(to));
   test('round-trip', () => expect(mirrorPath(mirrorPath('/ru/loot'))).toBe('/ru/loot'));
 });

@@ -90,13 +90,14 @@ describe('runCommand', () => {
       '/loot',
       '/contact',
       '/3d',
+      '/code',
       '/en',
       '/ru',
     ]);
-    // Six fixed destinations, all distinct. /en and /ru are absent on purpose:
+    // Seven fixed destinations, all distinct. /en and /ru are absent on purpose:
     // they carry a language, not a path, so there is nothing here to collide.
     const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(Boolean);
-    expect(routes).toHaveLength(6);
+    expect(routes).toHaveLength(7);
     expect(new Set(routes).size).toBe(routes.length);
   });
 });

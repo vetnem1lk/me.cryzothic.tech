@@ -42,6 +42,16 @@ describe('content.json', () => {
     expect(leaf(content.en, 'vai.error.status')).toContain('${status}');
   });
 
+  // The `[sys]` badge belongs to the renderer: it is printed once, at the one place
+  // a sys line is drawn, so every line the shell writes wears it whether it came
+  // from here or from the service. A dictionary string carrying its own copy would
+  // arrive on screen with two.
+  test('no sys line carries its own [sys] prefix', () => {
+    for (const lang of ['en', 'ru'] as const)
+      for (const p of paths(content[lang]).filter((k) => k.startsWith('vai.sys.')))
+        expect(leaf(content[lang], p), `${lang}:${p}`).not.toMatch(/^\[sys\]/);
+  });
+
   // The /nda view zips this array against the store's chapter list by index — the
   // photo, the quest and the copy for one tile come from three different files. A
   // reordered or short array would pair the wrong story with the wrong picture and

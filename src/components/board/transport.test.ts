@@ -294,7 +294,7 @@ describe('history', () => {
   const turns: ChatMessage[] = [
     { role: 'user', text: 'who is vlad', from: 'vai', id: 'q1' },
     { role: 'agent', text: 'a C++ dev', from: 'vai' },
-    { role: 'sys', text: '[sys] mode: GAI' },
+    { role: 'sys', text: 'mode: GAI' },
     { role: 'user', text: 'and games?', from: 'vai', id: 'q2' },
   ];
 

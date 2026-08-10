@@ -257,10 +257,10 @@
       },
       "sys": {
         "ask": "ask ${mode}",
-        "modeVai": "[sys] mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
-        "modeGai": "[sys] mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
-        "empty": "[sys] empty response — try again.",
-        "transport": "[sys] transport error — try again."
+        "modeVai": "mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
+        "modeGai": "mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
+        "empty": "empty response — try again.",
+        "transport": "transport error — try again."
       },
       "error": {
         "connection": "connection failed — try again.",
@@ -278,10 +278,11 @@
       "loot": "Opening the loot table.",
       "contact": "Boss fight initiated. Bring an offer.",
       "threed": "Opening the engine bay.",
+      "code": "Opening code_base — the source this page runs on.",
       "en": "Switching to English.",
       "ru": "Переключаюсь на русский.",
       "catResume": "Opening the loot table — 4 PDFs, pick your rarity.",
-      "help": "/help — this list\nwhoami — who is Vlad\nls projects — project list\n/loadout — equipped stack\n/lore — random lore drop\n/joke — one gamedev joke\n/3d — open the engine bay\n/career /skills /nda /loot /contact — jump to a sector\n/en /ru — switch language",
+      "help": "/help — this list\nwhoami — who is Vlad\nls projects — project list\n/loadout — equipped stack\n/lore — random lore drop\n/joke — one gamedev joke\n/3d — open the engine bay\n/code — read the source of this site\n/career /skills /nda /loot /contact — jump to a sector\n/en /ru — switch language",
       "joke": {
         "1": "Why do C++ gamedevs ship on time? They handle their exceptions before the exceptions handle them.",
         "2": "A designer walks into a bar. The bar was data-driven, so nobody had to recompile.",
@@ -556,10 +557,10 @@
       },
       "sys": {
         "ask": "спросить ${mode}",
-        "modeVai": "[sys] режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
-        "modeGai": "[sys] режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
-        "empty": "[sys] пустой ответ — попробуйте ещё раз.",
-        "transport": "[sys] ошибка транспорта — попробуйте ещё раз."
+        "modeVai": "режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
+        "modeGai": "режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
+        "empty": "пустой ответ — попробуйте ещё раз.",
+        "transport": "ошибка транспорта — попробуйте ещё раз."
       },
       "error": {
         "connection": "соединение не удалось — попробуйте ещё раз.",
@@ -577,10 +578,11 @@
       "loot": "Открываю таблицу лута.",
       "contact": "Бой с боссом начат. Приходите с оффером.",
       "threed": "Открываю отсек движка.",
+      "code": "Открываю code_base — исходники, на которых работает эта страница.",
       "en": "Switching to English.",
       "ru": "Переключаюсь на русский.",
       "catResume": "Открываю таблицу лута — 4 PDF, выбирайте редкость.",
-      "help": "/help — этот список\nwhoami — кто такой Влад\nls projects — список проектов\n/loadout — экипированный стек\n/lore — случайный факт из лора\n/joke — шутка про геймдев\n/3d — открыть отсек движка\n/career /skills /nda /loot /contact — прыжок в сектор\n/en /ru — сменить язык",
+      "help": "/help — этот список\nwhoami — кто такой Влад\nls projects — список проектов\n/loadout — экипированный стек\n/lore — случайный факт из лора\n/joke — шутка про геймдев\n/3d — открыть отсек движка\n/code — почитать исходники сайта\n/career /skills /nda /loot /contact — прыжок в сектор\n/en /ru — сменить язык",
       "joke": {
         "1": "— Как вы успеваете к дедлайну? — Дедлайн — это исключение. А исключения мы обрабатываем заранее.",
         "2": "Заходит дизайнер в бар и сам добавляет себе коктейль в меню. Бар data-driven — программиста будить не пришлось.",

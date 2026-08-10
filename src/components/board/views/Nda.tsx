@@ -442,10 +442,16 @@ export default function Nda() {
               className="flex items-center gap-2"
             >
               {/* The value is never read. Any number is the right number — the medal
-                  in the photo already says which one, and the reward line is the joke. */}
+                  in the photo already says which one, and the reward line is the joke.
+                  Named and id'd anyway: a field with neither is what the browser
+                  complains about, and the id is the chapter's, so two cards could
+                  never share one. Autofill is off — this is a riddle, not a form. */}
               <input
+                id={`${id}-guess`}
+                name="guess"
                 aria-labelledby={`${id}-prompt`}
                 inputMode="numeric"
+                autoComplete="off"
                 maxLength={3}
                 className="cursor-target w-12 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-xs text-neutral-100"
               />
