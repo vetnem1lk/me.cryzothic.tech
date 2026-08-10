@@ -13,6 +13,7 @@ const KNOCK = guarding('knock');
 const GUESS = guarding('guess');
 const SPRINT = guarding('sprint');
 const DIALOG = guarding('dialog');
+const LASER = guarding('laser');
 const CV = guarding('cv');
 const others = (id: story.ChapterId) => CHAPTERS.filter((c) => c !== id);
 
@@ -147,6 +148,38 @@ describe('the dialogue check', () => {
   });
 });
 
+// Two mirrors, four rotations each: the optics live in laser.ts, and what the store
+// owes them is a turn that always shows, and an unlock that fires on the one figure
+// that lights the rocket.
+describe('the laser quest', () => {
+  test('rotateMirror cycles 0→1→2→3→0 and unlocks exactly when solved', () => {
+    expect(story.mirrorDirs(LASER)).toEqual([0, 0]);
+    for (const dirs of [
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [0, 0],
+    ]) {
+      expect(story.rotateMirror(LASER, 0)).toBe(false); // the second mirror still blocks it
+      expect(story.mirrorDirs(LASER)).toEqual(dirs);
+    }
+    expect(story.rotateMirror(LASER, 1)).toBe(false); // [0,1] — now the first one blocks it
+    expect(story.rotateMirror(LASER, 0)).toBe(true); // [1,1] — two "/" and the rocket lights
+    expect(story.isUnlocked(LASER)).toBe(true);
+    expect(story.takeLoreChapter()).toBe(LASER); // came through the one door, like the rest
+    expect(story.rotateMirror(LASER, 0)).toBe(false); // no re-unlock
+    expect(story.mirrorDirs(LASER)).toEqual([1, 1]); // and the solved figure stays put
+  });
+
+  test('leaves every chapter another quest guards alone', () => {
+    for (const id of others(LASER)) {
+      expect(story.rotateMirror(id, 0)).toBe(false);
+      expect(story.mirrorDirs(id)).toEqual([0, 0]);
+    }
+    expect(others(LASER).some(story.isUnlocked)).toBe(false);
+  });
+});
+
 describe('declassify', () => {
   // Both cases get their own positive probe: an unlock is one-shot, so a second call
   // in the same test can only ever return null — which proves nothing about parsing.
@@ -221,16 +254,19 @@ describe('the store contract', () => {
     story.knock(KNOCK);
     story.sprintPush(SPRINT, 0);
     story.dialogChoose(DIALOG, 1);
+    story.rotateMirror(LASER, 0);
     const before = story.getVersion();
     story.resetStory();
     expect(CHAPTERS.some(story.isUnlocked)).toBe(false);
     expect(story.knockCount(KNOCK)).toBe(0);
     // Every quest's own half-finished progress goes with it, or a reload that is not
-    // a reload hands the next visitor a sprint already up to speed.
+    // a reload hands the next visitor a sprint already up to speed and the mirrors
+    // left where the last one turned them.
     expect(story.sprintSpeed(SPRINT, 0)).toBe(0);
     expect(story.dialogState(DIALOG)).toEqual({ phase: 'ask', choice: null });
+    expect(story.mirrorDirs(LASER)).toEqual([0, 0]);
     expect(story.takeLoreChapter()).toBeNull();
-    expect(cb).toHaveBeenCalledTimes(6); // three knocks, a push, a word, and the reset
+    expect(cb).toHaveBeenCalledTimes(7); // three knocks, a push, a word, a turn, and the reset
     expect(story.getVersion()).toBeGreaterThan(before); // no subscriber left on a stale snapshot
     unsubscribe();
   });

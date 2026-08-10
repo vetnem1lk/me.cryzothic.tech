@@ -6,6 +6,7 @@
 // Board-side only: this file reads the CV flag, and cvFlag.ts must never read
 // back, so the entry bundle keeps paying for six lines instead of this store.
 import { cvDownloaded } from './cvFlag';
+import { type Dir, solves } from './laser';
 import { EMPTY_SPRINT, type SprintState, caught, coast, push } from './sprint';
 
 export type ChapterId =
@@ -77,6 +78,7 @@ const knocks = new Map<ChapterId, number>();
 const sprints = new Map<ChapterId, SprintState>();
 /** Presence is the whole state: a chapter in here has been answered, once. */
 const dialogs = new Map<ChapterId, number>();
+const mirrors = new Map<ChapterId, [Dir, Dir]>();
 /** Opened but not yet read out: /lore serves these before its own rotation. */
 const fresh: ChapterId[] = [];
 const subscribers = new Set<() => void>();
@@ -148,6 +150,30 @@ export function dialogChoose(id: ChapterId, choice: 0 | 1 | 2): void {
   bump();
 }
 
+/**
+ * How the two mirrors stand — a pure read the panel makes on every render. Untouched
+ * they are both `\`, which puts the beam straight into the floor; the default is built
+ * fresh each time rather than shared, so nobody can turn a mirror by writing to it.
+ */
+export const mirrorDirs = (id: ChapterId): [Dir, Dir] => mirrors.get(id) ?? [0, 0];
+
+/**
+ * One mirror turned a quarter, and the rocket lights the moment the pair of them
+ * finally aims the beam at it. The figure on the panel moves on every turn, so a turn
+ * that opens nothing still bumps.
+ */
+export function rotateMirror(id: ChapterId, ix: 0 | 1): boolean {
+  if (!owns(id, 'laser') || unlocked.has(id)) return false;
+  const dirs = [...mirrorDirs(id)] as [Dir, Dir];
+  dirs[ix] = ((dirs[ix] + 1) % 4) as Dir;
+  mirrors.set(id, dirs);
+  if (!solves(...dirs)) {
+    bump();
+    return false;
+  }
+  return unlock(id);
+}
+
 /** The way through, and only once a word has been said. */
 export const dialogOpen = (id: ChapterId): boolean =>
   owns(id, 'dialog') && dialogs.has(id) ? unlock(id) : false;
@@ -194,6 +220,7 @@ export function resetStory(): void {
   knocks.clear();
   sprints.clear();
   dialogs.clear();
+  mirrors.clear();
   fresh.length = 0;
   // Subscribers survive — they belong to whoever is mounted, not to the progress —
   // and the version only ever climbs, so nothing is left holding a stale snapshot.
