@@ -16,7 +16,6 @@ import {
   CHAPTERS,
   DIMS,
   QUESTS,
-  clickUnlock,
   getVersion,
   guess,
   isUnlocked,
@@ -102,8 +101,9 @@ export default function Nda() {
     { scope, revertOnUpdate: true },
   );
 
-  // One control per cover, and the control is the quest. The three 'click' slots are
-  // holding places until real quests move in behind them.
+  // One control per cover, and the control is the quest. The sprint, the dialogue
+  // check and the laser have their logic in the store already and their controls in
+  // the next pass — until then those three covers stay shut with nothing to press.
   function questUi(id: ChapterId) {
     switch (QUESTS[id]) {
       case 'knock':
@@ -159,17 +159,7 @@ export default function Nda() {
       case 'declassify':
         return <p className="text-xs text-neutral-400">{labels.vaiHint}</p>;
       default:
-        return (
-          <button
-            type="button"
-            onClick={() => {
-              if (clickUnlock(id)) justOpened.current = id;
-            }}
-            className={CHIP}
-          >
-            {labels.clickHint}
-          </button>
-        );
+        return null;
     }
   }
 
