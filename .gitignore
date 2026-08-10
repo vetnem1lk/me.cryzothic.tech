@@ -16,6 +16,7 @@ dist-ssr
 CLAUDE.md
 graphify-out/
 cryx.deploy.json
+.superpowers/
 
 # Editor directories and files
 .vscode/*
