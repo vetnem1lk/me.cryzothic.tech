@@ -53,6 +53,17 @@ describe('content.json', () => {
       expect(content[lang].sector.nda.chapters.map((c) => c.code)).toEqual(CHAPTERS);
   });
 
+  // The dialogue check indexes its outcome by the choice the visitor pressed, and the
+  // store types that choice `0 | 1 | 2` — so three is a contract, not a length that
+  // happens to be three today. Key parity alone would wave a matched pair of two-item
+  // arrays straight through, into an out-of-range read on the third button.
+  test('the dialogue offers exactly three choices and three outcomes', () => {
+    for (const lang of ['en', 'ru'] as const) {
+      expect(content[lang].sector.nda.dialog.choices, lang).toHaveLength(3);
+      expect(content[lang].sector.nda.dialog.outcomes, lang).toHaveLength(3);
+    }
+  });
+
   // The two language commands confirm in the language they switch to, not in the
   // one the visitor typed from — the line lands in the log next to a page that
   // already speaks it. So both dictionaries carry the same two strings on purpose;

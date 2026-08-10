@@ -121,15 +121,15 @@
       },
       "nda": {
         "title": "NDA — New position",
-        "intro": "Seven files, seven covers, and not one of them lifts the way its neighbour does. What a cover wants is written on the cover and nowhere else. The two project dossiers this sector started as are folded into the archive at the bottom.",
+        "intro": "Seven files, seven covers, and not one of them lifts the way its neighbor does. What a cover wants is written on the cover and nowhere else. The two project dossiers this sector started as are folded into the archive at the bottom.",
         "labels": {
           "classified": "classified",
           "declassified": "declassified",
           "cvHint": "Paper opens for paper. This one wants a sheet with his name on it.",
-          "vaiHint": "No handle on this one. Somebody in this room already knows the code.",
+          "vaiHint": "No handle on this one. The code is already on the cover — somebody here answers to it.",
           "knockHint": "Knock — someone might open.",
-          "sprintHint": "The group is already rolling. Nobody ever caught it coasting.",
-          "dialogOpenHint": "The way is clear. Nobody is checking any more.",
+          "sprintHint": "The group is already rolling. Nobody ever caught it by coasting.",
+          "dialogOpenHint": "Nobody is checking anymore.",
           "guessPrompt": "The medal knows the number. Which one?",
           "guessHint": "Guess",
           "laserHint": "The beam only knows straight. Somebody else does the turning.",
@@ -425,14 +425,14 @@
           "classified": "засекречено",
           "declassified": "рассекречено",
           "cvHint": "Бумага открывается бумагой. Этой нужен лист с его именем.",
-          "vaiHint": "Ручки у этой обложки нет. Код уже знает кто-то в этом зале.",
+          "vaiHint": "Ручки у этой обложки нет. Код написан прямо на ней — и кое-кто здесь на него отвечает.",
           "knockHint": "Постучи — вдруг откроют.",
           "sprintHint": "Группа уже укатила. Накатом её ещё никто не догонял.",
-          "dialogOpenHint": "Проход свободен. Больше никто не проверяет.",
+          "dialogOpenHint": "Дальше уже никто не спрашивает.",
           "guessPrompt": "Медаль знает число. Какое?",
           "guessHint": "Угадать",
           "laserHint": "Луч умеет только прямо. Повороты — не его работа.",
-          "laserStatusBlocked": "Луч уходит за край — ракета тёмная.",
+          "laserStatusBlocked": "Луч уходит за край — ракета так и стоит тёмной.",
           "laserStatusHit": "Луч дошёл до ракеты. Зажигание.",
           "newChapter": "открыт новый файл — /lore его зачитает.",
           "close": "Закрыть файл"
@@ -445,7 +445,7 @@
             "[Атака 3/10] Молча открыть ноутбук. Медленно. Угрожающе."
           ],
           "outcomes": [
-            "Охранник дважды проходит список глазами, не находит и вписывает его шариковой ручкой. От руки — значит официально.",
+            "Охранник дважды пробегает список глазами, не находит и вписывает его шариковой ручкой. От руки — значит официально.",
             "Охранник смотрит в список, потом на него, потом снова в список: «Ладно. Ты хотя бы знаешь, как эта штука устроена». Ограждение отъезжает в сторону.",
             "Он открывает ноутбук, кулер выходит на турбинные обороты, охранник делает шаг назад. Урон нулевой, проход открыт."
           ]
@@ -490,7 +490,7 @@
             "code": "FILE-06",
             "title": "Второе место",
             "alt": "Влад на велособытии с сертификатами в руках и медалью с цифрой 2 на шее.",
-            "story": "Велозаезд, второе место, и медаль говорит это одним символом. Какое бы число вы ни ввели — его приняли: в тот день пьедестал был щедрым, и этот файл тоже.",
+            "story": "Велозаезд, второе место, и медаль говорит это одним символом. Какое бы число ни ввели — его приняли: в тот день пьедестал был щедрым, и этот файл тоже.",
             "credit": "личный архив"
           },
           {
