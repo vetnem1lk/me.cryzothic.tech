@@ -484,9 +484,9 @@ export default function VaiShell({
                       href={a.to}
                       // The route watcher above closes the sheet on a change, and a
                       // chip is a chosen destination whether or not the address
-                      // changes: tapping the language chip, or the story chip while
-                      // already on /nda, would otherwise leave the overlay sitting
-                      // over the page it just asked for. Closing twice is free.
+                      // changes: tapping the story chip while already on /nda would
+                      // otherwise leave the overlay sitting over the page it just
+                      // asked for. Closing twice is free.
                       onClick={onMobileClose}
                       className="cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent"
                     >

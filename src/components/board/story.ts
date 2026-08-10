@@ -152,8 +152,7 @@ export function dialogChoose(id: ChapterId, choice: 0 | 1 | 2): void {
 
 /**
  * How the two mirrors stand — a pure read the panel makes on every render. Untouched
- * they are both `\`, which puts the beam straight into the floor; the default is built
- * fresh each time rather than shared, so nobody can turn a mirror by writing to it.
+ * they are both `\`, which puts the beam straight into the floor.
  */
 export const mirrorDirs = (id: ChapterId): [Dir, Dir] => mirrors.get(id) ?? [0, 0];
 

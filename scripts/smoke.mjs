@@ -1,8 +1,9 @@
 // Deploy smoke: fetch everything a visitor or a crawler can reach without running our
-// JS, and check the three things a broken deploy breaks - the status, the media type,
-// and whether any bytes came back at all. Deliberately not byte-exact: every file in
-// the table is expected to change, so a pinned length would fail on every content edit
-// and teach the operator to ignore it.
+// JS, and check the things a broken deploy breaks - the status, the media type, whether
+// any bytes came back at all, and for the rows where 200 text/html is not enough, one
+// substring that says which document answered. Deliberately not byte-exact: every file
+// in the table is expected to change, so a pinned length would fail on every content
+// edit and teach the operator to ignore it.
 //
 //   node scripts/smoke.mjs https://me.cryzothic.tech
 //   node scripts/smoke.mjs http://localhost:4173 --local
@@ -14,14 +15,19 @@
 
 const HTML = 'text/html';
 
-// [path, acceptable content-type prefixes, scope]
+// [path, acceptable content-type prefixes, body needle, scope]
+// The needle is what tells the two documents apart: they are both 200 text/html, so an
+// EN fallback served under a RU path passes every header check. `<html lang>` is the
+// first thing in either document and the one attribute that differs by build, not by
+// content edit. Anchored to the opening tag: both documents carry an `hreflang="ru"`
+// alternate link, so a bare `lang="ru"` is a substring of the English document too.
 const TARGETS = [
   ['/', [HTML]],
-  ['/ru/', [HTML]],
-  ['/ru/career', [HTML], 'rewrite'],
-  // Not a route - the trap that proves the /ru match is segment-aware. It has to come
-  // back as the English document, never the Russian one.
-  ['/rules', [HTML]],
+  ['/ru/', [HTML], '<html lang="ru"'],
+  ['/ru/career', [HTML], '<html lang="ru"', 'rewrite'],
+  // Not a route - the trap that proves the /ru match is segment-aware. The needle is the
+  // proof: it has to come back as the English document, never the Russian one.
+  ['/rules', [HTML], '<html lang="en"'],
   // One row per photo tier, so a half-copied dist/photos shows up as a media type or a
   // 404 rather than as a blank slot someone notices weeks later.
   ['/photos/ch-01-640.avif', ['image/avif']],
@@ -42,7 +48,7 @@ const local = flags.includes('--local');
 
 let failures = 0;
 
-for (const [path, types, scope] of TARGETS) {
+for (const [path, types, needle, scope] of TARGETS) {
   if (local && scope === 'rewrite') {
     console.log(`skip ${path} - needs the server-side rewrite (--local)`);
     continue;
@@ -50,14 +56,22 @@ for (const [path, types, scope] of TARGETS) {
 
   let response;
   let bytes;
+  let body;
   try {
     // manual: a redirect is a finding, not something to follow silently - these URLs
     // are the ones crawlers and CV readers hold, and they must answer for themselves.
-    response = await fetch(origin + path, { redirect: 'manual' });
+    // The timeout keeps a hung front end a FAIL row below rather than a hung script.
+    response = await fetch(origin + path, {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10_000),
+    });
     // The body, not the content-length header: a compressing front end drops that
     // header and answers chunked, so the bytes that actually arrived are the only
     // count present on every hop.
-    bytes = (await response.arrayBuffer()).byteLength;
+    const buffer = await response.arrayBuffer();
+    bytes = buffer.byteLength;
+    // Decoded only where a needle asks for it - the image and PDF rows must stay bytes.
+    if (needle) body = new TextDecoder().decode(buffer);
   } catch (error) {
     failures += 1;
     console.log(`FAIL ${path} - ${error.message}`);
@@ -71,6 +85,7 @@ for (const [path, types, scope] of TARGETS) {
     problems.push(`content-type ${contentType || '(none)'}, want ${types.join(' | ')}`);
   }
   if (bytes === 0) problems.push('empty body');
+  if (needle && !body.includes(needle)) problems.push(`body missing ${needle}`);
 
   if (problems.length) {
     failures += 1;

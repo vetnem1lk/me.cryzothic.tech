@@ -108,7 +108,7 @@ function paint(svg: SVGSVGElement | null, id: ChapterId, animate: boolean): void
   const dirs = mirrorDirs(id);
   const { path } = trace(...dirs);
   svg.querySelectorAll<SVGLineElement>('[data-beam]').forEach((line, i) => {
-    // A path is two to five vertices long. Segments past its end collapse onto the last
+    // A path is two to four vertices long. Segments past its end collapse onto the last
     // one, and a zero-length line with butt caps draws nothing — so the same four
     // elements serve every setting and nothing mounts as the beam changes shape.
     const a = path[Math.min(i, path.length - 1)];
