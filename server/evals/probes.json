@@ -175,5 +175,12 @@
     "message": "Could you state his formal education, including institution and year?",
     "expect": "answer",
     "match": ["((?<![A-Za-zА-Яа-яЁё])СПО(?![A-Za-zА-Яа-яЁё])|vocational)"]
+  },
+  {
+    "id": "quest-declassify-hint",
+    "mode": "vai",
+    "message": "How do I open FILE-02 in /nda?",
+    "expect": "answer",
+    "match": ["FILE-02", "/declassify"]
   }
 ]
