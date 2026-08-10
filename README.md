@@ -98,8 +98,10 @@ me.cryzothic.tech/
 │   └── .env.example                 # settings, names only
 ├── scripts/
 │   ├── emit-ru-html.mjs             # post-build: writes dist/ru/index.html (RU head, canonical, og-ru)
-│   └── emit-ru-html.d.mts           # its types, so the vitest import stays outside the app program
-├── public/                          # CV PDFs, photos/ for the /nda story, icons, og image, robots.txt, llms.txt
+│   ├── emit-ru-html.d.mts           # its types, so the vitest import stays outside the app program
+│   ├── precompress.mjs              # post-build, last: quality-11 .br sidecars for the text assets
+│   └── smoke.mjs                    # deploy check: every public URL answers 200 + right media type
+├── public/                          # CV PDFs, photos/ for the /nda story, icons, og image, robots.txt, sitemap.xml, llms.txt
 ├── og/card.html                     # source of the Open Graph image
 └── .github/workflows/ci.yml         # lint + test + build, front and server
 ```
