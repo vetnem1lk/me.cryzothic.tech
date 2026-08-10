@@ -439,13 +439,25 @@ export default function Nda() {
                 e.preventDefault();
                 if (guess(id)) justOpened.current = id;
               }}
-              className="flex items-center gap-2"
+              // w-full, so the row is measured against the cover instead of against
+              // its own contents: left to shrink-to-fit it takes its max-content width
+              // and simply overhangs, which is how a wider submit word ends up sideways
+              // -scrolling the card. Filling the box hands the shortfall to the field.
+              className="flex w-full items-center justify-center gap-2"
             >
               {/* The value is never read. Any number is the right number — the medal
                   in the photo already says which one, and the reward line is the joke.
                   Named and id'd anyway: a field with neither is what the browser
                   complains about, and the id is the chapter's, so two cards could
-                  never share one. Autofill is off — this is a riddle, not a form. */}
+                  never share one. Autofill is off — this is a riddle, not a form.
+
+                  `min-w-0` is what keeps the row inside the cover: a flex item with a
+                  width set will not shrink past it, so without it the row's floor is
+                  48px plus whatever the submit word measures — and «Угадать» is wider
+                  than "Guess", which pushed the row past the narrowest tiles and cost
+                  the card 7px of its height to a sideways scrollbar. The submit keeps
+                  its label and its tap target; the field gives up the few pixels, and
+                  it holds three characters it never reads. */}
               <input
                 id={`${id}-guess`}
                 name="guess"
@@ -453,7 +465,7 @@ export default function Nda() {
                 inputMode="numeric"
                 autoComplete="off"
                 maxLength={3}
-                className="cursor-target w-12 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-xs text-neutral-100"
+                className="cursor-target w-12 min-w-0 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-xs text-neutral-100"
               />
               <button type="submit" className={QUEST_BTN}>
                 {labels.guessHint}
