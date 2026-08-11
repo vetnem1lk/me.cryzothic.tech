@@ -1,8 +1,9 @@
 // Pins the optics of the rocket quest: which of the sixteen mirror settings light it,
-// the exact route the beam takes through a winning one, and that a blocked beam is
-// still a drawable line. Pure geometry, so the coordinates are the test.
+// the exact route the beam takes through a winning one, that a blocked beam is still
+// a drawable line, and which wall it runs off. Pure geometry, so the coordinates are
+// the test.
 import { describe, expect, it } from 'vitest';
-import { type Dir, solves, trace } from './laser';
+import { type Dir, blockedEdge, solves, trace } from './laser';
 
 describe('the laser geometry', () => {
   it('the exact solved-set: both mirrors "/" (dir%2===1), 4 of 16 states', () => {
@@ -33,6 +34,28 @@ describe('the laser geometry', () => {
     expect(hit).toBe(false);
     expect(path[0]).toEqual({ x: 10, y: 50 });
     expect(path.length).toBeGreaterThanOrEqual(2); // beam is VISIBLY firing+blocked
+  });
+
+  // A miss is not one thing: the panel says which way the beam went, so the wall it
+  // ran off is read straight off the last vertex and named.
+  it('a beam on the rocket ran off nothing', () => {
+    const t = trace(1, 1);
+    expect(t.hit).toBe(true);
+    expect(blockedEdge(t)).toBeNull();
+  });
+
+  it('a blocked beam names the wall it left by', () => {
+    expect(blockedEdge(trace(0, 0))).toBe('bottom'); // straight down into the floor
+    expect(blockedEdge(trace(1, 0))).toBe('left'); // turned once, then out the near side
+  });
+
+  it('every one of the sixteen settings lands on exactly one of the three answers', () => {
+    for (let a = 0; a < 4; a++)
+      for (let b = 0; b < 4; b++) {
+        const t = trace(a as Dir, b as Dir);
+        const edge = blockedEdge(t);
+        expect(t.hit ? edge === null : edge === 'bottom' || edge === 'left').toBe(true);
+      }
   });
 
   // Every setting must end somewhere: the renderer draws a polyline off this and a
