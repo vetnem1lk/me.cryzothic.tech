@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Two pages, because two is how many documents this site actually is: the EN shell
+     and the RU shell. Every other route (/career, /nda, /ru/loot …) is client-side
+     state inside one of them, so listing them would advertise URLs that resolve to a
+     document already in here.
+
+     Each entry repeats the full alternate set - the same en/ru/x-default triple
+     index.html carries in <head>, absolute, and identical in both blocks. Google
+     requires the group to be reciprocal: an alternate that is not confirmed from the
+     other side is discarded. No <lastmod>: a value nobody updates is a lie that
+     outranks the truth, and the build has no honest date to put there. -->
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+>
+  <url>
+    <loc>https://me.cryzothic.tech/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://me.cryzothic.tech/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://me.cryzothic.tech/ru/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://me.cryzothic.tech/" />
+  </url>
+  <url>
+    <loc>https://me.cryzothic.tech/ru/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://me.cryzothic.tech/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://me.cryzothic.tech/ru/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://me.cryzothic.tech/" />
+  </url>
+</urlset>

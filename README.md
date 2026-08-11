@@ -77,8 +77,10 @@ me.cryzothic.tech/
 │           ├── drain.ts             # pure paced-typing math (no DOM, no timers)
 │           ├── wheelMath.ts         # pure wheel→scrollLeft math for the command row
 │           ├── story.ts             # /nda chapters: quests, photo slots, unlock state, lore queue
+│           ├── laser.ts             # pure mirror optics for the rocket quest (no SVG, no clock)
+│           ├── sprint.ts            # pure click→speed momentum for the sprint quest
 │           ├── cvFlag.ts            # the one boolean the CV links set, session-only
-│           ├── *.test.ts            # vitest: commands, drain, story, transport, wheelMath
+│           ├── *.test.ts            # vitest: commands, drain, laser, sprint, story, transport, wheelMath
 │           └── views/               # Briefing · Career · Skills · Nda · Loot · Contact · CodeBase · ThreeDView
 │               ├── Lightbox.tsx     # native <dialog> photo viewer for the /nda chapters
 │               ├── codebaseManifest.ts  # what /code displays, imported `?raw`
@@ -98,8 +100,10 @@ me.cryzothic.tech/
 │   └── .env.example                 # settings, names only
 ├── scripts/
 │   ├── emit-ru-html.mjs             # post-build: writes dist/ru/index.html (RU head, canonical, og-ru)
-│   └── emit-ru-html.d.mts           # its types, so the vitest import stays outside the app program
-├── public/                          # CV PDFs, photos/ for the /nda story, icons, og image, robots.txt, llms.txt
+│   ├── emit-ru-html.d.mts           # its types, so the vitest import stays outside the app program
+│   ├── precompress.mjs              # post-build, last: quality-11 .br sidecars for the text assets
+│   └── smoke.mjs                    # deploy check: every public URL answers 200 + right media type
+├── public/                          # CV PDFs, photos/ for the /nda story, icons, og image, robots.txt, sitemap.xml, llms.txt
 ├── og/card.html                     # source of the Open Graph image
 └── .github/workflows/ci.yml         # lint + test + build, front and server
 ```

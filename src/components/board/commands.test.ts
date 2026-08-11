@@ -10,7 +10,7 @@ import {
   CHAPTERS,
   DECLASSIFY_CHAPTER,
   QUESTS,
-  clickUnlock,
+  guess,
   isUnlocked,
   photoSlug,
   resetStory,
@@ -90,13 +90,14 @@ describe('runCommand', () => {
       '/loot',
       '/contact',
       '/3d',
+      '/code',
       '/en',
       '/ru',
     ]);
-    // Six fixed destinations, all distinct. /en and /ru are absent on purpose:
+    // Seven fixed destinations, all distinct. /en and /ru are absent on purpose:
     // they carry a language, not a path, so there is nothing here to collide.
     const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(Boolean);
-    expect(routes).toHaveLength(6);
+    expect(routes).toHaveLength(7);
     expect(new Set(routes).size).toBe(routes.length);
   });
 });
@@ -105,7 +106,7 @@ describe('runCommand', () => {
 // out whatever has been opened. Both answer with a photo, and neither names a file
 // number here — the store's quest table is what says which chapter is which.
 describe('the story commands', () => {
-  const CLICK = CHAPTERS.find((c) => QUESTS[c] === 'click') as (typeof CHAPTERS)[number];
+  const GUESS = CHAPTERS.find((c) => QUESTS[c] === 'guess') as (typeof CHAPTERS)[number];
 
   const resolves = (key: string) => {
     for (const lang of ['en', 'ru'] as const)
@@ -140,16 +141,16 @@ describe('the story commands', () => {
   });
 
   it('/lore reads a freshly opened file before returning to its rotation', () => {
-    clickUnlock(CLICK);
+    guess(GUESS);
     const r = runCommand('/lore');
-    expect(r?.textKey).toBe(`sector.nda.chapters.${CHAPTERS.indexOf(CLICK)}.story`);
-    expect(r?.image?.src).toContain(photoSlug(CLICK));
+    expect(r?.textKey).toBe(`sector.nda.chapters.${CHAPTERS.indexOf(GUESS)}.story`);
+    expect(r?.image?.src).toContain(photoSlug(GUESS));
     // Queue drained: the next one is a lore drop again, and a lore drop has no photo.
     expect(runCommand('/lore')?.image).toBeUndefined();
   });
 
   it('every string these two answer with resolves in both languages', () => {
-    clickUnlock(CLICK);
+    guess(GUESS);
     const lore = runCommand('/lore');
     // The chapter keys carry an array index — content.json's chapters are a list,
     // and the resolver walks it like any other object. That is the pin.

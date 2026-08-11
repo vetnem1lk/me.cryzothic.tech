@@ -121,18 +121,35 @@
       },
       "nda": {
         "title": "NDA — New position",
-        "intro": "Seven files, seven covers, and none of them lift the same way. One opens for a number, one only opens for VAI, one opens itself once you have taken a CV. The two project dossiers this sector started as are folded into the archive at the bottom.",
+        "intro": "Seven files, seven covers, and not one of them lifts the way its neighbor does. What a cover wants is written on the cover and nowhere else. The two project dossiers this sector started as are folded into the archive at the bottom.",
         "labels": {
           "classified": "classified",
           "declassified": "declassified",
-          "clickHint": "One click lifts this cover.",
-          "vaiHint": "This one does not open by hand. VAI knows the code — ask it.",
-          "knockHint": "Knock. The cats come out on the third one.",
-          "guessPrompt": "Which number is on the medal?",
+          "cvHint": "Paper opens for paper. This one wants a sheet with his name on it.",
+          "vaiHint": "No handle on this one. The code is already on the cover — somebody here answers to it.",
+          "knockHint": "Knock — someone might open.",
+          "sprintHint": "The group is already rolling. Nobody ever caught it by coasting.",
+          "dialogOpenHint": "Nobody is checking anymore.",
+          "guessPrompt": "The medal knows the number. Which one?",
           "guessHint": "Guess",
-          "cvHint": "Take a CV from the loot table and this file opens itself.",
+          "laserHint": "The beam only knows straight. Somebody else does the turning.",
+          "laserStatusBlocked": "The beam runs off the edge — the rocket stays dark.",
+          "laserStatusHit": "The beam lands on the rocket. Ignition.",
           "newChapter": "new file unlocked — /lore reads it out.",
           "close": "Close the file"
+        },
+        "dialog": {
+          "npc": "The guard plants himself between him and the badge table: \"Experts by list only. The list is short, and you are not on it.\"",
+          "choices": [
+            "[Speech 8/10] \"That list was printed this morning. I leveled up over lunch.\"",
+            "[Intelligence 9/10] \"A list is a database. Databases get configured. Want me to show you?\"",
+            "[Attack 3/10] Open the laptop. Slowly. Menacingly."
+          ],
+          "outcomes": [
+            "The guard reads the list twice, does not find him, and adds him in ballpoint. Handwritten counts as official.",
+            "The guard looks at the list, then at him, then back at the list. \"Fine. You at least know how the thing is put together.\" The barrier rolls aside.",
+            "He opens the laptop, the fan winds up to turbine speed, and the guard takes a step back. Zero damage dealt, way open."
+          ]
         },
         "chapters": [
           {
@@ -240,10 +257,10 @@
       },
       "sys": {
         "ask": "ask ${mode}",
-        "modeVai": "[sys] mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
-        "modeGai": "[sys] mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
-        "empty": "[sys] empty response — try again.",
-        "transport": "[sys] transport error — try again."
+        "modeVai": "mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
+        "modeGai": "mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
+        "empty": "empty response — try again.",
+        "transport": "transport error — try again."
       },
       "error": {
         "connection": "connection failed — try again.",
@@ -261,10 +278,11 @@
       "loot": "Opening the loot table.",
       "contact": "Boss fight initiated. Bring an offer.",
       "threed": "Opening the engine bay.",
+      "code": "Opening code_base — the source this page runs on.",
       "en": "Switching to English.",
       "ru": "Переключаюсь на русский.",
       "catResume": "Opening the loot table — 4 PDFs, pick your rarity.",
-      "help": "/help — this list\nwhoami — who is Vlad\nls projects — project list\n/loadout — equipped stack\n/lore — random lore drop\n/joke — one gamedev joke\n/3d — open the engine bay\n/career /skills /nda /loot /contact — jump to a sector\n/en /ru — switch language",
+      "help": "/help — this list\nwhoami — who is Vlad\nls projects — project list\n/loadout — equipped stack\n/lore — random lore drop\n/joke — one gamedev joke\n/3d — open the engine bay\n/code — read the source of this site\n/career /skills /nda /loot /contact — jump to a sector\n/en /ru — switch language",
       "joke": {
         "1": "Why do C++ gamedevs ship on time? They handle their exceptions before the exceptions handle them.",
         "2": "A designer walks into a bar. The bar was data-driven, so nobody had to recompile.",
@@ -403,18 +421,35 @@
       },
       "nda": {
         "title": "NDA — новая должность",
-        "intro": "Семь файлов, семь обложек — и снимаются они по-разному. Одному нужно число, один открывается только для VAI, ещё один откроется сам, когда заберёте резюме. Два проектных досье, с которых начинался этот сектор, свёрнуты в архив внизу.",
+        "intro": "Семь файлов, семь обложек — и ни одна не снимается так же, как соседняя. Чего хочет обложка, написано на ней самой и больше нигде. Два проектных досье, с которых начинался этот сектор, свёрнуты в архив внизу.",
         "labels": {
           "classified": "засекречено",
           "declassified": "рассекречено",
-          "clickHint": "Один клик — и обложка снята.",
-          "vaiHint": "Руками этот не открыть. Код знает VAI — спросите у него.",
-          "knockHint": "Постучите. На третий раз коты выйдут.",
-          "guessPrompt": "Какое число на медали?",
+          "cvHint": "Бумага открывается бумагой. Этой нужен лист с его именем.",
+          "vaiHint": "Ручки у этой обложки нет. Код написан прямо на ней — и кое-кто здесь на него отвечает.",
+          "knockHint": "Постучи — вдруг откроют.",
+          "sprintHint": "Группа уже укатила. Накатом её ещё никто не догонял.",
+          "dialogOpenHint": "Дальше уже никто не спрашивает.",
+          "guessPrompt": "Медаль знает число. Какое?",
           "guessHint": "Угадать",
-          "cvHint": "Заберите резюме из таблицы лута — файл откроется сам.",
+          "laserHint": "Луч умеет только прямо. Повороты — не его работа.",
+          "laserStatusBlocked": "Луч уходит за край — ракета так и стоит тёмной.",
+          "laserStatusHit": "Луч дошёл до ракеты. Зажигание.",
           "newChapter": "открыт новый файл — /lore его зачитает.",
           "close": "Закрыть файл"
+        },
+        "dialog": {
+          "npc": "Охранник встаёт между ним и столом с бейджами: «Экспертов — по списку. Список короткий, тебя в нём нет».",
+          "choices": [
+            "[Убеждение 8/10] «Список печатали утром. Я стал экспертом в обед».",
+            "[Интеллект 9/10] «Список — это база. База настраивается. Показать?»",
+            "[Атака 3/10] Молча открыть ноутбук. Медленно. Угрожающе."
+          ],
+          "outcomes": [
+            "Охранник дважды пробегает список глазами, не находит и вписывает его шариковой ручкой. От руки — значит официально.",
+            "Охранник смотрит в список, потом на него, потом снова в список: «Ладно. Ты хотя бы знаешь, как эта штука устроена». Ограждение отъезжает в сторону.",
+            "Он открывает ноутбук, кулер выходит на турбинные обороты, охранник делает шаг назад. Урон нулевой, проход открыт."
+          ]
         },
         "chapters": [
           {
@@ -456,7 +491,7 @@
             "code": "FILE-06",
             "title": "Второе место",
             "alt": "Влад на велособытии с сертификатами в руках и медалью с цифрой 2 на шее.",
-            "story": "Велозаезд, второе место, и медаль говорит это одним символом. Какое бы число вы ни ввели — его приняли: в тот день пьедестал был щедрым, и этот файл тоже.",
+            "story": "Велозаезд, второе место, и медаль говорит это одним символом. Какое бы число ни ввели — его приняли: в тот день пьедестал был щедрым, и этот файл тоже.",
             "credit": "личный архив"
           },
           {
@@ -522,10 +557,10 @@
       },
       "sys": {
         "ask": "спросить ${mode}",
-        "modeVai": "[sys] режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
-        "modeGai": "[sys] режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
-        "empty": "[sys] пустой ответ — попробуйте ещё раз.",
-        "transport": "[sys] ошибка транспорта — попробуйте ещё раз."
+        "modeVai": "режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
+        "modeGai": "режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
+        "empty": "пустой ответ — попробуйте ещё раз.",
+        "transport": "ошибка транспорта — попробуйте ещё раз."
       },
       "error": {
         "connection": "соединение не удалось — попробуйте ещё раз.",
@@ -543,10 +578,11 @@
       "loot": "Открываю таблицу лута.",
       "contact": "Бой с боссом начат. Приходите с оффером.",
       "threed": "Открываю отсек движка.",
+      "code": "Открываю code_base — исходники, на которых работает эта страница.",
       "en": "Switching to English.",
       "ru": "Переключаюсь на русский.",
       "catResume": "Открываю таблицу лута — 4 PDF, выбирайте редкость.",
-      "help": "/help — этот список\nwhoami — кто такой Влад\nls projects — список проектов\n/loadout — экипированный стек\n/lore — случайный факт из лора\n/joke — шутка про геймдев\n/3d — открыть отсек движка\n/career /skills /nda /loot /contact — прыжок в сектор\n/en /ru — сменить язык",
+      "help": "/help — этот список\nwhoami — кто такой Влад\nls projects — список проектов\n/loadout — экипированный стек\n/lore — случайный факт из лора\n/joke — шутка про геймдев\n/3d — открыть отсек движка\n/code — почитать исходники сайта\n/career /skills /nda /loot /contact — прыжок в сектор\n/en /ru — сменить язык",
       "joke": {
         "1": "— Как вы успеваете к дедлайну? — Дедлайн — это исключение. А исключения мы обрабатываем заранее.",
         "2": "Заходит дизайнер в бар и сам добавляет себе коктейль в меню. Бар data-driven — программиста будить не пришлось.",

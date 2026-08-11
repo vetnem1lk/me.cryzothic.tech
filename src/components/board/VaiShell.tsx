@@ -214,12 +214,18 @@ export default function VaiShell({
   // would land above the visitor's own. The lore queue is left alone — it is /lore's.
   const openFiles = useSyncExternalStore(subscribe, openFileCount);
   const announced = useRef(openFiles);
+  // `t` is a fresh closure every render, so naming it a dependency re-ran this
+  // effect on every frame of a typed answer. The count is the only thing that can
+  // make it say anything, and the label is wanted in whatever language is on
+  // screen the moment a cover comes off — which is exactly what a ref holds.
+  const tRef = useRef(t);
+  tRef.current = t;
   useEffect(() => {
     // Only growth is news. Anything else — a reset, a first read — just re-baselines.
     if (openFiles > announced.current)
-      setMsgs((m) => [...m, { role: 'sys', text: `[sys] ${t('sector.nda.labels.newChapter')}` }]);
+      setMsgs((m) => [...m, { role: 'sys', text: tRef.current('sector.nda.labels.newChapter') }]);
     announced.current = openFiles;
-  }, [openFiles, t]);
+  }, [openFiles]);
 
   // Navigation is the sheet's exit: on a phone the shell covers the board, so a
   // route change — an action link, or any /command that navigates — means the
@@ -312,7 +318,7 @@ export default function VaiShell({
             st = { ...st, doneFeeding: true };
             // A `vai.error.*` key resolves; a message the service sent is not a
             // key and comes back out of `t` unchanged, still English.
-            setMsgs((m) => [...m, { role: 'sys', text: `[sys] ${t(msg, vars)}` }]);
+            setMsgs((m) => [...m, { role: 'sys', text: t(msg, vars) }]);
           },
         },
         ac.signal,
@@ -432,8 +438,12 @@ export default function VaiShell({
       >
         {[greeting, ...messages].map((m, i) =>
           m.role === 'sys' ? (
+            // The one place the `[sys]` badge is printed. It marks the shell
+            // talking about itself rather than answering, and every line of that
+            // kind lands here — the dictionary's, the transport's, and whatever a
+            // later feature writes — so none of them carries its own.
             <p key={i} className="font-mono text-[11px] text-sep-mint/80">
-              {m.text}
+              [sys] {m.text}
             </p>
           ) : (
             <p
@@ -472,6 +482,12 @@ export default function VaiShell({
                     <Link
                       key={a.label}
                       href={a.to}
+                      // The route watcher above closes the sheet on a change, and a
+                      // chip is a chosen destination whether or not the address
+                      // changes: tapping the story chip while already on /nda would
+                      // otherwise leave the overlay sitting over the page it just
+                      // asked for. Closing twice is free.
+                      onClick={onMobileClose}
                       className="cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent"
                     >
                       {a.label}
@@ -495,6 +511,7 @@ export default function VaiShell({
       >
         <input
           ref={inputRef}
+          id="vai-prompt"
           name="prompt"
           aria-label={ask}
           autoComplete="off"

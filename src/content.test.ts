@@ -42,6 +42,16 @@ describe('content.json', () => {
     expect(leaf(content.en, 'vai.error.status')).toContain('${status}');
   });
 
+  // The `[sys]` badge belongs to the renderer: it is printed once, at the one place
+  // a sys line is drawn, so every line the shell writes wears it whether it came
+  // from here or from the service. A dictionary string carrying its own copy would
+  // arrive on screen with two.
+  test('no sys line carries its own [sys] prefix', () => {
+    for (const lang of ['en', 'ru'] as const)
+      for (const p of paths(content[lang]).filter((k) => k.startsWith('vai.sys.')))
+        expect(leaf(content[lang], p), `${lang}:${p}`).not.toMatch(/^\[sys\]/);
+  });
+
   // The /nda view zips this array against the store's chapter list by index — the
   // photo, the quest and the copy for one tile come from three different files. A
   // reordered or short array would pair the wrong story with the wrong picture and
@@ -51,6 +61,17 @@ describe('content.json', () => {
   test('nda chapters match the store, one for one, in order', () => {
     for (const lang of ['en', 'ru'] as const)
       expect(content[lang].sector.nda.chapters.map((c) => c.code)).toEqual(CHAPTERS);
+  });
+
+  // The dialogue check indexes its outcome by the choice the visitor pressed, and the
+  // store types that choice `0 | 1 | 2` — so three is a contract, not a length that
+  // happens to be three today. Key parity alone would wave a matched pair of two-item
+  // arrays straight through, into an out-of-range read on the third button.
+  test('the dialogue offers exactly three choices and three outcomes', () => {
+    for (const lang of ['en', 'ru'] as const) {
+      expect(content[lang].sector.nda.dialog.choices, lang).toHaveLength(3);
+      expect(content[lang].sector.nda.dialog.outcomes, lang).toHaveLength(3);
+    }
   });
 
   // The two language commands confirm in the language they switch to, not in the
