@@ -24,9 +24,9 @@ import { callBuffered, streamChat, type ChatMsg } from './openrouter.js';
 // so a recruiter got a joke deflection where the first has an approved answer and
 // the second deserves a straight refusal. Unsure means ON: a wrong ON reaches a
 // prompt that can still refuse, a wrong OFF reaches nothing at all. Same lesson,
-// second round: "How do I open FILE-02 in /nda?" measured OFF in prod (T5e probe
-// 26) — quest questions read as generic coding help unless the site's own nouns
-// are spelled out.
+// second round: "How do I open FILE-02 in /nda?" measured OFF in prod — questions
+// about navigating the site read as generic coding help unless the site's own
+// nouns are spelled out.
 export const CLASSIFIER_PROMPT =
   'You decide whether a message is ABOUT Vladislav Klimentev (Vlad) — the subject of this ' +
   'portfolio site — or not. ON = anything about Vlad: his career, skills, projects, ' +
@@ -155,8 +155,8 @@ const DONE_FRAME = 'data: [DONE]\n\n';
 function openSse(res: Response, canary: string): Sse {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
-    // Two buffers to defeat: the browser cache, and nginx's proxy buffer, which
-    // would otherwise hold the whole answer back until the last byte.
+    // Two buffers to defeat: the browser cache, and the reverse proxy's buffer,
+    // which would otherwise hold the whole answer back until the last byte.
     'Cache-Control': 'no-cache, no-transform',
     'X-Accel-Buffering': 'no',
   });

@@ -104,10 +104,16 @@ export default function TargetCursor({
       const yTo = gsap.quickTo(cursor, 'y', { duration: 0.1, ease: 'power3.out' })
 
       let activeTarget: Element | null = null
-      let currentLeave: (() => void) | null = null
-      let cornerTargets: { x: number; y: number }[] | null = null
+      let currentLeave: ((force?: boolean) => void) | null = null
       let ibeamMode = false
       const strength = { value: 0 }
+
+      // The strip is fixed at the top, so anything scrolling under it is hidden and
+      // a frame has to stop at its bottom edge. Height is read once — the strip has
+      // one — and the element is kept so its own links, which sit inside that band,
+      // stay exempt from the clamp that would otherwise erase them.
+      const dock = document.querySelector('header')
+      const DOCK_H = dock?.getBoundingClientRect().height ?? 48
 
       // Crossfade dot <-> I-beam (transform/opacity only).
       const setIbeam = (text: boolean) => {
@@ -127,11 +133,48 @@ export default function TargetCursor({
         })
       }
 
+      // Where the four corners belong right now: the target's box, clipped to the
+      // part of it still on screen — intersected with the scroll port it moves
+      // inside, then cut off under the strip. Null means nothing is left to frame.
+      const measure = (el: Element) => {
+        const r = el.getBoundingClientRect()
+        const port = el.parentElement
+          ?.closest('.scroll-thin,.scroll-hide')
+          ?.getBoundingClientRect()
+        let { top, bottom, left, right } = r
+        if (port) {
+          top = Math.max(top, port.top)
+          bottom = Math.min(bottom, port.bottom)
+          left = Math.max(left, port.left)
+          right = Math.min(right, port.right)
+        }
+        // A modal <dialog> paints in the top layer, above the strip, so the strip
+        // never hides its controls — and no strip at all means no clamp.
+        if (dock && !dock.contains(el) && !el.closest('dialog')) top = Math.max(top, DOCK_H)
+        // Hidden is judged against the target's own box, not a flat corner-pair
+        // floor: most targets here are shorter than two corners and would fail
+        // that floor while fully visible. `|| 1` keeps a collapsed target hidden.
+        if (bottom - top < (Math.min(r.height, 2 * CORNER) || 1)) return null
+        if (right - left < (Math.min(r.width, 2 * CORNER) || 1)) return null
+        return [
+          { x: left - BORDER, y: top - BORDER },
+          { x: right + BORDER - CORNER, y: top - BORDER },
+          { x: right + BORDER - CORNER, y: bottom + BORDER - CORNER },
+          { x: left - BORDER, y: bottom + BORDER - CORNER },
+        ]
+      }
+
       // While locked: each frame nudge corners toward the target rect relative to the
       // live cursor position — the lag against the dot is the parallax feel.
       const tick = () => {
-        const ct = cornerTargets
-        if (!ct || strength.value === 0) return
+        if (!activeTarget || strength.value === 0) return
+        const ct = measure(activeTarget)
+        // Scrolled out of sight while the pointer is still on it: the leave path
+        // holds the lock for exactly that case, so this one has to override it.
+        if (!ct) {
+          currentLeave?.(true)
+          return
+        }
         const cx = gsap.getProperty(cursor, 'x') as number
         const cy = gsap.getProperty(cursor, 'y') as number
         corners.forEach((corner, i) => {
@@ -159,6 +202,10 @@ export default function TargetCursor({
 
       const lockTo = contextSafe((target: Element) => {
         if (target === activeTarget) return
+        // Measured before anything is torn down: a target with nothing visible left
+        // is not worth dropping the current lock for.
+        const ct = measure(target)
+        if (!ct) return
         currentLeave?.()
         setIbeam(target.matches(TEXT_ENTRY))
 
@@ -167,15 +214,6 @@ export default function TargetCursor({
         spinTl?.pause()
         gsap.set(cursor, { rotation: 0 })
         paint(lockColor)
-
-        const rect = target.getBoundingClientRect()
-        const ct = [
-          { x: rect.left - BORDER, y: rect.top - BORDER },
-          { x: rect.right + BORDER - CORNER, y: rect.top - BORDER },
-          { x: rect.right + BORDER - CORNER, y: rect.bottom + BORDER - CORNER },
-          { x: rect.left - BORDER, y: rect.bottom + BORDER - CORNER },
-        ]
-        cornerTargets = ct
 
         gsap.to(strength, { value: 1, duration: hoverDuration, ease: 'power2.out' })
         gsap.ticker.add(tick)
@@ -191,17 +229,19 @@ export default function TargetCursor({
           })
         })
 
-        const leave = contextSafe(() => {
+        // Doubles as the mouseleave listener, which is why `force` is only believed
+        // when it is exactly true — as a listener it arrives holding the event.
+        const leave = contextSafe((force?: boolean | Event) => {
           // Hover is the only hold-channel — a clicked button keeps focus and
           // must not pin the lock; typing feedback is the input's own accent
-          // caret, not a cursor lock (founder rev 2026-08-06).
-          if (target.isConnected && target.matches(':hover')) return
+          // caret, not a cursor lock (founder rev 2026-08-06). Forcing is the one
+          // way past it: a target hidden under the pointer is still hovered.
+          if (force !== true && target.isConnected && target.matches(':hover')) return
           target.removeEventListener('mouseleave', leave)
           if (activeTarget !== target) return
           activeTarget = null
           currentLeave = null
           gsap.ticker.remove(tick)
-          cornerTargets = null
           gsap.killTweensOf(strength)
           strength.value = 0
           setIbeam(false)
@@ -256,12 +296,18 @@ export default function TargetCursor({
         spinTl?.kill()
         document.body.classList.remove('custom-cursor')
       }
-      // ponytail: no scroll/resize re-sync of a locked rect.
-      // Three containers scroll under .cursor-target elements — the command row,
-      // the chat log (which also auto-scrolls itself on every message) and the
-      // stage view; scrolling any of them slides a target out from under the
-      // frozen rect until the next pointermove re-locks it — visible for a
-      // frame, cosmetic, accepted.
+      // ponytail: the rect is re-read every frame rather than resynced from scroll
+      // and resize listeners — the ticker already runs only while something is
+      // locked, so the cost is at most two getBoundingClientRect (plus two closest)
+      // per frame while a frame is on screen, and nothing at all otherwise. The real
+      // price is not the call count: the first read of a frame lands after the
+      // previous frame's transform writes, so it forces a synchronous style and
+      // layout flush.
+      // Ceiling: occlusion is modeled for the scrolling panes and the top strip
+      // only. Anything else that covers a target — a modal, a sticky element inside
+      // a view — still gets a frame drawn straight over it; and the strip clamp
+      // reads geometry, not paint order, which is why anything drawn above the strip
+      // has to be carved out of it by hand.
     },
     {
       dependencies: [

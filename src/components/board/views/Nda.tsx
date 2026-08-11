@@ -6,18 +6,18 @@
 // Every cover is a riddle rather than a caption: one large element that changes as the
 // visitor works on it, one hint line under it that never names the mechanic, and —
 // wherever the mechanic is nothing but a click — the whole cover is the button, so
-// there is no small control to find and the square itself is the thing you press.
+// there is no small control to find and the row itself is the thing you press.
 //
 // The two project dossiers this sector started out as are not gone; they are folded
 // into the archive at the foot of the page, which is the only place on this site
 // where what is withheld is printed next to what is not.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link } from 'wouter';
 import content from '../../../content.json';
 import { useLang, useT } from '../../../i18n/I18nContext';
-import { MIRRORS, SOURCE, TARGET, VIEW, trace } from '../laser';
+import { MIRRORS, SOURCE, TARGET, VIEW, blockedEdge, trace } from '../laser';
 import {
   CHAPTERS,
   DIMS,
@@ -30,6 +30,7 @@ import {
   isUnlocked,
   knock,
   knockCount,
+  laserIgnite,
   mirrorDirs,
   photoSlug,
   rotateMirror,
@@ -41,13 +42,9 @@ import {
 } from '../story';
 import Lightbox from './Lightbox';
 
-const SIZES = '(max-width: 767px) 45vw, 220px';
-
-// A square box for the photo and the same square box for the cover that hides it:
-// the set runs from a 1.78 landscape to a 1:1.78 portrait, and left to their own
-// shapes the tall ones own the scroll. Cropping to one square keeps the grid a grid,
-// and — because a cover measures the same as its photo — lifting one shifts nothing.
-const BOX = 'aspect-square';
+// Slots: a 420px pane at lg, else the stage column less its chrome (24 + 2 + chat 320 + 32).
+const SIZES =
+  '(min-width: 1024px) 420px, (min-width: 768px) calc(100vw - 378px), calc(100vw - 58px)';
 
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
@@ -56,35 +53,43 @@ const QUEST_BTN =
 
 const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 
-// One cover, one column: the stamp at the top, the riddle in the middle, the hint at
-// the foot. A cover that IS a button wears exactly this, which is what keeps a
-// pressable square from advertising itself as one — finding that out is the game.
+// One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
+// foot, and the crosshair around the whole of it. A cover that IS a button wears exactly
+// this, which is what keeps a pressable row from advertising itself as one — finding
+// that out is the game.
 //
-// It scrolls, and that is load-bearing rather than defensive: `aspect-square` is only a
-// preferred size until something inside outgrows it, and a cover that grows is a cover
-// that no longer measures its own photo — one tall card drags its whole grid row with
-// it, and the tile jumps when the cover finally lifts. The scroll container is what
-// makes the square a hard square. `-safe` centring goes with it: plain `center`
-// overflows in both directions and puts the top of a long card out of reach.
-const COVER = `scroll-thin flex ${BOX} w-full flex-col items-center gap-1.5 overflow-y-auto bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center`;
+// The height is a floor rather than a fixed box. Wide, the floor is the height of the
+// photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
+// above its caption and the floor only comes close, so the page moves a little. Either
+// way a cover that outgrows the floor pushes its own row down instead of scrolling
+// inside a square it can no longer hold. `-safe` centring stays for that case: plain
+// `center` overflows in both directions and puts the top of a long card out of reach.
+const COVER = `cursor-target flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
 
-// The riddle element: a digit or a symbol, never a word — reading it is the puzzle.
-const BIG = 'block font-mono text-5xl leading-none text-neutral-100 sm:text-6xl';
+// The riddle element: a digit or a symbol, never a word — reading it is the puzzle. It
+// grows with the row, because on a row this size a small one reads as a caption.
+const BIG = 'block font-mono text-5xl leading-none text-neutral-100 sm:text-6xl lg:text-7xl';
 const HINT = 'block text-xs leading-snug text-neutral-400';
 // The rocket is the one cover carrying two lines of prose under its riddle — the hint
 // and the beam's own report — so both of them shrink to buy the scene its room back.
 // Colourless: the two lines rank differently, and one class list must not try to win
 // a specificity argument with the other.
 const FINE = 'block text-[10px] leading-snug';
-// Prose on a cover, which only the dialogue has: the guard's line and his answer.
-const SAID = 'block text-[11px] leading-snug text-neutral-300';
+// Prose on a cover, which only the dialogue has: the guard's line and his answer. Capped
+// at the same measure as the prose everywhere else on the page — the row is wide enough
+// to run these two sentences out to a single unreadable line, and a text column is the
+// one thing the extra width should not be spent on.
+const SAID = 'block max-w-2xl text-[11px] leading-snug text-neutral-300';
 
 type Labels = (typeof content)['en']['sector']['nda']['labels'];
 
-// The two lines every cover carries, whatever quest is under them.
-const stamp = (code: string, classified: string) => (
+// The two lines every cover carries, whatever quest is under them. The file number is
+// id'd so a cover that is a button can say it first, before the riddle's own line.
+const stamp = (code: string, classified: string, id: ChapterId) => (
   <>
-    <span className={`${CAPS} block text-accent`}>{code}</span>
+    <span id={`${id}-code`} className={`${CAPS} block text-accent`}>
+      {code}
+    </span>
     <span className={`${CAPS} block text-neutral-500`}>{classified}</span>
   </>
 );
@@ -92,9 +97,17 @@ const stamp = (code: string, classified: string) => (
 // Language-neutral on purpose: the mirrors need names that never change with rotation
 // and never need translating. The riddle line is what says what a mirror is for.
 const MIRROR_NAMES = ['A', 'B'];
-// Source → both mirrors → the rocket or the wall: the longest path the tracer can hand
-// back, and therefore how many <line>s the beam is drawn with, always.
+// Source → both mirrors → the rocket or the wall: the vertices of the longest path the
+// tracer can hand back. The beam is drawn with one <line> per vertex, which is always one
+// or two more than the path needs — the spares collapse onto the last point and draw
+// nothing, and no setting ever mounts or unmounts a line.
 const BEAM_SEGMENTS = MIRRORS.length + 2;
+
+// How long the rocket stays lit before the file opens. The beam has to be seen to arrive
+// and the status line has to be read out while the cover is still on screen, so the strike
+// and the unlock are two moments rather than one. Timing, not motion: it runs whatever the
+// visitor's motion setting says.
+const HIT_FRAME_MS = 900;
 
 /**
  * The beam and the mirrors, straight off the geometry module. GSAP owns every
@@ -135,102 +148,194 @@ function Laser({
   id,
   code,
   labels,
-  onSolve,
+  onIgnite,
 }: {
   id: ChapterId;
   code: string;
   labels: Labels;
-  onSolve: () => void;
+  onIgnite: (id: ChapterId) => void;
 }) {
   const svg = useRef<SVGSVGElement>(null);
-  const { hit } = trace(...mirrorDirs(id));
+  const beam = trace(...mirrorDirs(id));
+  const edge = blockedEdge(beam);
 
   // Instant, and before the browser paints: a panel whose beam arrives a beat late
   // reads as decoration rather than as something that is already going wrong.
   const { contextSafe } = useGSAP(() => paint(svg.current, id, false), { scope: svg });
 
+  // The strike, then the file. Turning the mirrors never opens anything on its own — this
+  // is what opens it, one hit-frame after the beam lands, so the panel has a moment where
+  // the rocket is lit and the line under it can still be read. Leaving the view drops the
+  // frame with the cover. Every name it depends on is listed, which is why the callback
+  // has to keep its identity between renders: this card re-renders on somebody else's
+  // animation frame, and a new one each time would reset the timer before it ever ran.
+  useEffect(() => {
+    if (!beam.hit || isUnlocked(id)) return;
+    const frame = setTimeout(() => onIgnite(id), HIT_FRAME_MS);
+    return () => clearTimeout(frame);
+  }, [beam.hit, id, onIgnite]);
+
   // Wrapped, because a tween created inside a handler escapes the hook's context and
   // would outlive the cover it belongs to.
   const turn = contextSafe((ix: 0 | 1) => {
-    if (rotateMirror(id, ix)) onSolve();
+    if (beam.hit) return; // the beam is on the rocket: the board is settled, the frame runs
+    rotateMirror(id, ix);
     paint(svg.current, id, matchMedia('(prefers-reduced-motion: no-preference)').matches);
   });
 
   return (
     <div className={`${COVER} justify-between`}>
-      {stamp(code, labels.classified)}
-      <div className="min-h-16 w-full flex-1">
-        {/* Square by its height, so the buttons' percentages and the viewBox agree at
-            every tile size the grid hands out. */}
-        <div className="relative mx-auto aspect-square h-full">
-          <svg
-            ref={svg}
-            viewBox={`0 0 ${VIEW} ${VIEW}`}
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full"
-          >
-            <circle cx={SOURCE.x} cy={SOURCE.y} r="3" fill="var(--color-accent)" />
-            <path
-              d={`M${TARGET.x} ${TARGET.y - 7}l4 11h-8z`}
-              fill="none"
+      {stamp(code, labels.classified, id)}
+      {/* Square by a height it is given, never by the width it is offered: the row is far
+          wider than it is tall, and a square that took the width would stand a whole
+          screen high and drag its row with it. These two heights are what is left inside
+          the cover's own floor once the stamp and the two lines below have taken theirs,
+          so the rocket's row measures what the six other rows measure. */}
+      <div className="relative aspect-square h-52 lg:h-72">
+        <svg
+          ref={svg}
+          viewBox={`0 0 ${VIEW} ${VIEW}`}
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full"
+        >
+          <circle cx={SOURCE.x} cy={SOURCE.y} r="3" fill="var(--color-accent)" />
+          <path
+            d={`M${TARGET.x} ${TARGET.y - 7}l4 11h-8z`}
+            fill="none"
+            stroke="var(--color-accent)"
+            strokeWidth="1.5"
+          />
+          {/* Collapsed onto the emitter, and spelled out rather than left off: an
+              absent x1 parses as "" and the SVG parser logs a bad-attribute error for
+              every one of them at every mount. These four values are constant across
+              renders, so React writes them once and never contests the coordinates
+              again — paint() takes ownership before the first frame is shown. */}
+          {Array.from({ length: BEAM_SEGMENTS }, (_, i) => (
+            <line
+              key={`beam-${i}`}
+              data-beam
+              x1={SOURCE.x}
+              y1={SOURCE.y}
+              x2={SOURCE.x}
+              y2={SOURCE.y}
               stroke="var(--color-accent)"
               strokeWidth="1.5"
             />
-            {/* Collapsed onto the emitter, and spelled out rather than left off: an
-                absent x1 parses as "" and the SVG parser logs a bad-attribute error for
-                every one of them at every mount. These four values are constant across
-                renders, so React writes them once and never contests the coordinates
-                again — paint() takes ownership before the first frame is shown. */}
-            {Array.from({ length: BEAM_SEGMENTS }, (_, i) => (
-              <line
-                key={`beam-${i}`}
-                data-beam
-                x1={SOURCE.x}
-                y1={SOURCE.y}
-                x2={SOURCE.x}
-                y2={SOURCE.y}
-                stroke="var(--color-accent)"
-                strokeWidth="1.5"
-              />
-            ))}
-            {MIRRORS.map((m) => (
-              <line
-                key={`${m.x}-${m.y}`}
-                data-mirror
-                x1={m.x - 8}
-                y1={m.y - 8}
-                x2={m.x + 8}
-                y2={m.y + 8}
-                stroke="#d4d4d4"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            ))}
-          </svg>
-          {MIRRORS.map((m, i) => (
-            <button
+          ))}
+          {MIRRORS.map((m) => (
+            <line
               key={`${m.x}-${m.y}`}
-              type="button"
-              onClick={() => turn(i as 0 | 1)}
-              aria-label={MIRROR_NAMES[i]}
-              aria-describedby={`${id}-hint`}
-              className="cursor-target absolute h-[38%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-accent/40 hover:border-accent"
-              style={{ left: `${(m.x / VIEW) * 100}%`, top: `${(m.y / VIEW) * 100}%` }}
+              data-mirror
+              x1={m.x - 8}
+              y1={m.y - 8}
+              x2={m.x + 8}
+              y2={m.y + 8}
+              stroke="#d4d4d4"
+              strokeWidth="2.5"
+              strokeLinecap="round"
             />
           ))}
-        </div>
+        </svg>
+        {MIRRORS.map((m, i) => (
+          <button
+            key={`${m.x}-${m.y}`}
+            type="button"
+            onClick={() => turn(i as 0 | 1)}
+            aria-label={MIRROR_NAMES[i]}
+            aria-describedby={`${id}-hint`}
+            // Inert for the length of the hit-frame, and by aria rather than by
+            // `disabled`: a disabled control drops focus to <body> mid-frame, and the
+            // line the frame exists to have read out is announced with the keyboard
+            // still standing on the mirror it just turned.
+            aria-disabled={beam.hit}
+            // A fifth of the scene, and that is a ceiling rather than a taste: the far
+            // mirror stands a tenth of the way down, so a target wider than twice that
+            // hangs off the top edge — the offsets are percentages, so a bigger scene
+            // overhangs by exactly the same share. A fifth of the smaller scene is still
+            // 42px of glass to press, with 83px between the two of them.
+            className="cursor-target absolute h-[20%] w-[20%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-accent/40 hover:border-accent"
+            style={{ left: `${(m.x / VIEW) * 100}%`, top: `${(m.y / VIEW) * 100}%` }}
+          />
+        ))}
       </div>
       <span id={`${id}-hint`} className={`${FINE} text-neutral-400`}>
         {labels.laserHint}
       </span>
-      {/* One region for both readings. It speaks when the wording changes, which is
-          every turn that changes the answer and none that does not — a miss followed by
-          another miss is silent, and that is the honest report. */}
+      {/* One region for all three readings, and each of them names where the beam ended
+          up: on the rocket, in the floor, or out of the near side. It speaks whenever the
+          wording changes, so a turn that moves the beam from one wall to the other is
+          heard — which is what makes the puzzle solvable with the screen off. */}
       <span role="status" className={`${FINE} text-neutral-500`}>
-        {hit ? labels.laserStatusHit : labels.laserStatusBlocked}
+        {beam.hit
+          ? labels.laserStatusHit
+          : edge === 'bottom'
+            ? labels.laserStatusBottom
+            : labels.laserStatusLeft}
       </span>
     </div>
   );
+}
+
+// Which way each file comes in once its cover is off. Fixed per chapter rather than
+// random, so a visitor who opens the same file twice in two sessions sees the same
+// thing happen, and cycled so no two files in a row arrive the same way.
+const REVEALS: Record<ChapterId, 'resolve' | 'blueprint' | 'scan'> = {
+  'FILE-01': 'resolve',
+  'FILE-02': 'blueprint',
+  'FILE-03': 'scan',
+  'FILE-04': 'resolve',
+  'FILE-05': 'blueprint',
+  'FILE-06': 'scan',
+  'FILE-07': 'resolve',
+};
+
+/**
+ * The card an opened file landed in, arriving. Three ways of doing it: a photo pulling
+ * into focus, a print coming up out of its wash, a scan coming down the frame. Nothing
+ * here decides anything — the file is already open and already where it ends up, which
+ * is why the caller can skip the whole of it when motion is unwelcome and lose nothing
+ * but the arrival. Null-tolerant like `paint` above: what it is handed comes off a
+ * query that is allowed to miss.
+ */
+function reveal(card: Element | null | undefined, id: ChapterId): void {
+  if (!card) return;
+  switch (REVEALS[id]) {
+    case 'resolve':
+      gsap.from(card, { filter: 'blur(16px)', scale: 1.02, duration: 0.45 });
+      return;
+    case 'blueprint':
+      // The one that has to be written out at both ends. A card with no filter of its
+      // own computes to `none`, and a one-ended tween finds no number in that to come
+      // back to, so it travels toward zero and only snaps to `none` on the last frame.
+      // Zero is where a softened edge and a rolled-up scan are heading anyway; for a
+      // brightness it is black, so this one alone would darken all the way down and
+      // pop. Both ends spelled out, then the property dropped so the card is bare.
+      gsap.fromTo(
+        card,
+        { filter: 'saturate(0) brightness(1.6) contrast(1.4)' },
+        { filter: 'saturate(1) brightness(1) contrast(1)', duration: 0.5, clearProps: 'filter' },
+      );
+      // The frame comes up with it, and this is the one place the accent is typed out
+      // rather than read: the card's resting border is a `color-mix` in oklab, which
+      // the tween engine cannot read as a colour at all — it takes the three oklab
+      // coordinates for red, green and blue and walks the border to near-black. So
+      // both ends are literals of the same token, `--color-accent` at full and at the
+      // 40% the class asks for, and dropping the property hands the class back.
+      gsap.fromTo(
+        card,
+        { borderColor: '#b497cf' },
+        { borderColor: '#b497cf66', duration: 0.5, clearProps: 'borderColor' },
+      );
+      return;
+    case 'scan':
+      gsap.from(card, {
+        clipPath: 'inset(0 0 100% 0)',
+        duration: 0.45,
+        ease: 'power2.inOut',
+        clearProps: 'clipPath',
+      });
+      return;
+  }
 }
 
 export default function Nda() {
@@ -254,15 +359,33 @@ export default function Nda() {
 
   useSyncExternalStore(subscribe, getVersion);
 
+  // The rocket's door, and the one quest whose unlock is on a clock rather than on a
+  // click: the panel holds this in a timer for the length of its hit-frame, so it has to
+  // be the same function on the other side of a re-render. The photo is claimed first —
+  // the store's answer takes the cover away and the focus with it.
+  const ignite = useCallback((chapter: ChapterId) => {
+    justOpened.current = chapter;
+    laserIgnite(chapter);
+  }, []);
+
   useEffect(() => {
     const opened = justOpened.current;
     const chose = justChose.current;
     if (!opened && !chose) return;
     justOpened.current = null;
     justChose.current = null;
-    scope.current
-      ?.querySelector<HTMLElement>(opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`)
-      ?.focus();
+    const handle = scope.current?.querySelector<HTMLElement>(
+      opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`,
+    );
+    handle?.focus();
+    // Only a cover coming off has a file to bring in: answering the guard leaves his
+    // cover where it was, and running an arrival over it would say otherwise. Focus is
+    // already gone by here, so nothing a visitor is waiting on is behind the motion —
+    // and with motion turned down there is nothing to run at all. What arrives is the
+    // card — the framed box the photo and its caption share, nearest one above the
+    // button, and the only element here carrying a border to bring up with it.
+    if (opened && matchMedia('(prefers-reduced-motion: no-preference)').matches)
+      reveal(handle?.closest('div'), opened);
   });
 
   // The pedal loop is the only frame work on this page; it must not outlive the view.
@@ -289,17 +412,33 @@ export default function Nda() {
         (entries) => {
           for (const e of entries)
             if (e.isIntersecting) {
-              // Once per tile: this is an entrance, not a scroll effect.
+              // Once per row: this is an entrance, not a scroll effect.
               io.unobserve(e.target);
-              gsap.from(e.target, { autoAlpha: 0, y: 12, duration: 0.3, ease: 'power1.out' });
+              // Opacity alone, never autoAlpha. The handoff that follows an unlock is
+              // itself what scrolls some rows into view, and the `visibility: hidden`
+              // half of autoAlpha makes Chrome drop the focus the row has just been
+              // given, with nothing left to hand it back. At zero opacity it keeps it.
+              gsap.from(e.target, { opacity: 0, y: 12, duration: 0.3, ease: 'power1.out' });
+              // The run into this row draws itself as the row arrives. scaleY, not
+              // stroke-dashoffset: the locked style already owns stroke-dasharray and the
+              // two techniques collide over that one attribute. The first row has nothing
+              // above it to run from, hence the guard — an empty target is a console line.
+              const wave = e.target.querySelector('[data-wave]');
+              if (wave)
+                gsap.from(wave, {
+                  scaleY: 0,
+                  transformOrigin: 'top',
+                  duration: 0.5,
+                  ease: 'power2.out',
+                });
             }
         },
         { rootMargin: '0px 0px -8%' },
       );
-      for (const tile of scope.current?.querySelectorAll('[data-tile]') ?? []) io.observe(tile);
+      for (const row of scope.current?.querySelectorAll('[data-tile]') ?? []) io.observe(row);
       return () => io.disconnect();
     },
-    // Deliberately dependency-free: all seven tiles exist from mount and only their
+    // Deliberately dependency-free: all seven rows exist from mount and only their
     // contents change when a cover lifts, so each element is tweened exactly once. A
     // `from` reads the element's current values as its END values, so a second one
     // starting mid-tween would bake in a half-faded opacity and ratchet it down for
@@ -326,9 +465,9 @@ export default function Nda() {
   }
 
   // One cover per chapter, and the cover is the quest. Where the mechanic is nothing
-  // but a click the whole square is the button and the hint line is its name; where it
-  // needs a field or a choice the square stays a plain box with controls inside,
-  // because a button may contain neither.
+  // but a click the whole row is the button and the file number plus the hint line is
+  // its name; where it needs a field or a choice the row stays a plain box with controls
+  // inside, because a button may contain neither.
   function cover(id: ChapterId, code: string) {
     const hintId = `${id}-hint`;
     switch (QUESTS[id]) {
@@ -339,10 +478,10 @@ export default function Nda() {
             onClick={() => {
               if (knock(id)) justOpened.current = id;
             }}
-            aria-labelledby={hintId}
-            className={`cursor-target ${COVER} justify-center-safe`}
+            aria-labelledby={`${id}-code ${hintId}`}
+            className={`${COVER} justify-center-safe`}
           >
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             {/* Bare: what the number is counting up to is the riddle, and printing a
                 denominator beside it answers the riddle. */}
             <span aria-hidden="true" className={BIG}>
@@ -358,10 +497,10 @@ export default function Nda() {
           <button
             type="button"
             onClick={() => pedal(id)}
-            aria-labelledby={hintId}
-            className={`cursor-target ${COVER} justify-center-safe`}
+            aria-labelledby={`${id}-code ${hintId}`}
+            className={`${COVER} justify-center-safe`}
           >
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
               {Math.round(sprintSpeed(id, now))}
             </span>
@@ -374,17 +513,19 @@ export default function Nda() {
         const { phase, choice } = dialogState(id);
         if (phase === 'ask')
           return (
-            <div className={`${COVER} justify-start`}>
-              {stamp(code, labels.classified)}
+            <div className={`${COVER} justify-center-safe`}>
+              {stamp(code, labels.classified, id)}
               <span id={`${id}-npc`} className={SAID}>
                 {dialog.npc}
               </span>
               {/* A group, not a radiogroup: APG arrow-key semantics would say a line
-                  out loud while the visitor was still reading down the list. */}
+                  out loud while the visitor was still reading down the list. The three
+                  lines are answers to what the guard just said and are set to the same
+                  measure, so they read as a reply and not as three page-wide banners. */}
               <div
                 role="group"
                 aria-labelledby={`${id}-npc`}
-                className="flex w-full flex-col gap-1"
+                className="flex w-full max-w-2xl flex-col gap-1"
               >
                 {dialog.choices.map((c, i) => (
                   <button
@@ -409,12 +550,13 @@ export default function Nda() {
             onClick={() => {
               if (dialogOpen(id)) justOpened.current = id;
             }}
-            // What he said and what it bought, in that order: this is the one cover
-            // whose name has to carry the outcome, because the outcome is the reward.
-            aria-labelledby={`${id}-outcome ${hintId}`}
-            className={`cursor-target ${COVER} justify-start`}
+            // The file number, what he said, and what it bought, in that order: this is
+            // the one cover whose name carries an outcome, because the outcome is the
+            // reward.
+            aria-labelledby={`${id}-code ${id}-outcome ${hintId}`}
+            className={`${COVER} justify-center-safe`}
           >
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span id={`${id}-outcome`} className={SAID}>
               {dialog.outcomes[choice ?? 0]}
             </span>
@@ -427,7 +569,7 @@ export default function Nda() {
       case 'guess':
         return (
           <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
               ?
             </span>
@@ -439,25 +581,17 @@ export default function Nda() {
                 e.preventDefault();
                 if (guess(id)) justOpened.current = id;
               }}
-              // w-full, so the row is measured against the cover instead of against
-              // its own contents: left to shrink-to-fit it takes its max-content width
-              // and simply overhangs, which is how a wider submit word ends up sideways
-              // -scrolling the card. Filling the box hands the shortfall to the field.
-              className="flex w-full items-center justify-center gap-2"
+              // One line, at its own width: field then submit, with the row wide enough
+              // that the longer of the two submit words — «Угадать» against "Guess" —
+              // costs the field nothing. Nothing here has to shrink any more.
+              className="flex items-center justify-center gap-2"
             >
               {/* The value is never read. Any number is the right number — the medal
                   in the photo already says which one, and the reward line is the joke.
                   Named and id'd anyway: a field with neither is what the browser
                   complains about, and the id is the chapter's, so two cards could
                   never share one. Autofill is off — this is a riddle, not a form.
-
-                  `min-w-0` is what keeps the row inside the cover: a flex item with a
-                  width set will not shrink past it, so without it the row's floor is
-                  48px plus whatever the submit word measures — and «Угадать» is wider
-                  than "Guess", which pushed the row past the narrowest tiles and cost
-                  the card 7px of its height to a sideways scrollbar. The submit keeps
-                  its label and its tap target; the field gives up the few pixels, and
-                  it holds three characters it never reads. */}
+                  Three characters wide, which is three more than it needs. */}
               <input
                 id={`${id}-guess`}
                 name="guess"
@@ -465,7 +599,7 @@ export default function Nda() {
                 inputMode="numeric"
                 autoComplete="off"
                 maxLength={3}
-                className="cursor-target w-12 min-w-0 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-xs text-neutral-100"
+                className="cursor-target w-16 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-xs text-neutral-100"
               />
               <button type="submit" className={QUEST_BTN}>
                 {labels.guessHint}
@@ -475,20 +609,13 @@ export default function Nda() {
         );
       case 'laser':
         return (
-          <Laser
-            id={id}
-            code={code}
-            labels={labels}
-            onSolve={() => {
-              justOpened.current = id;
-            }}
-          />
+          <Laser id={id} code={code} labels={labels} onIgnite={ignite} />
         );
       // Nothing to press on these two: one waits on a download, one on the agent.
       case 'cv':
         return (
           <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
               CV
             </span>
@@ -498,10 +625,10 @@ export default function Nda() {
       case 'declassify':
         return (
           <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified)}
-            {/* Four dots, no letter-spacing: at the widest step the riddle element is
-                already within a few pixels of the cover, and spacing them out is what
-                tips it over into a sideways scrollbar. */}
+            {stamp(code, labels.classified, id)}
+            {/* Four dots, no letter-spacing: the mark is a redaction, and a redaction is
+                one shape. Tracked apart it becomes four blanks to be counted, which is a
+                different riddle from the one this cover is asking. */}
             <span aria-hidden="true" className={BIG}>
               ••••
             </span>
@@ -518,60 +645,84 @@ export default function Nda() {
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{intro}</p>
       </div>
 
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      {/* Ordered, not decorated: the chapters run in one sequence, and an <ol> is the
+          only place that says so. The role is spelled out because a list with its
+          markers styled off is a list some engines drop from the accessibility tree,
+          and dropping it takes the count with it. */}
+      <ol role="list" className="flex flex-col gap-3">
         {CHAPTERS.map((id, i) => {
           const ch = chapters[i];
           const [w, h] = DIMS[id];
           const p = photoSlug(id);
           return (
-            <li
-              key={id}
-              data-tile
-              className="overflow-hidden rounded-md border border-dashed border-accent/40"
-            >
-              {isUnlocked(id) ? (
-                <figure>
-                  {/* A real button, not a click handler on the image: the tile is
-                      cropped to a square, so opening the uncropped photo is an action
-                      and has to be reachable from the keyboard. Its accessible name is
-                      the alt text inside it — no aria-label, which would hide that. */}
-                  <button
-                    type="button"
-                    data-photo={id}
-                    onClick={() => setOpenAt(id)}
-                    className="cursor-target block w-full"
-                  >
-                    <picture>
-                      <source
-                        type="image/avif"
-                        srcSet={`/photos/${p}-640.avif 640w, /photos/${p}-1280.avif ${w}w`}
-                        sizes={SIZES}
-                      />
-                      <img
-                        src={`/photos/${p}-1280.jpg`}
-                        alt={ch.alt}
-                        width={w}
-                        height={h}
-                        loading="lazy"
-                        decoding="async"
-                        className={`${BOX} w-full object-cover`}
-                      />
-                    </picture>
-                  </button>
-                  <figcaption className="p-3">
-                    <p className={`${CAPS} text-accent`}>{ch.code}</p>
-                    <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
-                    <p className="mt-1 text-sm text-neutral-300">{ch.story}</p>
-                    <p className="mt-2 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
-                  </figcaption>
-                </figure>
-              ) : (
-                cover(id, ch.code)
+            <li key={id} data-tile>
+              {/* The run between one file and the next, drawn outside the frame because it
+                  belongs to neither: accent where the file it leads into is open, a dashed
+                  grey approach where it is not. Scenery only — the <ol> is what carries the
+                  order — so it is hidden rather than described. Its spine runs down the
+                  photo pane's half of the row while there is a pane beside the text, and
+                  down the middle of the row once the two stack. */}
+              {i > 0 && (
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 64"
+                  className="mx-auto h-16 w-6 lg:mx-[210px]"
+                >
+                  <path
+                    data-wave
+                    d="M12 0 Q 20 16 12 32 T 12 64"
+                    fill="none"
+                    className={isUnlocked(id) ? 'stroke-accent' : 'stroke-neutral-600'}
+                    strokeDasharray={isUnlocked(id) ? undefined : '4 4'}
+                  />
+                </svg>
               )}
+              <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
+                {isUnlocked(id) ? (
+                  <figure className="cursor-target flex max-lg:flex-col">
+                    {/* A real button, not a click handler on the image: the photo is
+                        cropped to one square — the set runs from a 1.78 landscape to a
+                        1:1.78 portrait — so opening the uncropped file is an action and
+                        has to be reachable from the keyboard. Its accessible name is the
+                        alt text inside it — no aria-label, which would hide that. */}
+                    <button
+                      type="button"
+                      data-photo={id}
+                      onClick={() => setOpenAt(id)}
+                      className="cursor-target block w-full lg:w-[420px] lg:shrink-0"
+                    >
+                      <picture>
+                        <source
+                          type="image/avif"
+                          srcSet={`/photos/${p}-640.avif 640w, /photos/${p}-1280.avif ${w}w`}
+                          sizes={SIZES}
+                        />
+                        <img
+                          src={`/photos/${p}-1280.jpg`}
+                          alt={ch.alt}
+                          width={w}
+                          height={h}
+                          loading="lazy"
+                          decoding="async"
+                          className="aspect-square w-full object-cover"
+                        />
+                      </picture>
+                    </button>
+                    <figcaption className="flex-1 p-4">
+                      <p className={`${CAPS} text-accent`}>{ch.code}</p>
+                      <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
+                      <p className="mt-1 text-sm text-neutral-300">{ch.story}</p>
+                      <p className="mt-2 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
+                    </figcaption>
+                  </figure>
+                ) : (
+                  cover(id, ch.code)
+                )}
+              </div>
             </li>
           );
         })}
-      </ul>
+      </ol>
 
       <details className="rounded-md border border-dashed border-neutral-700 p-3">
         <summary className={`cursor-target ${CAPS} text-neutral-400`}>{archive.label}</summary>

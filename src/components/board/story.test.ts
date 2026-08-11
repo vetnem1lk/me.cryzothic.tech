@@ -149,10 +149,10 @@ describe('the dialogue check', () => {
 });
 
 // Two mirrors, four rotations each: the optics live in laser.ts, and what the store
-// owes them is a turn that always shows, and an unlock that fires on the one figure
-// that lights the rocket.
+// owes them is a turn that always shows, and an unlock that waits for the shot rather
+// than for the figure that lights the rocket.
 describe('the laser quest', () => {
-  test('rotateMirror cycles 0→1→2→3→0 and unlocks exactly when solved', () => {
+  test('rotateMirror cycles 0→1→2→3→0 and never opens the file on its own', () => {
     expect(story.mirrorDirs(LASER)).toEqual([0, 0]);
     for (const dirs of [
       [1, 0],
@@ -164,11 +164,26 @@ describe('the laser quest', () => {
       expect(story.mirrorDirs(LASER)).toEqual(dirs);
     }
     expect(story.rotateMirror(LASER, 1)).toBe(false); // [0,1] — now the first one blocks it
-    expect(story.rotateMirror(LASER, 0)).toBe(true); // [1,1] — two "/" and the rocket lights
-    expect(story.isUnlocked(LASER)).toBe(true);
-    expect(story.takeLoreChapter()).toBe(LASER); // came through the one door, like the rest
+    expect(story.rotateMirror(LASER, 0)).toBe(false); // F5: [1,1] aims it, and aiming is not opening
+    expect(story.isUnlocked(LASER)).toBe(false); // F5: solved and still covered until the beam is fired
+    expect(story.takeLoreChapter()).toBeNull(); // F5: a turn on its own reaches no reader
+    // F5: firing is the move that opens it — and it has to happen here, or the turn
+    // below walks a chapter that is still covered on to [2,1].
+    expect(story.laserIgnite(LASER)).toBe(true);
     expect(story.rotateMirror(LASER, 0)).toBe(false); // no re-unlock
     expect(story.mirrorDirs(LASER)).toEqual([1, 1]); // and the solved figure stays put
+  });
+
+  // Aiming the beam and firing it are two moves now: the panel has a strike to play
+  // between them, so the cover only comes off once the visitor asks for it.
+  test('the strike opens nothing until the beam is aimed, and then only once', () => {
+    expect(story.laserIgnite(LASER)).toBe(false); // nothing is pointed at the rocket yet
+    story.rotateMirror(LASER, 0);
+    story.rotateMirror(LASER, 1);
+    expect(story.laserIgnite(LASER)).toBe(true);
+    expect(story.isUnlocked(LASER)).toBe(true);
+    expect(story.takeLoreChapter()).toBe(LASER); // came through the one door, like the rest
+    expect(story.laserIgnite(LASER)).toBe(false); // no re-unlock
   });
 
   test('leaves every chapter another quest guards alone', () => {

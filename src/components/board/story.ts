@@ -157,19 +157,25 @@ export function dialogChoose(id: ChapterId, choice: 0 | 1 | 2): void {
 export const mirrorDirs = (id: ChapterId): [Dir, Dir] => mirrors.get(id) ?? [0, 0];
 
 /**
- * One mirror turned a quarter, and the rocket lights the moment the pair of them
- * finally aims the beam at it. The figure on the panel moves on every turn, so a turn
- * that opens nothing still bumps.
+ * One mirror turned a quarter — aiming, and nothing more: the figure on the panel moves
+ * on every turn, so a turn always bumps. Every quest verb answers "did a cover come
+ * off", and this one never takes one off, so the answer is always no.
  */
 export function rotateMirror(id: ChapterId, ix: 0 | 1): boolean {
   if (!owns(id, 'laser') || unlocked.has(id)) return false;
   const dirs = [...mirrorDirs(id)] as [Dir, Dir];
   dirs[ix] = ((dirs[ix] + 1) % 4) as Dir;
   mirrors.set(id, dirs);
-  if (!solves(...dirs)) {
-    bump();
-    return false;
-  }
+  bump();
+  return false;
+}
+
+/**
+ * The beam fired, once the mirrors are aimed at the rocket — the panel plays the strike
+ * and then asks for this, so an aimed board sits lit until the visitor says fire.
+ */
+export function laserIgnite(id: ChapterId): boolean {
+  if (!owns(id, 'laser') || unlocked.has(id) || !solves(...mirrorDirs(id))) return false;
   return unlock(id);
 }
 

@@ -86,3 +86,14 @@ export function trace(m1: Dir, m2: Dir): { path: Point[]; hit: boolean } {
 
 /** The four settings of sixteen that light the rocket. */
 export const solves = (m1: Dir, m2: Dir): boolean => trace(m1, m2).hit;
+
+/**
+ * The wall a missed beam ran off, read off the vertex it stopped on — the panel says
+ * which way it went, and this layout leaves it exactly two ways out. A hit runs off
+ * nothing, so it has no wall to name.
+ */
+export function blockedEdge(t: ReturnType<typeof trace>): 'bottom' | 'left' | null {
+  if (t.hit) return null;
+  const end = t.path[t.path.length - 1];
+  return end.y >= VIEW ? 'bottom' : 'left';
+}
