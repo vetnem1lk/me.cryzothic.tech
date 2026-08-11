@@ -344,6 +344,18 @@ export default function Nda() {
               // Once per row: this is an entrance, not a scroll effect.
               io.unobserve(e.target);
               gsap.from(e.target, { autoAlpha: 0, y: 12, duration: 0.3, ease: 'power1.out' });
+              // The run into this row draws itself as the row arrives. scaleY, not
+              // stroke-dashoffset: the locked style already owns stroke-dasharray and the
+              // two techniques collide over that one attribute. The first row has nothing
+              // above it to run from, hence the guard — an empty target is a console line.
+              const wave = e.target.querySelector('[data-wave]');
+              if (wave)
+                gsap.from(wave, {
+                  scaleY: 0,
+                  transformOrigin: 'top',
+                  duration: 0.5,
+                  ease: 'power2.out',
+                });
             }
         },
         { rootMargin: '0px 0px -8%' },
@@ -569,6 +581,27 @@ export default function Nda() {
           const p = photoSlug(id);
           return (
             <li key={id} data-tile>
+              {/* The run between one file and the next, drawn outside the frame because it
+                  belongs to neither: accent where the file it leads into is open, a dashed
+                  grey approach where it is not. Scenery only — the <ol> is what carries the
+                  order — so it is hidden rather than described. Its spine runs down the
+                  photo pane's half of the row while there is a pane beside the text, and
+                  down the middle of the row once the two stack. */}
+              {i > 0 && (
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 64"
+                  className="mx-auto h-16 w-6 lg:mx-[210px]"
+                >
+                  <path
+                    data-wave
+                    d="M12 0 Q 20 16 12 32 T 12 64"
+                    fill="none"
+                    className={isUnlocked(id) ? 'stroke-accent' : 'stroke-neutral-600'}
+                    strokeDasharray={isUnlocked(id) ? undefined : '4 4'}
+                  />
+                </svg>
+              )}
               <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
                 {isUnlocked(id) ? (
                   <figure className="cursor-target flex max-lg:flex-col">
