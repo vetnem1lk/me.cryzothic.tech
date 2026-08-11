@@ -148,7 +148,9 @@ export default function TargetCursor({
           left = Math.max(left, port.left)
           right = Math.min(right, port.right)
         }
-        if (!dock?.contains(el)) top = Math.max(top, DOCK_H)
+        // A modal <dialog> paints in the top layer, above the strip, so the strip
+        // never hides its controls — and no strip at all means no clamp.
+        if (dock && !dock.contains(el) && !el.closest('dialog')) top = Math.max(top, DOCK_H)
         // Hidden is judged against the target's own box, not a flat corner-pair
         // floor: most targets here are shorter than two corners and would fail
         // that floor while fully visible. `|| 1` keeps a collapsed target hidden.
@@ -297,10 +299,15 @@ export default function TargetCursor({
       // ponytail: the rect is re-read every frame rather than resynced from scroll
       // and resize listeners — the ticker already runs only while something is
       // locked, so the cost is at most two getBoundingClientRect (plus one closest)
-      // per frame while a frame is on screen, and nothing at all otherwise.
+      // per frame while a frame is on screen, and nothing at all otherwise. The real
+      // price is not the call count: the first read of a frame lands after the
+      // previous frame's transform writes, so it forces a synchronous style and
+      // layout flush.
       // Ceiling: occlusion is modeled for the scrolling panes and the top strip
       // only. Anything else that covers a target — a modal, a sticky element inside
-      // a view — still gets a frame drawn straight over it.
+      // a view — still gets a frame drawn straight over it; and the strip clamp
+      // reads geometry, not paint order, which is why anything drawn above the strip
+      // has to be carved out of it by hand, as the top layer is above.
     },
     {
       dependencies: [
