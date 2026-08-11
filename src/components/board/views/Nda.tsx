@@ -6,7 +6,7 @@
 // Every cover is a riddle rather than a caption: one large element that changes as the
 // visitor works on it, one hint line under it that never names the mechanic, and —
 // wherever the mechanic is nothing but a click — the whole cover is the button, so
-// there is no small control to find and the square itself is the thing you press.
+// there is no small control to find and the row itself is the thing you press.
 //
 // The two project dossiers this sector started out as are not gone; they are folded
 // into the archive at the foot of the page, which is the only place on this site
@@ -41,13 +41,9 @@ import {
 } from '../story';
 import Lightbox from './Lightbox';
 
-const SIZES = '(max-width: 767px) 45vw, 220px';
-
-// A square box for the photo and the same square box for the cover that hides it:
-// the set runs from a 1.78 landscape to a 1:1.78 portrait, and left to their own
-// shapes the tall ones own the scroll. Cropping to one square keeps the grid a grid,
-// and — because a cover measures the same as its photo — lifting one shifts nothing.
-const BOX = 'aspect-square';
+// Slots: a 420px pane at lg, else the stage column less its chrome (24 + 2 + chat 320 + 32).
+const SIZES =
+  '(min-width: 1024px) 420px, (min-width: 768px) calc(100vw - 378px), calc(100vw - 58px)';
 
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
@@ -56,17 +52,17 @@ const QUEST_BTN =
 
 const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 
-// One cover, one column: the stamp at the top, the riddle in the middle, the hint at
-// the foot. A cover that IS a button wears exactly this, which is what keeps a
-// pressable square from advertising itself as one — finding that out is the game.
+// One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
+// foot, and the crosshair around the whole of it. A cover that IS a button wears exactly
+// this, which is what keeps a pressable row from advertising itself as one — finding
+// that out is the game.
 //
-// It scrolls, and that is load-bearing rather than defensive: `aspect-square` is only a
-// preferred size until something inside outgrows it, and a cover that grows is a cover
-// that no longer measures its own photo — one tall card drags its whole grid row with
-// it, and the tile jumps when the cover finally lifts. The scroll container is what
-// makes the square a hard square. `-safe` centring goes with it: plain `center`
-// overflows in both directions and puts the top of a long card out of reach.
-const COVER = `scroll-thin flex ${BOX} w-full flex-col items-center gap-1.5 overflow-y-auto bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center`;
+// The height is a floor rather than a fixed box: a cover opens at the height of the
+// photo pane it hides, so lifting one shifts nothing, and a cover that outgrows the
+// floor pushes its own row down instead of scrolling inside a square it can no longer
+// hold. `-safe` centring stays for that case: plain `center` overflows in both
+// directions and puts the top of a long card out of reach.
+const COVER = `cursor-target flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle.
 const BIG = 'block font-mono text-5xl leading-none text-neutral-100 sm:text-6xl';
@@ -81,10 +77,13 @@ const SAID = 'block text-[11px] leading-snug text-neutral-300';
 
 type Labels = (typeof content)['en']['sector']['nda']['labels'];
 
-// The two lines every cover carries, whatever quest is under them.
-const stamp = (code: string, classified: string) => (
+// The two lines every cover carries, whatever quest is under them. The file number is
+// id'd so a cover that is a button can say it first, before the riddle's own line.
+const stamp = (code: string, classified: string, id: ChapterId) => (
   <>
-    <span className={`${CAPS} block text-accent`}>{code}</span>
+    <span id={`${id}-code`} className={`${CAPS} block text-accent`}>
+      {code}
+    </span>
     <span className={`${CAPS} block text-neutral-500`}>{classified}</span>
   </>
 );
@@ -158,7 +157,7 @@ function Laser({
 
   return (
     <div className={`${COVER} justify-between`}>
-      {stamp(code, labels.classified)}
+      {stamp(code, labels.classified, id)}
       <div className="min-h-16 w-full flex-1">
         {/* Square by its height, so the buttons' percentages and the viewBox agree at
             every tile size the grid hands out. */}
@@ -289,17 +288,17 @@ export default function Nda() {
         (entries) => {
           for (const e of entries)
             if (e.isIntersecting) {
-              // Once per tile: this is an entrance, not a scroll effect.
+              // Once per row: this is an entrance, not a scroll effect.
               io.unobserve(e.target);
               gsap.from(e.target, { autoAlpha: 0, y: 12, duration: 0.3, ease: 'power1.out' });
             }
         },
         { rootMargin: '0px 0px -8%' },
       );
-      for (const tile of scope.current?.querySelectorAll('[data-tile]') ?? []) io.observe(tile);
+      for (const row of scope.current?.querySelectorAll('[data-tile]') ?? []) io.observe(row);
       return () => io.disconnect();
     },
-    // Deliberately dependency-free: all seven tiles exist from mount and only their
+    // Deliberately dependency-free: all seven rows exist from mount and only their
     // contents change when a cover lifts, so each element is tweened exactly once. A
     // `from` reads the element's current values as its END values, so a second one
     // starting mid-tween would bake in a half-faded opacity and ratchet it down for
@@ -326,9 +325,9 @@ export default function Nda() {
   }
 
   // One cover per chapter, and the cover is the quest. Where the mechanic is nothing
-  // but a click the whole square is the button and the hint line is its name; where it
-  // needs a field or a choice the square stays a plain box with controls inside,
-  // because a button may contain neither.
+  // but a click the whole row is the button and the file number plus the hint line is
+  // its name; where it needs a field or a choice the row stays a plain box with controls
+  // inside, because a button may contain neither.
   function cover(id: ChapterId, code: string) {
     const hintId = `${id}-hint`;
     switch (QUESTS[id]) {
@@ -339,10 +338,10 @@ export default function Nda() {
             onClick={() => {
               if (knock(id)) justOpened.current = id;
             }}
-            aria-labelledby={hintId}
-            className={`cursor-target ${COVER} justify-center-safe`}
+            aria-labelledby={`${id}-code ${hintId}`}
+            className={`${COVER} justify-center-safe`}
           >
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             {/* Bare: what the number is counting up to is the riddle, and printing a
                 denominator beside it answers the riddle. */}
             <span aria-hidden="true" className={BIG}>
@@ -358,10 +357,10 @@ export default function Nda() {
           <button
             type="button"
             onClick={() => pedal(id)}
-            aria-labelledby={hintId}
-            className={`cursor-target ${COVER} justify-center-safe`}
+            aria-labelledby={`${id}-code ${hintId}`}
+            className={`${COVER} justify-center-safe`}
           >
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
               {Math.round(sprintSpeed(id, now))}
             </span>
@@ -375,7 +374,7 @@ export default function Nda() {
         if (phase === 'ask')
           return (
             <div className={`${COVER} justify-start`}>
-              {stamp(code, labels.classified)}
+              {stamp(code, labels.classified, id)}
               <span id={`${id}-npc`} className={SAID}>
                 {dialog.npc}
               </span>
@@ -409,12 +408,13 @@ export default function Nda() {
             onClick={() => {
               if (dialogOpen(id)) justOpened.current = id;
             }}
-            // What he said and what it bought, in that order: this is the one cover
-            // whose name has to carry the outcome, because the outcome is the reward.
-            aria-labelledby={`${id}-outcome ${hintId}`}
-            className={`cursor-target ${COVER} justify-start`}
+            // The file number, what he said, and what it bought, in that order: this is
+            // the one cover whose name carries an outcome, because the outcome is the
+            // reward.
+            aria-labelledby={`${id}-code ${id}-outcome ${hintId}`}
+            className={`${COVER} justify-start`}
           >
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span id={`${id}-outcome`} className={SAID}>
               {dialog.outcomes[choice ?? 0]}
             </span>
@@ -427,7 +427,7 @@ export default function Nda() {
       case 'guess':
         return (
           <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
               ?
             </span>
@@ -488,7 +488,7 @@ export default function Nda() {
       case 'cv':
         return (
           <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
               CV
             </span>
@@ -498,7 +498,7 @@ export default function Nda() {
       case 'declassify':
         return (
           <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified)}
+            {stamp(code, labels.classified, id)}
             {/* Four dots, no letter-spacing: at the widest step the riddle element is
                 already within a few pixels of the cover, and spacing them out is what
                 tips it over into a sideways scrollbar. */}
@@ -518,60 +518,61 @@ export default function Nda() {
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{intro}</p>
       </div>
 
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      {/* Ordered, not decorated: the chapters run in one sequence, and the "item N of
+          seven" a screen reader gets from an <ol> is the only place that says so. */}
+      <ol className="flex flex-col gap-3">
         {CHAPTERS.map((id, i) => {
           const ch = chapters[i];
           const [w, h] = DIMS[id];
           const p = photoSlug(id);
           return (
-            <li
-              key={id}
-              data-tile
-              className="overflow-hidden rounded-md border border-dashed border-accent/40"
-            >
-              {isUnlocked(id) ? (
-                <figure>
-                  {/* A real button, not a click handler on the image: the tile is
-                      cropped to a square, so opening the uncropped photo is an action
-                      and has to be reachable from the keyboard. Its accessible name is
-                      the alt text inside it — no aria-label, which would hide that. */}
-                  <button
-                    type="button"
-                    data-photo={id}
-                    onClick={() => setOpenAt(id)}
-                    className="cursor-target block w-full"
-                  >
-                    <picture>
-                      <source
-                        type="image/avif"
-                        srcSet={`/photos/${p}-640.avif 640w, /photos/${p}-1280.avif ${w}w`}
-                        sizes={SIZES}
-                      />
-                      <img
-                        src={`/photos/${p}-1280.jpg`}
-                        alt={ch.alt}
-                        width={w}
-                        height={h}
-                        loading="lazy"
-                        decoding="async"
-                        className={`${BOX} w-full object-cover`}
-                      />
-                    </picture>
-                  </button>
-                  <figcaption className="p-3">
-                    <p className={`${CAPS} text-accent`}>{ch.code}</p>
-                    <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
-                    <p className="mt-1 text-sm text-neutral-300">{ch.story}</p>
-                    <p className="mt-2 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
-                  </figcaption>
-                </figure>
-              ) : (
-                cover(id, ch.code)
-              )}
+            <li key={id} data-tile>
+              <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
+                {isUnlocked(id) ? (
+                  <figure className="cursor-target flex max-lg:flex-col">
+                    {/* A real button, not a click handler on the image: the photo is
+                        cropped to one square — the set runs from a 1.78 landscape to a
+                        1:1.78 portrait — so opening the uncropped file is an action and
+                        has to be reachable from the keyboard. Its accessible name is the
+                        alt text inside it — no aria-label, which would hide that. */}
+                    <button
+                      type="button"
+                      data-photo={id}
+                      onClick={() => setOpenAt(id)}
+                      className="cursor-target block w-full lg:w-[420px] lg:shrink-0"
+                    >
+                      <picture>
+                        <source
+                          type="image/avif"
+                          srcSet={`/photos/${p}-640.avif 640w, /photos/${p}-1280.avif ${w}w`}
+                          sizes={SIZES}
+                        />
+                        <img
+                          src={`/photos/${p}-1280.jpg`}
+                          alt={ch.alt}
+                          width={w}
+                          height={h}
+                          loading="lazy"
+                          decoding="async"
+                          className="aspect-square w-full object-cover"
+                        />
+                      </picture>
+                    </button>
+                    <figcaption className="flex-1 p-4">
+                      <p className={`${CAPS} text-accent`}>{ch.code}</p>
+                      <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
+                      <p className="mt-1 text-sm text-neutral-300">{ch.story}</p>
+                      <p className="mt-2 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
+                    </figcaption>
+                  </figure>
+                ) : (
+                  cover(id, ch.code)
+                )}
+              </div>
             </li>
           );
         })}
-      </ul>
+      </ol>
 
       <details className="rounded-md border border-dashed border-neutral-700 p-3">
         <summary className={`cursor-target ${CAPS} text-neutral-400`}>{archive.label}</summary>
