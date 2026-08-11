@@ -298,7 +298,7 @@ export default function TargetCursor({
       }
       // ponytail: the rect is re-read every frame rather than resynced from scroll
       // and resize listeners — the ticker already runs only while something is
-      // locked, so the cost is at most two getBoundingClientRect (plus one closest)
+      // locked, so the cost is at most two getBoundingClientRect (plus two closest)
       // per frame while a frame is on screen, and nothing at all otherwise. The real
       // price is not the call count: the first read of a frame lands after the
       // previous frame's transform writes, so it forces a synchronous style and
@@ -307,7 +307,7 @@ export default function TargetCursor({
       // only. Anything else that covers a target — a modal, a sticky element inside
       // a view — still gets a frame drawn straight over it; and the strip clamp
       // reads geometry, not paint order, which is why anything drawn above the strip
-      // has to be carved out of it by hand, as the top layer is above.
+      // has to be carved out of it by hand.
     },
     {
       dependencies: [

@@ -99,8 +99,8 @@ const stamp = (code: string, classified: string, id: ChapterId) => (
 const MIRROR_NAMES = ['A', 'B'];
 // Source → both mirrors → the rocket or the wall: the vertices of the longest path the
 // tracer can hand back. The beam is drawn with one <line> per vertex, which is always one
-// more than the path needs — the spare collapses onto the last point and draws nothing,
-// and no setting ever mounts or unmounts a line.
+// or two more than the path needs — the spares collapse onto the last point and draw
+// nothing, and no setting ever mounts or unmounts a line.
 const BEAM_SEGMENTS = MIRRORS.length + 2;
 
 // How long the rocket stays lit before the file opens. The beam has to be seen to arrive
