@@ -57,11 +57,12 @@ const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 // this, which is what keeps a pressable row from advertising itself as one — finding
 // that out is the game.
 //
-// The height is a floor rather than a fixed box: a cover opens at the height of the
-// photo pane it hides, so lifting one shifts nothing, and a cover that outgrows the
-// floor pushes its own row down instead of scrolling inside a square it can no longer
-// hold. `-safe` centring stays for that case: plain `center` overflows in both
-// directions and puts the top of a long card out of reach.
+// The height is a floor rather than a fixed box. Wide, the floor is the height of the
+// photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
+// above its caption and the floor only comes close, so the page moves a little. Either
+// way a cover that outgrows the floor pushes its own row down instead of scrolling
+// inside a square it can no longer hold. `-safe` centring stays for that case: plain
+// `center` overflows in both directions and puts the top of a long card out of reach.
 const COVER = `cursor-target flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle.
@@ -518,9 +519,11 @@ export default function Nda() {
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{intro}</p>
       </div>
 
-      {/* Ordered, not decorated: the chapters run in one sequence, and the "item N of
-          seven" a screen reader gets from an <ol> is the only place that says so. */}
-      <ol className="flex flex-col gap-3">
+      {/* Ordered, not decorated: the chapters run in one sequence, and an <ol> is the
+          only place that says so. The role is spelled out because a list with its
+          markers styled off is a list some engines drop from the accessibility tree,
+          and dropping it takes the count with it. */}
+      <ol role="list" className="flex flex-col gap-3">
         {CHAPTERS.map((id, i) => {
           const ch = chapters[i];
           const [w, h] = DIMS[id];
