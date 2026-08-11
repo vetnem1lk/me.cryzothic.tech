@@ -23,16 +23,21 @@ import { callBuffered, streamChat, type ChatMsg } from './openrouter.js';
 // weak point as a candidate" and "his medical diagnoses" were both classified OFF,
 // so a recruiter got a joke deflection where the first has an approved answer and
 // the second deserves a straight refusal. Unsure means ON: a wrong ON reaches a
-// prompt that can still refuse, a wrong OFF reaches nothing at all.
+// prompt that can still refuse, a wrong OFF reaches nothing at all. Same lesson,
+// second round: "How do I open FILE-02 in /nda?" measured OFF in prod (T5e probe
+// 26) — quest questions read as generic coding help unless the site's own nouns
+// are spelled out.
 export const CLASSIFIER_PROMPT =
   'You decide whether a message is ABOUT Vladislav Klimentev (Vlad) — the subject of this ' +
   'portfolio site — or not. ON = anything about Vlad: his career, skills, projects, ' +
   'education, awards, personality, hobbies, private or personal matters (health, age, ' +
   'salary, contact details, availability), this portfolio site, hiring him, or greetings ' +
-  'and small talk addressed to the agent. Personal questions are still ON: refusing them ' +
-  'is not your job, another layer does that. OFF = only messages whose subject is not ' +
-  'Vlad at all (general knowledge, world facts, coding help, writing tasks). If unsure, ' +
-  'reply ON. Reply with exactly ON or OFF.';
+  'and small talk addressed to the agent. Questions about using or navigating this site — ' +
+  'its pages (/nda, /career, /code), its dossier files (FILE-01 … FILE-07), its games, ' +
+  'quests, riddles or slash commands — are ON even when Vlad is not named. Personal ' +
+  'questions are still ON: refusing them is not your job, another layer does that. ' +
+  'OFF = only messages whose subject is not Vlad at all (general knowledge, world facts, ' +
+  'coding help, writing tasks). If unsure, reply ON. Reply with exactly ON or OFF.';
 
 const VAI_TEMPERATURE = 0.6; // grounded answers: stay close to the facts
 const GAI_TEMPERATURE = 0.8; // general chat: allowed to be livelier

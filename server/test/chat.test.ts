@@ -140,16 +140,20 @@ describe('CLASSIFIER_PROMPT', () => {
     // "Describe his medical diagnoses…" both came back OFF, so a recruiter got a
     // joke deflection instead of the approved answer and a proper refusal. Deciding
     // what to refuse is the system prompt's job, one layer down — hence the explicit
-    // "personal questions are still ON" and the ON default when unsure.
+    // "personal questions are still ON" and the ON default when unsure. The site
+    // clause is measured too: "How do I open FILE-02 in /nda?" came back OFF in
+    // prod (T5e probe 26) until the site's own nouns were spelled out.
     expect(CLASSIFIER_PROMPT).toBe(
       'You decide whether a message is ABOUT Vladislav Klimentev (Vlad) — the subject of this ' +
         'portfolio site — or not. ON = anything about Vlad: his career, skills, projects, ' +
         'education, awards, personality, hobbies, private or personal matters (health, age, ' +
         'salary, contact details, availability), this portfolio site, hiring him, or greetings ' +
-        'and small talk addressed to the agent. Personal questions are still ON: refusing them ' +
-        'is not your job, another layer does that. OFF = only messages whose subject is not ' +
-        'Vlad at all (general knowledge, world facts, coding help, writing tasks). If unsure, ' +
-        'reply ON. Reply with exactly ON or OFF.',
+        'and small talk addressed to the agent. Questions about using or navigating this site — ' +
+        'its pages (/nda, /career, /code), its dossier files (FILE-01 … FILE-07), its games, ' +
+        'quests, riddles or slash commands — are ON even when Vlad is not named. Personal ' +
+        'questions are still ON: refusing them is not your job, another layer does that. ' +
+        'OFF = only messages whose subject is not Vlad at all (general knowledge, world facts, ' +
+        'coding help, writing tasks). If unsure, reply ON. Reply with exactly ON or OFF.',
     );
   });
 });
