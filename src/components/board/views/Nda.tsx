@@ -304,30 +304,31 @@ function reveal(card: Element | null | undefined, id: ChapterId): void {
       gsap.from(card, { filter: 'blur(16px)', scale: 1.02, duration: 0.45 });
       return;
     case 'blueprint':
-      // Both ends written out, unlike the case above. A card with no filter of its own
-      // computes to `none`, and a one-ended tween reading that finds no number to come
-      // back to, so it comes back to zero — which is what a softened edge wants and is
-      // a black card for a brightness. The end here is the three that mean "as shot".
+      // The one that has to be written out at both ends. A card with no filter of its
+      // own computes to `none`, and a one-ended tween finds no number in that to come
+      // back to, so it travels toward zero and only snaps to `none` on the last frame.
+      // Zero is where a softened edge and a rolled-up scan are heading anyway; for a
+      // brightness it is black, so this one alone would darken all the way down and
+      // pop. Both ends spelled out, then the property dropped so the card is bare.
       gsap.fromTo(
         card,
         { filter: 'saturate(0) brightness(1.6) contrast(1.4)' },
-        { filter: 'saturate(1) brightness(1) contrast(1)', duration: 0.5 },
+        { filter: 'saturate(1) brightness(1) contrast(1)', duration: 0.5, clearProps: 'filter' },
       );
-      // The frame comes up with it. The resting colour is the card's own class and is
-      // never typed out here — a `from` starts at the token and hands the border back.
-      gsap.from(card, {
-        borderColor: getComputedStyle(document.documentElement)
-          .getPropertyValue('--color-accent')
-          .trim(),
-        duration: 0.5,
-      });
-      return;
-    case 'scan':
+      // The frame comes up with it, and this is the one place the accent is typed out
+      // rather than read: the card's resting border is a `color-mix` in oklab, which
+      // the tween engine cannot read as a colour at all — it takes the three oklab
+      // coordinates for red, green and blue and walks the border to near-black. So
+      // both ends are literals of the same token, `--color-accent` at full and at the
+      // 40% the class asks for, and dropping the property hands the class back.
       gsap.fromTo(
         card,
-        { clipPath: 'inset(0 0 100% 0)' },
-        { clipPath: 'inset(0 0 0% 0)', duration: 0.45, ease: 'power2.inOut' },
+        { borderColor: '#b497cf' },
+        { borderColor: '#b497cf66', duration: 0.5, clearProps: 'borderColor' },
       );
+      return;
+    case 'scan':
+      gsap.from(card, { clipPath: 'inset(0 0 100% 0)', duration: 0.45, ease: 'power2.inOut' });
       return;
   }
 }
