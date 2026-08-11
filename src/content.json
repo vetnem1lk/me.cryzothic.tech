@@ -134,6 +134,8 @@
           "guessHint": "Guess",
           "laserHint": "The beam only knows straight. Somebody else does the turning.",
           "laserStatusBlocked": "The beam runs off the edge — the rocket stays dark.",
+          "laserStatusBottom": "The beam runs off the bottom edge, into the floor — the rocket stays dark.",
+          "laserStatusLeft": "The beam runs back off the left edge, the way it came — the rocket stays dark.",
           "laserStatusHit": "The beam lands on the rocket. Ignition.",
           "newChapter": "new file unlocked — /lore reads it out.",
           "close": "Close the file"
@@ -434,6 +436,8 @@
           "guessHint": "Угадать",
           "laserHint": "Луч умеет только прямо. Повороты — не его работа.",
           "laserStatusBlocked": "Луч уходит за край — ракета так и стоит тёмной.",
+          "laserStatusBottom": "Луч уходит вниз, в пол — ракета так и стоит тёмной.",
+          "laserStatusLeft": "Луч разворачивается и уходит за левый край, туда же, откуда пришёл — ракета так и стоит тёмной.",
           "laserStatusHit": "Луч дошёл до ракеты. Зажигание.",
           "newChapter": "открыт новый файл — /lore его зачитает.",
           "close": "Закрыть файл"
