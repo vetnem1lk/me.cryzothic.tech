@@ -46,7 +46,7 @@ describe('the laser geometry', () => {
 
   it('a blocked beam names the wall it left by', () => {
     expect(blockedEdge(trace(0, 0))).toBe('bottom'); // straight down into the floor
-    expect(blockedEdge(trace(1, 0))).toBe('left'); // turned once, then out the near side
+    expect(blockedEdge(trace(1, 0))).toBe('left'); // turned twice, then out the left wall
   });
 
   it('every one of the sixteen settings lands on exactly one of the three answers', () => {
