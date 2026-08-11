@@ -276,6 +276,62 @@ function Laser({
   );
 }
 
+// Which way each file comes in once its cover is off. Fixed per chapter rather than
+// random, so a visitor who opens the same file twice in two sessions sees the same
+// thing happen, and cycled so no two files in a row arrive the same way.
+const REVEALS: Record<ChapterId, 'resolve' | 'blueprint' | 'scan'> = {
+  'FILE-01': 'resolve',
+  'FILE-02': 'blueprint',
+  'FILE-03': 'scan',
+  'FILE-04': 'resolve',
+  'FILE-05': 'blueprint',
+  'FILE-06': 'scan',
+  'FILE-07': 'resolve',
+};
+
+/**
+ * The card an opened file landed in, arriving. Three ways of doing it: a photo pulling
+ * into focus, a print coming up out of its wash, a scan coming down the frame. Nothing
+ * here decides anything — the file is already open and already where it ends up, which
+ * is why the caller can skip the whole of it when motion is unwelcome and lose nothing
+ * but the arrival. Null-tolerant like `paint` above: what it is handed comes off a
+ * query that is allowed to miss.
+ */
+function reveal(card: Element | null | undefined, id: ChapterId): void {
+  if (!card) return;
+  switch (REVEALS[id]) {
+    case 'resolve':
+      gsap.from(card, { filter: 'blur(16px)', scale: 1.02, duration: 0.45 });
+      return;
+    case 'blueprint':
+      // Both ends written out, unlike the case above. A card with no filter of its own
+      // computes to `none`, and a one-ended tween reading that finds no number to come
+      // back to, so it comes back to zero — which is what a softened edge wants and is
+      // a black card for a brightness. The end here is the three that mean "as shot".
+      gsap.fromTo(
+        card,
+        { filter: 'saturate(0) brightness(1.6) contrast(1.4)' },
+        { filter: 'saturate(1) brightness(1) contrast(1)', duration: 0.5 },
+      );
+      // The frame comes up with it. The resting colour is the card's own class and is
+      // never typed out here — a `from` starts at the token and hands the border back.
+      gsap.from(card, {
+        borderColor: getComputedStyle(document.documentElement)
+          .getPropertyValue('--color-accent')
+          .trim(),
+        duration: 0.5,
+      });
+      return;
+    case 'scan':
+      gsap.fromTo(
+        card,
+        { clipPath: 'inset(0 0 100% 0)' },
+        { clipPath: 'inset(0 0 0% 0)', duration: 0.45, ease: 'power2.inOut' },
+      );
+      return;
+  }
+}
+
 export default function Nda() {
   const { title, intro, labels, chapters, archive, clearanceTitle, clearance, dialog } =
     content[useLang()].sector.nda;
@@ -312,9 +368,18 @@ export default function Nda() {
     if (!opened && !chose) return;
     justOpened.current = null;
     justChose.current = null;
-    scope.current
-      ?.querySelector<HTMLElement>(opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`)
-      ?.focus();
+    const handle = scope.current?.querySelector<HTMLElement>(
+      opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`,
+    );
+    handle?.focus();
+    // Only a cover coming off has a file to bring in: answering the guard leaves his
+    // cover where it was, and running an arrival over it would say otherwise. Focus is
+    // already gone by here, so nothing a visitor is waiting on is behind the motion —
+    // and with motion turned down there is nothing to run at all. What arrives is the
+    // card — the framed box the photo and its caption share, nearest one above the
+    // button, and the only element here carrying a border to bring up with it.
+    if (opened && matchMedia('(prefers-reduced-motion: no-preference)').matches)
+      reveal(handle?.closest('div'), opened);
   });
 
   // The pedal loop is the only frame work on this page; it must not outlive the view.
