@@ -328,7 +328,12 @@ function reveal(card: Element | null | undefined, id: ChapterId): void {
       );
       return;
     case 'scan':
-      gsap.from(card, { clipPath: 'inset(0 0 100% 0)', duration: 0.45, ease: 'power2.inOut' });
+      gsap.from(card, {
+        clipPath: 'inset(0 0 100% 0)',
+        duration: 0.45,
+        ease: 'power2.inOut',
+        clearProps: 'clipPath',
+      });
       return;
   }
 }
@@ -409,7 +414,11 @@ export default function Nda() {
             if (e.isIntersecting) {
               // Once per row: this is an entrance, not a scroll effect.
               io.unobserve(e.target);
-              gsap.from(e.target, { autoAlpha: 0, y: 12, duration: 0.3, ease: 'power1.out' });
+              // Opacity alone, never autoAlpha. The handoff that follows an unlock is
+              // itself what scrolls some rows into view, and the `visibility: hidden`
+              // half of autoAlpha makes Chrome drop the focus the row has just been
+              // given, with nothing left to hand it back. At zero opacity it keeps it.
+              gsap.from(e.target, { opacity: 0, y: 12, duration: 0.3, ease: 'power1.out' });
               // The run into this row draws itself as the row arrives. scaleY, not
               // stroke-dashoffset: the locked style already owns stroke-dasharray and the
               // two techniques collide over that one attribute. The first row has nothing
