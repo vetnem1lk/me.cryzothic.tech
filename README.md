@@ -71,6 +71,7 @@ me.cryzothic.tech/
 │           ├── VaiShell.tsx         # the terminal: log, submit queue, paced typing
 │           ├── CommandRow.tsx       # drifting ticker that advertises the commands
 │           ├── TextType.tsx         # looping type/delete placeholder label
+│           ├── Corners.tsx          # the four corner marks any framed box can wear
 │           ├── commands.ts          # local commands — work with the API down
 │           ├── transport.ts         # the chat contract the UI codes against
 │           ├── apiTransport.ts      # its live implementation: POST + SSE reader

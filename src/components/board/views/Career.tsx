@@ -3,6 +3,7 @@
 // per language in content.json — this file only lays it out.
 import content from '../../../content.json';
 import { useLang } from '../../../i18n/I18nContext';
+import Corners from '../Corners';
 
 export default function Career() {
   const { title, entries, levelUpsTitle, levelUps } = content[useLang()].sector.career;
@@ -12,7 +13,8 @@ export default function Career() {
       <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
       <ol className="flex flex-col gap-3">
         {entries.map((e) => (
-          <li key={e.period} className="rounded-md border border-dashed border-accent/40 p-4">
+          <li key={e.period} className="relative border border-dashed border-accent/40 p-4">
+            <Corners />
             <p className="font-mono text-xs tracking-widest text-accent uppercase">{e.period}</p>
             <p className="mt-1 text-base font-semibold text-neutral-100">{e.role}</p>
             <p className="text-base text-neutral-400">{e.place}</p>

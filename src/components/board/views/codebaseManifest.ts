@@ -9,6 +9,7 @@ import cssSrc from '../../../index.css?raw';
 import cursorSrc from '../../TargetCursor.tsx?raw';
 import boardSrc from '../Board.tsx?raw';
 import commandRowSrc from '../CommandRow.tsx?raw';
+import cornersSrc from '../Corners.tsx?raw';
 import stageSrc from '../Stage.tsx?raw';
 import textTypeSrc from '../TextType.tsx?raw';
 import vaiSrc from '../VaiShell.tsx?raw';
@@ -58,6 +59,7 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/TargetCursor.tsx', content: cursorSrc },
       { path: 'src/components/board/Board.tsx', content: boardSrc },
       { path: 'src/components/board/CommandRow.tsx', content: commandRowSrc },
+      { path: 'src/components/board/Corners.tsx', content: cornersSrc },
       { path: 'src/components/board/Stage.tsx', content: stageSrc },
       { path: 'src/components/board/TextType.tsx', content: textTypeSrc },
       { path: 'src/components/board/VaiShell.tsx', content: vaiSrc },

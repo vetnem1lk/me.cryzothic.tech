@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { Link } from 'wouter';
 import content from '../../../content.json';
 import { useLang, useT } from '../../../i18n/I18nContext';
+import Corners from '../Corners';
 // Aliased: `step` is already a frame of the sprint's clock further down this file, and
 // one name for two things is what someone has to decode later.
 import { step as dial } from '../codelock';
@@ -806,11 +807,12 @@ export default function Nda() {
                   The cover-to-photo swap happens inside it, and the frame is the thing
                   seen to arrive: it holds the photo and the caption together, it carries
                   the border, and it leaves out the run that leads into it — which belongs
-                  to neither file and would be clipped or blurred along with this one. */}
-              <div
-                data-card={id}
-                className="overflow-hidden rounded-md border border-dashed border-accent/40"
-              >
+                  to neither file and would be clipped or blurred along with this one.
+                  The border stays on this element and not on a wrapper inside it: the
+                  blueprint arrival tweens the border of whatever `data-card` names, and
+                  the two parting company would kill that half of the reveal in silence. */}
+              <div data-card={id} className="relative border border-dashed border-accent/40">
+                <Corners />
                 {isUnlocked(id) ? (
                   <figure className="flex max-xl:flex-col">
                     {/* A real button, not a click handler on the image: the photo is
@@ -868,8 +870,14 @@ export default function Nda() {
         })}
       </ol>
 
-      <details className="rounded-md border border-dashed border-neutral-700 p-3">
-        <summary className={`cursor-target ${CAPS} text-neutral-400`}>{archive.label}</summary>
+      {/* The marks hang off the <details> box but are written inside the <summary>: a
+          shut <details> hides every child except that one, and the archive is shut until
+          someone opens it. The summary is not positioned, so they still measure the frame. */}
+      <details className="relative border border-dashed border-neutral-700 p-3">
+        <summary className={`cursor-target ${CAPS} text-neutral-400`}>
+          <Corners />
+          {archive.label}
+        </summary>
         <p id="archive-classified" className={`mt-3 ${CAPS} text-neutral-400`}>
           {labels.classified}
         </p>

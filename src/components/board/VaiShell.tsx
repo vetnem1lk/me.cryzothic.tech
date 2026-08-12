@@ -89,7 +89,7 @@ function ChatPhoto({
         height={h}
         loading="lazy"
         decoding="async"
-        className="h-auto w-full rounded border border-dashed border-accent/40"
+        className="h-auto w-full rounded border border-dashed border-accent/40 hover:border-accent"
       />
     </button>
   );
