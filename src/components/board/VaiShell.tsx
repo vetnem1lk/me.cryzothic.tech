@@ -252,7 +252,8 @@ export default function VaiShell({
   // and three of them nowhere near a cover — announced by the one thing standing
   // beside all of them. Its own snapshot, because a badge can be earned without a
   // cover coming off; the queue is what is read, not the count, so a second run of
-  // this effect finds it already empty rather than saying everything twice.
+  // this effect finds it already empty rather than saying everything twice; the
+  // dep is the doorbell — remove it and the queue is only read once.
   const badges = useSyncExternalStore(subscribe, earnedCount);
   useEffect(() => {
     for (let a = takeAchievement(); a; a = takeAchievement())
@@ -344,7 +345,8 @@ export default function VaiShell({
             // A word said to VAI and answered. Here rather than at submit, so a
             // question the transport never got an answer to earns nothing — and
             // idempotent in the store, so every turn after the first is free.
-            firstContact();
+            // A clean stream that said nothing is not an answer either.
+            if (st.buf) firstContact();
           },
           onError: (msg, vars) => {
             // Ending the feed is what closes the turn: the loop types out

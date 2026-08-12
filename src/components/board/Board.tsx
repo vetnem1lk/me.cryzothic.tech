@@ -71,7 +71,9 @@ export default function Board() {
       else pos = 0; // any other key is a wrong step, and a wrong step drops the run
     };
     const onStart = (e: TouchEvent) => {
-      const t = e.touches[0];
+      // The finger that just landed, and only if it is alone: a pinch is not a
+      // swipe, and anchoring on the first touch would measure the wrong hand.
+      const t = e.touches.length === 1 ? e.changedTouches[0] : null;
       from = t ? [t.clientX, t.clientY] : null;
     };
     const onEnd = (e: TouchEvent) => {
