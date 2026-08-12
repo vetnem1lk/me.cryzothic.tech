@@ -20,15 +20,22 @@ export default function Contact() {
   ];
 
   return (
-    <section className="flex flex-col gap-4 p-4">
+    <section className="flex flex-col gap-5 p-4">
+      <h2 className="font-mono text-base tracking-widest text-accent uppercase">
+        {t('contact.title')}
+      </h2>
       <div>
-        <p className="font-mono text-sm tracking-widest text-accent uppercase">{t('contact.boss')}</p>
-        <div aria-hidden className="mt-1 h-2 w-full rounded-sm border border-dashed border-accent/50">
+        <p className="font-mono text-xs tracking-widest text-accent uppercase">{t('contact.boss')}</p>
+        {/* The bar is decor. A dashed accent frame is what the three real links wear,
+            so it borrowed their affordance — grey stops it looking clickable. */}
+        <div aria-hidden className="mt-1 h-2 w-full rounded-sm border border-dashed border-neutral-700">
           <div className="h-full w-full rounded-sm bg-accent/70" />
         </div>
         <p className="mt-1 font-mono text-xs text-neutral-400">{t('contact.hp')}</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      {/* Three across only from xl: a third of the 768-1023 board is ~250 px and the
+          address breaks mid-word inside it. */}
+      <div className="grid gap-3 xl:grid-cols-3">
         {CONTACTS.map((c) => (
           <a
             key={c.href}

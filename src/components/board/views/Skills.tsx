@@ -13,19 +13,29 @@ export default function Skills() {
       <div className="flex flex-col gap-4">
         {groups.map((g) => (
           <div key={g.name}>
-            <p className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
+            <h3 className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
               {g.name}
-            </p>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {g.items.map((i) => (
-                <li
-                  key={i}
-                  className="rounded border border-dashed border-accent/40 px-2 py-1 text-base text-neutral-200"
-                >
-                  {i}
-                </li>
-              ))}
-            </ul>
+            </h3>
+            {/* A chip is a token you could put on a business card; anything that reads
+                as a sentence is prose and gets a line of its own below the row. Either
+                list can be empty, and an empty list under a heading is a hole. */}
+            {g.items.length > 0 && (
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {g.items.map((i) => (
+                  <li
+                    key={i}
+                    className="rounded border border-dashed border-accent/40 px-2 py-1 text-base text-neutral-200"
+                  >
+                    {i}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {g.lines.map((l) => (
+              <p key={l} className="mt-2 max-w-prose text-base text-neutral-300">
+                {l}
+              </p>
+            ))}
           </div>
         ))}
       </div>

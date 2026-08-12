@@ -78,45 +78,36 @@
         "groups": [
           {
             "name": "Main weapon — C++",
-            "items": ["C++17", "C", "STL", "Boost", "OOP", "Data structures & algorithms"]
+            "items": ["C++17", "C", "STL", "Boost", "OOP", "Data structures & algorithms"],
+            "lines": []
           },
           {
             "name": "Tools & desktop",
-            "items": [
-              "Qt",
-              "Qt Widgets",
-              "Qt Quick / QML",
-              "CMake",
-              "Git",
-              "Data-driven UI — forms and logic defined in SQL"
-            ]
+            "items": ["Qt", "Qt Widgets", "Qt Quick / QML", "CMake", "Git"],
+            "lines": ["Data-driven UI — forms and logic defined in SQL"]
           },
           {
             "name": "Graphics & 3D",
-            "items": [
-              "OpenGL",
-              "glTF 2.0 import",
+            "items": ["OpenGL", "glTF 2.0 import"],
+            "lines": [
               "PBR materials — base color, metallic-roughness, normal maps",
               "Vector and matrix math, from writing the renderer"
             ]
           },
           {
             "name": "Data & platforms",
-            "items": ["MySQL", "SQL", "C#", "Astra Linux", "Embedded C/C++ — microcontrollers"]
+            "items": ["MySQL", "SQL", "C#", "Astra Linux"],
+            "lines": ["Embedded C/C++ — microcontrollers"]
           },
           {
             "name": "Side quests",
-            "items": [
-              "TypeScript",
-              "React",
-              "Node.js",
-              "WebSocket",
-              "Real-time game loop and custom physics"
-            ]
+            "items": ["TypeScript", "React", "Node.js", "WebSocket", "Python"],
+            "lines": ["Real-time game loop and custom physics"]
           },
           {
             "name": "Skill tree — leveling",
-            "items": ["Unreal Engine — C++ gameplay"]
+            "items": ["Unreal Engine — C++ gameplay"],
+            "lines": []
           }
         ],
         "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line."
@@ -280,7 +271,7 @@
     "commands": {
       "whoami": "Vladislav Klimentev — C++ developer (Qt tools platform in production; custom C++ glTF engine; TG mini-games). Target: gamedev — tools / gameplay.",
       "ls": "donut-engine/      C++17 glTF renderer, Qt Quick integration\nsed-pro-platform/  Qt Widgets + MySQL, data-driven UI (NDA)\ncyberhockey2077/   neon air-hockey TG mini app\nthis-site/         React 19 + GSAP, open source",
-      "loadout": "main weapon: C++17\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React",
+      "loadout": "main weapon: C++17\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React · Python",
       "career": "Jumping to career progression.",
       "skills": "Jumping to core competencies.",
       "nda": "Accessing the classified files…",
@@ -387,45 +378,36 @@
         "groups": [
           {
             "name": "Основное оружие — C++",
-            "items": ["C++17", "C", "STL", "Boost", "ООП", "Алгоритмы и структуры данных"]
+            "items": ["C++17", "C", "STL", "Boost", "ООП", "Алгоритмы и структуры данных"],
+            "lines": []
           },
           {
             "name": "Разработка инструментов и десктоп",
-            "items": [
-              "Qt",
-              "Qt Widgets",
-              "Qt Quick / QML",
-              "CMake",
-              "Git",
-              "Data-driven UI — формы и логика описаны в SQL"
-            ]
+            "items": ["Qt", "Qt Widgets", "Qt Quick / QML", "CMake", "Git"],
+            "lines": ["Data-driven UI — формы и логика описаны в SQL"]
           },
           {
             "name": "Графика и 3D",
-            "items": [
-              "OpenGL",
-              "Импорт glTF 2.0",
+            "items": ["OpenGL", "Импорт glTF 2.0"],
+            "lines": [
               "PBR-материалы — base color, metallic-roughness, normal maps",
               "Векторная и матричная математика — из собственного рендера"
             ]
           },
           {
             "name": "Данные и платформы",
-            "items": ["MySQL", "SQL", "C#", "Astra Linux", "Embedded C/C++ — микроконтроллеры"]
+            "items": ["MySQL", "SQL", "C#", "Astra Linux"],
+            "lines": ["Embedded C/C++ — микроконтроллеры"]
           },
           {
             "name": "Побочные квесты",
-            "items": [
-              "TypeScript",
-              "React",
-              "Node.js",
-              "WebSocket",
-              "Игровой цикл в реальном времени и своя физика"
-            ]
+            "items": ["TypeScript", "React", "Node.js", "WebSocket", "Python"],
+            "lines": ["Игровой цикл в реальном времени и своя физика"]
           },
           {
             "name": "Ветка навыков — качается",
-            "items": ["Unreal Engine — геймплей на C++"]
+            "items": ["Unreal Engine — геймплей на C++"],
+            "lines": []
           }
         ],
         "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно."
@@ -589,7 +571,7 @@
     "commands": {
       "whoami": "Владислав Климентьев — C++ разработчик (Qt-платформа инструментов в продакшене; свой C++ движок с glTF; мини-игры в Telegram). Цель — геймдев: инструменты / геймплей.",
       "ls": "donut-engine/      C++17, glTF-рендер, интеграция с Qt Quick\nsed-pro-platform/  Qt Widgets + MySQL, интерфейс из данных (NDA)\ncyberhockey2077/   неоновый аэрохоккей, Telegram mini app\nthis-site/         React 19 + GSAP, открытый код",
-      "loadout": "основное оружие: C++17\nвторое оружие: Qt (Widgets + Quick)\nветка навыков: Unreal Engine — качается\nпобочные квесты: TypeScript · React",
+      "loadout": "основное оружие: C++17\nвторое оружие: Qt (Widgets + Quick)\nветка навыков: Unreal Engine — качается\nпобочные квесты: TypeScript · React · Python",
       "career": "Перехожу к карьерному росту.",
       "skills": "Перехожу к ключевым навыкам.",
       "nda": "Открываю засекреченные файлы…",
