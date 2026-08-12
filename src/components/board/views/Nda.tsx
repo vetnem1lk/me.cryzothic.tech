@@ -68,8 +68,8 @@ const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 // hangs off this box's corner rather than standing in the column with the riddle.
 //
 // The height is a floor rather than a fixed box. Wide, the floor is the height of the
-// photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
-// above its caption and the floor only comes close, so the page moves a little. Either
+// photo pane the cover hides, so lifting one shifts nothing; stacked, the photo alone
+// can run past the floor several times over, so lifting a cover grows the row. Either
 // way a cover that outgrows the floor pushes its own row down instead of scrolling
 // inside a square it can no longer hold. `-safe` centring stays for that case: plain
 // `center` overflows in both directions and puts the top of a long card out of reach.
@@ -97,9 +97,10 @@ type Labels = (typeof content)['en']['sector']['nda']['labels'];
 //
 // One block in the true corner of the cover, while the riddle keeps the middle to
 // itself: markings belong on the corner of a cover rather than over the thing the cover
-// is asking. It opts out of the centred flow altogether — `top-3 left-3` is the padding
-// the cover already keeps, so the block starts exactly where its content box does, and
-// leaving the flow is what stops a two-line header from pushing the riddle off centre.
+// is asking. It opts out of the centred flow altogether — `top-3 left-3` pins it to the
+// cover's own padding corner whatever the flow below it does (the rocket pads its flow
+// clear of this corner), and leaving the flow is what stops a two-line header from
+// pushing the riddle off centre.
 // A span and not a div, because three of the covers are buttons and a button may hold
 // neither a division nor anything else that is not phrasing — an absolutely positioned
 // box is blockified anyway, so the two readings stack exactly as they did loose.
