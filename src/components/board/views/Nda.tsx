@@ -743,10 +743,10 @@ export default function Nda() {
                 </svg>
               )}
               {/* The frame, and the id on it is how an arriving file finds its own card.
-                  The row above is where the swap happens, but the frame is the thing seen
-                  to arrive: it holds the photo and the caption together, it carries the
-                  border, and it leaves out the run that leads into it — which belongs to
-                  neither file and would be clipped or blurred along with this one. */}
+                  The cover-to-photo swap happens inside it, and the frame is the thing
+                  seen to arrive: it holds the photo and the caption together, it carries
+                  the border, and it leaves out the run that leads into it — which belongs
+                  to neither file and would be clipped or blurred along with this one. */}
               <div
                 data-card={id}
                 className="overflow-hidden rounded-md border border-dashed border-accent/40"
