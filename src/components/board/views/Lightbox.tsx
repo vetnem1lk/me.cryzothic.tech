@@ -146,16 +146,16 @@ export default function Lightbox({ chapters, openAt, onClose }: Props) {
           {/* Code, title and credit — the story stays on the tile. Full size is for
               looking at, and the credit is the one line that is not ours to drop. */}
           <figcaption className="bg-neutral-950/85 p-3">
-            <p className="font-mono text-[11px] tracking-widest text-accent uppercase">{ch.code}</p>
-            <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
-            <p className="mt-1 font-mono text-[11px] text-neutral-400">{ch.credit}</p>
+            <p className="font-mono text-xs tracking-widest text-accent uppercase">{ch.code}</p>
+            <p className="mt-1 text-base font-semibold text-neutral-100">{ch.title}</p>
+            <p className="mt-1 font-mono text-xs text-neutral-400">{ch.credit}</p>
           </figcaption>
           <button
             type="button"
             autoFocus
             aria-label={labels.close}
             onClick={() => ref.current?.close()}
-            className="cursor-target absolute top-2 right-2 rounded-md border border-dashed border-accent/50 bg-neutral-950/80 px-2 py-1 font-mono text-xs text-neutral-200 hover:border-accent"
+            className="cursor-target absolute top-2 right-2 rounded-md border border-dashed border-accent/50 bg-neutral-950/80 px-2 py-1 font-mono text-sm text-neutral-200 hover:border-accent"
           >
             ✕
           </button>

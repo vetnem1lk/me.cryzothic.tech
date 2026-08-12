@@ -65,10 +65,10 @@ export default function ThreeDView() {
           </g>
         </svg>
       </div>
-      <p className="font-mono text-xs tracking-widest text-neutral-500 uppercase">
+      <p className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
         {t('threed.mode')}
       </p>
-      <p className="max-w-md text-center text-sm text-neutral-400">{t('threed.note')}</p>
+      <p className="max-w-md text-center text-base text-neutral-400">{t('threed.note')}</p>
     </section>
   );
 }

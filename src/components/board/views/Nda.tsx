@@ -52,13 +52,13 @@ const SIZES =
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
 const QUEST_BTN =
-  'cursor-target rounded-md border border-dashed border-accent/50 px-2 py-1 font-mono text-xs text-neutral-200 hover:border-accent';
+  'cursor-target rounded-md border border-dashed border-accent/50 px-2 py-1 font-mono text-sm text-neutral-200 hover:border-accent';
 
 // Every stamp line on the page, at the one size they all share. Spelled out instead of
-// composed wherever a heading wants a different size: the arbitrary 11px is emitted after
-// text-sm and text-xs and carries the same weight, so it wins the tie and `CAPS text-sm`
-// is 11px rather than 14.
-const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
+// composed wherever a heading wants a different size: two font-size classes in one list
+// settle by the order the stylesheet emits them, not by the order they were written, so
+// `CAPS text-base` is a coin flip. The headings below carry their own three classes.
+const CAPS = 'font-mono text-xs tracking-widest uppercase';
 
 // One cover, one row: the stamp in the top-left corner, the riddle in the middle, the
 // hint under it. Every cover wears exactly this, button or not, which is what keeps a
@@ -77,18 +77,18 @@ const COVER = `relative flex min-h-[360px] w-full flex-col items-center gap-1.5 
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle. It
 // grows with the row, because on a row this size a small one reads as a caption.
-const BIG = 'block font-mono text-5xl leading-none text-neutral-100 sm:text-6xl lg:text-7xl';
-const HINT = 'block text-sm leading-snug text-neutral-400';
+const BIG = 'block font-mono text-6xl leading-none text-neutral-100 sm:text-7xl lg:text-8xl';
+const HINT = 'block text-base leading-snug text-neutral-400';
 // The rocket is the one cover carrying two lines of prose under its riddle — the hint
 // and the beam's own report — so both of them shrink to buy the scene its room back.
 // Colourless: the two lines rank differently, and one class list must not try to win
 // a specificity argument with the other.
-const FINE = 'block text-[10px] leading-snug';
+const FINE = 'block text-xs leading-snug';
 // Prose on a cover, which only the dialogue has: the guard's line and his answer. Capped
 // at the same measure as the prose everywhere else on the page — the row is wide enough
 // to run these two sentences out to a single unreadable line, and a text column is the
 // one thing the extra width should not be spent on.
-const SAID = 'block max-w-2xl text-[11px] leading-snug text-neutral-300';
+const SAID = 'block max-w-2xl text-sm leading-snug text-neutral-300';
 
 type Labels = (typeof content)['en']['sector']['nda']['labels'];
 
@@ -665,7 +665,7 @@ export default function Nda() {
                 inputMode="numeric"
                 autoComplete="off"
                 maxLength={3}
-                className="cursor-target w-16 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-xs text-neutral-100"
+                className="cursor-target w-16 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-sm text-neutral-100"
               />
               <button type="submit" className={QUEST_BTN}>
                 {labels.guessHint}
@@ -707,8 +707,8 @@ export default function Nda() {
   return (
     <section ref={scope} className="flex flex-col gap-5 p-4">
       <div>
-        <h2 className="font-mono text-sm tracking-widest text-accent uppercase">{title}</h2>
-        <p className="mt-2 max-w-2xl text-sm text-neutral-400">{intro}</p>
+        <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
+        <p className="mt-2 max-w-2xl text-base text-neutral-400">{intro}</p>
       </div>
 
       {/* Ordered, not decorated: the chapters run in one sequence, and an <ol> is the
@@ -793,11 +793,11 @@ export default function Nda() {
                         is read. */}
                     <figcaption className="flex flex-1 flex-col p-4">
                       <p className={`${CAPS} text-accent`}>{ch.code}</p>
-                      <p className="mt-1 text-lg font-semibold text-neutral-100">{ch.title}</p>
-                      <p className="mt-1 max-w-prose text-base text-neutral-300 xl:my-auto">
+                      <p className="mt-1 text-xl font-semibold text-neutral-100">{ch.title}</p>
+                      <p className="mt-1 max-w-prose text-lg text-neutral-300 xl:my-auto">
                         {ch.story}
                       </p>
-                      <p className="mt-2 font-mono text-[11px] text-neutral-400">{ch.credit}</p>
+                      <p className="mt-2 font-mono text-xs text-neutral-400">{ch.credit}</p>
                     </figcaption>
                   </figure>
                 ) : (
@@ -818,7 +818,7 @@ export default function Nda() {
             lines fall under the 4.5:1 contrast floor while still carrying information. */}
         <ul aria-labelledby="archive-classified" className="mt-1 space-y-1">
           {archive.classified.map((c) => (
-            <li key={c} className="text-sm text-neutral-400 line-through">
+            <li key={c} className="text-base text-neutral-400 line-through">
               {c}
             </li>
           ))}
@@ -828,7 +828,7 @@ export default function Nda() {
         </p>
         <ul
           aria-labelledby="archive-declassified"
-          className="mt-1 list-disc space-y-1.5 pl-5 text-sm text-neutral-300 marker:text-accent"
+          className="mt-1 list-disc space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent"
         >
           {archive.declassified.map((d) => (
             <li key={d}>{d}</li>
@@ -837,10 +837,10 @@ export default function Nda() {
       </details>
 
       <div>
-        <h3 className="font-mono text-xs tracking-widest text-neutral-400 uppercase">
+        <h3 className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
           {clearanceTitle}
         </h3>
-        <p className="mt-2 max-w-2xl text-sm text-neutral-400">{clearance}</p>
+        <p className="mt-2 max-w-2xl text-base text-neutral-400">{clearance}</p>
         <div className="mt-3 flex flex-wrap gap-3">
           {[
             { href: '/loot', label: t('loot.title') },
@@ -849,7 +849,7 @@ export default function Nda() {
             <Link
               key={l.href}
               href={l.href}
-              className="cursor-target rounded-md border border-dashed border-accent/50 px-3 py-1.5 text-sm text-neutral-200 hover:border-accent"
+              className="cursor-target rounded-md border border-dashed border-accent/50 px-3 py-1.5 text-base text-neutral-200 hover:border-accent"
             >
               {l.label}
             </Link>

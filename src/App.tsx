@@ -17,7 +17,7 @@ const Board = lazy(() => import('./components/board/Board'));
 function BoardFallback({ lang }: { lang: Lang }) {
   return (
     <div className="flex flex-1 items-center justify-center">
-      <p className="font-mono text-sm text-neutral-500">{STRIP[lang].loading}</p>
+      <p className="font-mono text-base text-neutral-500">{STRIP[lang].loading}</p>
     </div>
   );
 }

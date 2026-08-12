@@ -70,7 +70,7 @@ export default function Stage() {
     '/contact': <Contact />,
     '/code': (
       <Suspense
-        fallback={<p className="p-4 font-mono text-xs text-neutral-500">{t('nav.cloning')}</p>}
+        fallback={<p className="p-4 font-mono text-sm text-neutral-500">{t('nav.cloning')}</p>}
       >
         <CodeBase />
       </Suspense>
@@ -83,7 +83,7 @@ export default function Stage() {
       data-dock
       className="flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-b-0"
     >
-      <nav className="flex flex-wrap items-center gap-3 border-b border-dashed border-neutral-800 p-2 font-mono text-[13px] font-semibold">
+      <nav className="flex flex-wrap items-center gap-3 border-b border-dashed border-neutral-800 p-2 font-mono text-sm font-semibold">
         <Link href="/" className={navClass}>
           {t('nav.home')}
         </Link>

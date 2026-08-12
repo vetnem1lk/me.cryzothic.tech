@@ -30,7 +30,7 @@ export default function Marquee() {
         <div
           key={dup}
           aria-hidden={dup === 1 || undefined}
-          className="marquee-track flex min-w-full shrink-0 justify-around gap-12 font-mono text-[11px] tracking-[0.2em] whitespace-nowrap text-neutral-500 uppercase"
+          className="marquee-track flex min-w-full shrink-0 justify-around gap-12 font-mono text-xs tracking-[0.2em] whitespace-nowrap text-neutral-400 uppercase"
         >
           {phrases.map((p, i) => (
             <span key={i} aria-hidden={i > 1 || undefined}>

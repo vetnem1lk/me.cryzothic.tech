@@ -22,11 +22,11 @@ export default function Contact() {
   return (
     <section className="flex flex-col gap-4 p-4">
       <div>
-        <p className="font-mono text-xs tracking-widest text-accent uppercase">{t('contact.boss')}</p>
+        <p className="font-mono text-sm tracking-widest text-accent uppercase">{t('contact.boss')}</p>
         <div aria-hidden className="mt-1 h-2 w-full rounded-sm border border-dashed border-accent/50">
           <div className="h-full w-full rounded-sm bg-accent/70" />
         </div>
-        <p className="mt-1 font-mono text-[11px] text-neutral-500">{t('contact.hp')}</p>
+        <p className="mt-1 font-mono text-xs text-neutral-400">{t('contact.hp')}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         {CONTACTS.map((c) => (
@@ -37,8 +37,8 @@ export default function Contact() {
             rel={c.href.startsWith('http') ? 'noreferrer' : undefined}
             className="cursor-target rounded-md border border-dashed border-accent/50 p-4 hover:border-accent"
           >
-            <span className="block text-sm text-neutral-200">{c.label}</span>
-            <span className="mt-1 block font-mono text-[11px] break-all text-neutral-500">
+            <span className="block text-base text-neutral-200">{c.label}</span>
+            <span className="mt-1 block font-mono text-sm break-all text-neutral-300">
               {c.sub}
             </span>
             {/* The same condition as the target above, said out loud: a link that

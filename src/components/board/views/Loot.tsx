@@ -42,11 +42,11 @@ export default function Loot() {
           onClick={markCvDownloaded}
           className="cursor-target rounded-md border border-dashed border-accent/50 p-4 hover:border-accent"
         >
-          <span className="block font-mono text-xs tracking-widest text-accent uppercase">
+          <span className="block font-mono text-sm tracking-widest text-accent uppercase">
             {t(l.tierKey)}
           </span>
-          <span className="mt-1 block text-sm text-neutral-200">{t(l.nameKey)}</span>
-          <span className="mt-2 block font-mono text-[11px] text-neutral-500">{t('loot.note')}</span>
+          <span className="mt-1 block text-base text-neutral-200">{t(l.nameKey)}</span>
+          <span className="mt-2 block font-mono text-xs text-neutral-400">{t('loot.note')}</span>
         </a>
       ))}
     </section>

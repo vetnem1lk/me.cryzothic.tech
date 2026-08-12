@@ -20,12 +20,12 @@ const ACTIONS = [
 ];
 
 const CARD =
-  'cursor-target block rounded-md border border-dashed border-accent/50 px-4 py-3 text-center text-sm text-neutral-200 hover:border-accent';
+  'cursor-target block rounded-md border border-dashed border-accent/50 px-4 py-3 text-center text-base text-neutral-200 hover:border-accent';
 
 // The same chip VAI offers in its greeting, so the story reads as one invitation
 // wherever the visitor meets it first.
 const CHIP =
-  'cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent';
+  'cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-xs text-accent hover:border-accent';
 
 export default function Briefing() {
   const t = useT();
@@ -40,7 +40,7 @@ export default function Briefing() {
           WebkitMask: 'url(/face-icon-tight.svg) center / contain no-repeat',
         }}
       />
-      <p className="max-w-md text-center text-sm text-neutral-400">{t('briefing.tagline')}</p>
+      <p className="max-w-md text-center text-base text-neutral-400">{t('briefing.tagline')}</p>
       <Link href="/nda" className={CHIP}>
         {t('vai.cta.story')}
       </Link>

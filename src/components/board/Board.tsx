@@ -131,7 +131,7 @@ export default function Board() {
             <button
               type="button"
               onClick={() => setSheetOpen(true)}
-              className="cursor-target fixed right-3 bottom-3 z-40 rounded-md border border-dashed border-accent/60 bg-neutral-950/90 px-3 py-2 font-mono text-xs text-accent md:hidden"
+              className="cursor-target fixed right-3 bottom-3 z-40 rounded-md border border-dashed border-accent/60 bg-neutral-950/90 px-3 py-2 font-mono text-sm text-accent md:hidden"
             >
               VAI
             </button>

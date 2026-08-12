@@ -9,18 +9,18 @@ export default function Skills() {
 
   return (
     <section className="flex flex-col gap-5 p-4">
-      <h2 className="font-mono text-sm tracking-widest text-accent uppercase">{title}</h2>
+      <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
       <div className="flex flex-col gap-4">
         {groups.map((g) => (
           <div key={g.name}>
-            <p className="font-mono text-[11px] tracking-widest text-neutral-500 uppercase">
+            <p className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
               {g.name}
             </p>
             <ul className="mt-2 flex flex-wrap gap-2">
               {g.items.map((i) => (
                 <li
                   key={i}
-                  className="rounded border border-dashed border-accent/40 px-2 py-1 text-sm text-neutral-200"
+                  className="rounded border border-dashed border-accent/40 px-2 py-1 text-base text-neutral-200"
                 >
                   {i}
                 </li>
@@ -29,7 +29,7 @@ export default function Skills() {
           </div>
         ))}
       </div>
-      <p className="max-w-2xl text-sm text-neutral-400">{note}</p>
+      <p className="max-w-2xl text-base text-neutral-400">{note}</p>
     </section>
   );
 }
