@@ -73,14 +73,23 @@ const CV_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'cv') as ChapterId;
 
 const KNOCKS_TO_OPEN = 5;
 
+/**
+ * The badges. Two are the covers themselves — the first one off and the whole set —
+ * and the other three are for the visitors who go looking somewhere else entirely.
+ */
+export type Achievement = 'first-file' | 'all-seven' | 'konami' | 'first-contact' | 'blueprints';
+
 const unlocked = new Set<ChapterId>();
 const knocks = new Map<ChapterId, number>();
 const sprints = new Map<ChapterId, SprintState>();
 /** Presence is the whole state: a chapter in here has been answered, once. */
 const dialogs = new Map<ChapterId, number>();
 const mirrors = new Map<ChapterId, [Dir, Dir]>();
+const earned = new Set<Achievement>();
 /** Opened but not yet read out: /lore serves these before its own rotation. */
 const fresh: ChapterId[] = [];
+/** Earned but not yet announced — the same queue idea, one lane over. */
+const achFresh: Achievement[] = [];
 const subscribers = new Set<() => void>();
 let version = 0;
 
@@ -89,11 +98,27 @@ function bump(): void {
   for (const cb of subscribers) cb();
 }
 
+/** The ledger only ever gains: a badge already earned cannot be earned again. */
+function earn(id: Achievement): boolean {
+  if (earned.has(id)) return false;
+  earned.add(id);
+  achFresh.push(id);
+  return true;
+}
+
+// Earned away from a cover, so there is no unlock underneath to carry the notify.
+// Inside `unlock` the two are one move for the visitor, and one move is one bump.
+function award(id: Achievement): void {
+  if (earn(id)) bump();
+}
+
 /** The only way a cover comes off — every quest ends here, and only the first time. */
 function unlock(id: ChapterId): boolean {
   if (unlocked.has(id)) return false;
   unlocked.add(id);
   fresh.push(id);
+  if (unlocked.size === 1) earn('first-file');
+  if (unlocked.size === CHAPTERS.length) earn('all-seven');
   bump();
   return true;
 }
@@ -208,6 +233,21 @@ export function takeLoreChapter(): ChapterId | null {
   return id ?? null;
 }
 
+/** The cheat code, the first word said to VAI, and the source read: three ways to look. */
+export const konamiEntered = (): void => award('konami');
+export const firstContact = (): void => award('first-contact');
+export const sourceRead = (): void => award('blueprints');
+
+export function takeAchievement(): Achievement | null {
+  const id = achFresh.shift();
+  if (id) bump();
+  return id ?? null;
+}
+
+export const earnedCount = (): number => earned.size;
+
+export const hasEarned = (id: Achievement): boolean => earned.has(id);
+
 // useSyncExternalStore contract: subscribe hands back its own unsubscribe, and the
 // snapshot is a number, which React can compare without a memo or a deep equal.
 export function subscribe(cb: () => void): () => void {
@@ -226,7 +266,9 @@ export function resetStory(): void {
   sprints.clear();
   dialogs.clear();
   mirrors.clear();
+  earned.clear();
   fresh.length = 0;
+  achFresh.length = 0;
   // Subscribers survive — they belong to whoever is mounted, not to the progress —
   // and the version only ever climbs, so nothing is left holding a stale snapshot.
   bump();
