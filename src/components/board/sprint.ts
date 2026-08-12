@@ -14,7 +14,7 @@ export const EMPTY_SPRINT: SprintState = { speed: 0, at: 0 };
 export const SPRINT_TARGET = 100; // km/h — catch the group
 export const PUSH_KMH = 18; // each pedal push
 export const DECAY_KMH_S = 15; // linear coast-down per second
-// Tuned forgiving on mobile: 18 up against 15 down means ~6-9 quick clicks catch the
+// Tuned forgiving on mobile: 18 up against 15 down means 7-9 quick clicks catch the
 // group, while a click every second and a half never gains on it.
 
 /** Where the speed has drifted to by `nowMs` — the only place time enters. */

@@ -321,6 +321,14 @@ export default function VaiShell({
               .filter((m) => m.id !== replyId || m.text)
               .map((m) => (m.id === replyId ? { ...m, pending: false } : m)),
           );
+          // A word said to VAI and answered. Here rather than at submit or the end
+          // of the feed, so the badge lands under a reply the visitor has finished
+          // reading instead of interrupting one still being typed out — and
+          // idempotent in the store, so every turn after the first is free. A
+          // question the transport never answered earns nothing: a clean stream that
+          // said nothing is not an answer, and neither is half of one under an error —
+          // the condition the end of the feed used to carry on its own.
+          if (st.buf && !failed) firstContact();
           return resolve();
         }
         requestAnimationFrame(paint);
@@ -344,11 +352,6 @@ export default function VaiShell({
           },
           onDone: () => {
             st = { ...st, doneFeeding: true };
-            // A word said to VAI and answered. Here rather than at submit, so a
-            // question the transport never got an answer to earns nothing — and
-            // idempotent in the store, so every turn after the first is free.
-            // A clean stream that said nothing is not an answer either.
-            if (st.buf) firstContact();
           },
           onError: (msg, vars) => {
             // Ending the feed is what closes the turn: the loop types out

@@ -15,6 +15,7 @@ import {
   photoSlug,
   resetStory,
 } from './story';
+import { ACTIONS } from './views/Briefing';
 
 // The story store is module state, and this file opens files in it: without a reset
 // a chapter left in the lore queue would be read out by the next test's /lore.
@@ -136,6 +137,16 @@ describe('ROUTE_PATHS', () => {
     // command pointing at a sector the router will not mount. `cat resume` is the
     // one alias with a destination and it is /loot, already on the list.
     expect([...new Set(routes)].sort()).toEqual([...ROUTE_PATHS].sort());
+  });
+
+  // The briefing cards are the board's other door into the sectors, and their hrefs
+  // are written by hand rather than read off this list. Subset, not set-equality: a
+  // sector may exist without a card on the landing panel, but a card naming a path
+  // the Switch never mounts drops the visitor back on the briefing it was clicked
+  // from — a dead link that looks like nothing happened.
+  it('holds every destination the briefing cards name', () => {
+    expect(ACTIONS).not.toHaveLength(0); // an emptied list would satisfy the loop in silence
+    for (const a of ACTIONS) expect(ROUTE_PATHS, a.href).toContain(a.href);
   });
 });
 

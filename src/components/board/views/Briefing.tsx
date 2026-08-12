@@ -8,8 +8,12 @@ import { useT } from '../../../i18n/I18nContext';
 // heading are the same string in both languages. The engine bay and the source
 // browser have no prose heading of their own, so they are named by their tab
 // label — the same word in both languages — and they are listed here at all
-// because the nav strip used to be the only way into them.
-const ACTIONS = [
+// because the nav strip used to be the only way into them. Exported for the pin in
+// commands.test.ts: every door here has to be a sector the router actually mounts.
+// A table of objects is not the literal `allowConstantExport` waives, so the export
+// costs this one file its fast refresh in dev — paid once, for a list that is static.
+// eslint-disable-next-line react/only-export-components
+export const ACTIONS = [
   { href: '/career', key: 'sector.career.title' },
   { href: '/skills', key: 'sector.skills.title' },
   { href: '/nda', key: 'sector.nda.title' },
