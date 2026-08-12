@@ -184,10 +184,10 @@ export default function VaiShell({
   };
 
   // One string, three jobs: the field's accessible name, its placeholder and the
-  // label that types itself while the field is empty. `C:\>` and `/help` are shell
-  // syntax, not prose, so only the verb between them is translated.
+  // label that types itself while the field is empty. Only the `C:\>` prefix is
+  // composed here — shell syntax, not prose, so it stays out of the dictionary.
   const ask = t('vai.sys.ask', { mode: MODE_NAME[mode] });
-  const prompt = `C:\\> ${ask} · /help`;
+  const prompt = `C:\\> ${ask}`;
 
   useGSAP(
     () => {

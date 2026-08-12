@@ -6,6 +6,7 @@
 //
 // The two CV menu labels are NOT here on purpose: «English · PDF» / «Русский · PDF»
 // name the language of the *file*, not of the site, so they read the same either way.
+// «Tools / Gameplay» is left untranslated in the RU role: it is the trade's own name.
 import type { Lang } from './locale';
 
 export const STRIP: Record<
@@ -29,7 +30,7 @@ export const STRIP: Record<
   },
   ru: {
     name: 'Владислав Климентьев',
-    role: 'C++ разработчик · инструменты / геймплей',
+    role: 'C++ разработчик · Tools / Gameplay',
     cvMenu: 'Язык резюме',
     quickActions: 'Быстрые действия',
     email: 'Почта',
