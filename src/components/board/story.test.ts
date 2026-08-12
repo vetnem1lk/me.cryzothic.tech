@@ -42,14 +42,16 @@ describe('the quest table', () => {
 });
 
 describe('knock', () => {
-  test('unlocks on the 3rd knock, once', () => {
+  test('unlocks on the 5th knock, once', () => {
     expect(story.knock(KNOCK)).toBe(false);
     expect(story.knockCount(KNOCK)).toBe(1);
+    expect(story.knock(KNOCK)).toBe(false);
+    expect(story.knock(KNOCK)).toBe(false);
     expect(story.knock(KNOCK)).toBe(false);
     expect(story.knock(KNOCK)).toBe(true);
     expect(story.isUnlocked(KNOCK)).toBe(true);
     expect(story.knock(KNOCK)).toBe(false); // no re-unlock
-    expect(story.knockCount(KNOCK)).toBe(3);
+    expect(story.knockCount(KNOCK)).toBe(5);
   });
 
   test('leaves every chapter another quest guards alone', () => {
@@ -100,11 +102,11 @@ describe('sprint', () => {
   // stored state would spend the visitor's pushes on rendering them.
   test('reading the speed is free: it never spends what was pushed', () => {
     story.sprintPush(SPRINT, 1000);
-    expect(story.sprintSpeed(SPRINT, 1000)).toBeCloseTo(7);
-    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(1); // a second of coasting
-    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(1); // and asking twice costs nothing
+    expect(story.sprintSpeed(SPRINT, 1000)).toBeCloseTo(18);
+    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(3); // a second of coasting
+    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(3); // and asking twice costs nothing
     story.sprintPush(SPRINT, 2000);
-    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(8); // 1 + one push, decayed once
+    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(21); // 3 + one push, decayed once
   });
 
   test('leaves every chapter another quest guards alone', () => {
@@ -224,6 +226,8 @@ describe('the lore queue', () => {
     story.knock(KNOCK);
     story.knock(KNOCK);
     story.knock(KNOCK);
+    story.knock(KNOCK);
+    story.knock(KNOCK);
     story.guess(GUESS);
     expect(story.takeLoreChapter()).toBe(KNOCK);
     expect(story.takeLoreChapter()).toBe(GUESS);
@@ -316,6 +320,8 @@ describe('stepping across the open chapters', () => {
 
   test('a covered neighbour is stepped over, not landed on', () => {
     // Two quests with at least one chapter standing between them, left covered.
+    story.knock(KNOCK);
+    story.knock(KNOCK);
     story.knock(KNOCK);
     story.knock(KNOCK);
     story.knock(KNOCK);

@@ -71,7 +71,7 @@ export const DIMS: Record<ChapterId, [number, number]> = {
 export const DECLASSIFY_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'declassify') as ChapterId;
 const CV_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'cv') as ChapterId;
 
-const KNOCKS_TO_OPEN = 3;
+const KNOCKS_TO_OPEN = 5;
 
 const unlocked = new Set<ChapterId>();
 const knocks = new Map<ChapterId, number>();
