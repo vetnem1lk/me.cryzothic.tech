@@ -14,16 +14,19 @@ export interface Config {
 }
 
 // OpenRouter free-tier chain, primary first: sent as models[] so OpenRouter falls
-// through to the next one on rate limit or outage. Slugs verified live 2026-08-07.
+// through to the next one on rate limit or outage. Slugs verified live 2026-08-12.
 //
 // Exactly three, and no more: OpenRouter rejects the whole request with HTTP 400
 // ("'models' array must have 3 items or fewer") — a fourth entry is not a weaker
-// fallback, it is total outage. With only three slots, the one that would go to a
-// second Google model buys less than provider diversity: NVIDIA → Google → OpenAI
-// survives any single provider going down. The pin lives in config.test.ts.
+// fallback, it is total outage. Ordered by time-to-first-token, because a chain is
+// tried in order and the primary's latency is the one a visitor feels. The two
+// Gemmas do not collapse the diversity the old order paid for (endpoints checked the
+// same day): slot 2 is the only slug here served by two providers (Google AI Studio
+// and Darkbloom) and slot 3 is served by Darkbloom alone, so Google AI Studio going
+// down still leaves two live routes. The pin lives in config.test.ts.
 const MODELS = [
-  'nvidia/nemotron-3-super-120b-a12b:free',
   'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free',
   'openai/gpt-oss-20b:free',
 ];
 
@@ -44,7 +47,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     apiKey,
     mockLlm,
     port: num(env.PORT, 13331),
-    dailyCap: num(env.DAILY_CAP, 800),
+    // Chat turns, not upstream calls: each turn spends two (classifier + answer)
+    // against the free account's 1000/day, so 450 is the fuse that fits.
+    dailyCap: num(env.DAILY_CAP, 450),
     promptsDir: env.PROMPTS_DIR || './prompts',
     caps: { msgChars: 500, msgs: 16, totalChars: 6000, maxTokens: 600 },
     models: [...MODELS],
