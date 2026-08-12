@@ -41,8 +41,8 @@ export default function Loot() {
             four times the noise and no extra information. */}
         <p className="mt-1 font-mono text-xs text-neutral-400">{t('loot.note')}</p>
       </div>
-      {/* Two columns only from xl: at 768-1023 a half-width card is ~383 px and the
-          file names wrap into a stack of fragments. */}
+      {/* Two columns only from xl: at 768 the stage column is ~383 px, so a half-width
+          card is ~185 px and the file names wrap into a stack of fragments. */}
       <div className="grid gap-3 xl:grid-cols-2">
         {LOOT.map((l) => {
           // Rarity in the one colour grammar the shell already has: the epic pair

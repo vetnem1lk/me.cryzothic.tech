@@ -326,8 +326,7 @@ export default function VaiShell({
           // reading instead of interrupting one still being typed out — and
           // idempotent in the store, so every turn after the first is free. A
           // question the transport never answered earns nothing: a clean stream that
-          // said nothing is not an answer, and neither is half of one under an error —
-          // the condition the end of the feed used to carry on its own.
+          // said nothing is not an answer, and neither is half of one under an error.
           if (st.buf && !failed) firstContact();
           return resolve();
         }

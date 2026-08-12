@@ -40,9 +40,10 @@ if (process.env.OPENROUTER_API_KEY) {
   const res = await fetch('https://openrouter.ai/api/v1/models');
   if (!res.ok) throw new Error(`OpenRouter /models returned ${res.status}`);
   const { data } = (await res.json()) as { data?: { id: string }[] };
-  // A 200 carrying a body this script cannot read means the endpoint changed shape,
-  // not that a slug died — say which of the two it is instead of dying on `.map` of
-  // undefined and leaving the operator to read a stack trace for it.
+  // Valid JSON without a `data[]` means the endpoint changed shape, not that a slug
+  // died — say which of the two it is instead of dying on `.map` of undefined and
+  // leaving the operator to read a stack trace for it. A body that is not JSON at all
+  // never reaches here: `res.json()` above throws on it first.
   if (!Array.isArray(data)) {
     console.error('BOOT FAIL bad payload from OpenRouter /models (no data[])');
     process.exit(1);

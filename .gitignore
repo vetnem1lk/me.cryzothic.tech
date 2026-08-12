@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
 
 # local agent context (not part of the public repo)
 CLAUDE.md

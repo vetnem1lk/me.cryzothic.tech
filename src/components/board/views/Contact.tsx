@@ -33,8 +33,8 @@ export default function Contact() {
         </div>
         <p className="mt-1 font-mono text-xs text-neutral-400">{t('contact.hp')}</p>
       </div>
-      {/* Three across only from xl: a third of the 768-1023 board is ~250 px and the
-          address breaks mid-word inside it. */}
+      {/* Three across only from xl: at 768 the stage column is ~383 px, so a third of it
+          is ~120 px and the address breaks apart inside it. */}
       <div className="grid gap-3 xl:grid-cols-3">
         {CONTACTS.map((c) => (
           <a
@@ -45,7 +45,7 @@ export default function Contact() {
             className="cursor-target rounded-md border border-dashed border-accent/50 p-4 hover:border-accent"
           >
             <span className="block text-base text-neutral-200">{c.label}</span>
-            <span className="mt-1 block font-mono text-sm break-all text-neutral-300">
+            <span className="mt-1 block font-mono text-sm break-words text-neutral-300">
               {c.sub}
             </span>
             {/* The same condition as the target above, said out loud: a link that

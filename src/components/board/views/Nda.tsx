@@ -63,8 +63,9 @@ const QUEST_BTN =
 
 // Every stamp line on the page, at the one size they all share. Spelled out instead of
 // composed wherever a heading wants a different size: two font-size classes in one list
-// settle by the order the stylesheet emits them, not by the order they were written, so
-// `CAPS text-base` is a coin flip. The headings below carry their own three classes.
+// settle by the order Tailwind emits them, not the order they were written: `CAPS
+// text-base` resolves the same way every build, just not necessarily to `text-base`.
+// The headings below spell all five of their classes out.
 const CAPS = 'font-mono text-xs tracking-widest uppercase';
 
 // One cover, one row: the stamp in the top-left corner, the riddle in the middle, the
@@ -341,7 +342,11 @@ function CodeLock({
     // the same property; with motion turned down there is no tween, just the new digit.
     const digit = scope.current?.querySelector(`[data-wheel="${i}"]`);
     if (digit && matchMedia('(prefers-reduced-motion: no-preference)').matches)
-      gsap.fromTo(digit, { y: delta * 10 }, { y: 0, duration: 0.18, ease: 'power1.out' });
+      gsap.fromTo(
+        digit,
+        { y: delta * 10 },
+        { y: 0, duration: 0.18, ease: 'power1.out', overwrite: 'auto' },
+      );
   });
 
   return (

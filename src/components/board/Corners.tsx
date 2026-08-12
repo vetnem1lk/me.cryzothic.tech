@@ -2,8 +2,10 @@
 // four brackets hung a pixel outside the host's own border, so they read as clamps on
 // the frame rather than as decoration inside it. Host contract: `relative`, no radius
 // (a bracket cannot follow a curve), and nothing on the way up that clips the overhang.
+// Hit-transparent to match the `aria-hidden`: positioned, they paint above whatever the
+// host frames, and four squares that swallow a press are four squares of broken host.
 
-const CORNER = 'absolute h-2.5 w-2.5 border-accent';
+const CORNER = 'pointer-events-none absolute h-2.5 w-2.5 border-accent';
 const CORNERS = [
   'top-[-1px] left-[-1px] border-t border-l',
   'top-[-1px] right-[-1px] border-t border-r',
