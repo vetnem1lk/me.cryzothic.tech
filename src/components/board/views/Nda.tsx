@@ -328,7 +328,15 @@ function reveal(card: Element | null | undefined, id: ChapterId): void {
   if (!card) return;
   switch (REVEALS[id]) {
     case 'resolve':
-      gsap.from(card, { filter: 'blur(16px)', scale: 1.02, duration: 0.45 });
+      // Dropped at the end like the other two, and for the same reason: where the tween
+      // lands is where the stylesheet was going to put the card anyway, so writing it out
+      // buys nothing and costs an inline declaration no later rule of ours can outrank.
+      gsap.from(card, {
+        filter: 'blur(16px)',
+        scale: 1.02,
+        duration: 0.45,
+        clearProps: 'filter,scale',
+      });
       return;
     case 'blueprint':
       // The one that has to be written out at both ends. A card with no filter of its
@@ -384,7 +392,11 @@ export default function Nda() {
   const [now, setNow] = useState(0);
   const frame = useRef(0);
 
-  useSyncExternalStore(subscribe, getVersion);
+  // The count of moves the case file has taken, which is what the arrival below waits on:
+  // every quest verb bumps it, so the render that lands an open file is the render after
+  // the bump — whoever asked for it, a cover under the visitor's hand or a code typed at
+  // the agent on the other side of the board.
+  const version = useSyncExternalStore(subscribe, getVersion);
 
   // The rocket's door, and the one quest whose unlock is on a clock rather than on a
   // click: the panel holds this in a timer for the length of its hit-frame, so it has to
@@ -395,25 +407,51 @@ export default function Nda() {
     laserIgnite(chapter);
   }, []);
 
-  useEffect(() => {
-    const opened = justOpened.current;
-    const chose = justChose.current;
-    if (!opened && !chose) return;
-    justOpened.current = null;
-    justChose.current = null;
-    const handle = scope.current?.querySelector<HTMLElement>(
-      opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`,
-    );
-    handle?.focus();
-    // Only a cover coming off has a file to bring in: answering the guard leaves his
-    // cover where it was, and running an arrival over it would say otherwise. Focus is
-    // already gone by here, so nothing a visitor is waiting on is behind the motion —
-    // and with motion turned down there is nothing to run at all. What arrives is the
-    // card — the framed box the photo and its caption share, nearest one above the
-    // button, and the only element here carrying a border to bring up with it.
-    if (opened && matchMedia('(prefers-reduced-motion: no-preference)').matches)
-      reveal(handle?.closest('div'), opened);
-  });
+  // Which files have already come in. The first pass fills this and owes nothing: a view
+  // that mounts on a case already part-way through — a route back, the CV quest already
+  // won on another page — has files to show, not files arriving. Every id that turns up
+  // unlocked after that is one that was just unlocked, and its file arrives whatever took
+  // the cover off. A pass that runs twice on mount, as the development build's double
+  // invoke does, finds its own baseline and stays still.
+  const arrived = useRef<Set<ChapterId> | null>(null);
+
+  // Before the paint, and inside the hook's own context, which is what these tweens need
+  // on both counts: a `from` reads the card's painted values as the end it comes back to,
+  // so a pass running after the paint shows the finished card for a frame and only then
+  // starts from the blur — and a tween created loose would outlive the view that owns it.
+  useGSAP(
+    () => {
+      const first = arrived.current === null;
+      const seen = (arrived.current ??= new Set<ChapterId>());
+      const opened = justOpened.current;
+      const chose = justChose.current;
+      justOpened.current = null;
+      justChose.current = null;
+      // The handoff, and only for a cover the visitor was standing on when it went: the
+      // control he pressed is gone with it and focus went to <body>, which restarts
+      // tabbing at the top of the page. It is no longer what decides the arrival — a file
+      // opened by a word typed at the agent leaves him typing, and moving the cursor out
+      // of the field would be the site answering him by taking his hands off the keys.
+      if (opened || chose)
+        scope.current
+          ?.querySelector<HTMLElement>(
+            opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`,
+          )
+          ?.focus();
+      // What arrives is the card — the framed box the photo and its caption share, and
+      // the only element here carrying a border to bring up with it. Focus, where there
+      // was any to move, is already gone by here, so nothing a visitor is waiting on sits
+      // behind the motion; and with motion turned down there is nothing to run at all,
+      // the file being already open and already where it ends up.
+      for (const id of CHAPTERS) {
+        if (!isUnlocked(id) || seen.has(id)) continue;
+        seen.add(id);
+        if (!first && matchMedia('(prefers-reduced-motion: no-preference)').matches)
+          reveal(scope.current?.querySelector(`[data-card="${id}"]`), id);
+      }
+    },
+    { scope, dependencies: [version] },
+  );
 
   // The pedal loop is the only frame work on this page; it must not outlive the view.
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
@@ -704,7 +742,15 @@ export default function Nda() {
                   />
                 </svg>
               )}
-              <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
+              {/* The frame, and the id on it is how an arriving file finds its own card.
+                  The row above is where the swap happens, but the frame is the thing seen
+                  to arrive: it holds the photo and the caption together, it carries the
+                  border, and it leaves out the run that leads into it — which belongs to
+                  neither file and would be clipped or blurred along with this one. */}
+              <div
+                data-card={id}
+                className="overflow-hidden rounded-md border border-dashed border-accent/40"
+              >
                 {isUnlocked(id) ? (
                   <figure className="flex max-xl:flex-col">
                     {/* A real button, not a click handler on the image: the photo is
