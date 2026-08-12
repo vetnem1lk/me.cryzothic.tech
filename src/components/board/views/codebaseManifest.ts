@@ -44,9 +44,9 @@ export interface CodeProject {
   files: CodeFile[];
 }
 
-// ponytail: two curated projects, not a directory walk — more land when the founder
-// picks them (spec §T3c.5). The server entries are the three guardrail modules; the
-// private prompts they load are, deliberately, not among them.
+// ponytail: two curated projects, not a directory walk — more land as they are
+// picked. The server entries are the three guardrail modules; the private prompts
+// they load are, deliberately, not among them.
 export const PROJECTS: CodeProject[] = [
   {
     id: 'site',

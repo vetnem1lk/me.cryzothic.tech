@@ -62,7 +62,7 @@ const cfHeader = (req: Request): string | undefined => {
 // Cloudflare edge address that every visitor would share — cf-connecting-ip is
 // the real client, and Cloudflare overwrites whatever a client sent.
 // ponytail: spoofable if someone reaches the origin directly; the daily fuse
-// below is the backstop, and origin access is closed at the firewall.
+// below is the backstop.
 export function ipLimiter(): RequestHandler {
   return rateLimit({
     windowMs: 60_000,

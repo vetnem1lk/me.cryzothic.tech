@@ -234,7 +234,7 @@ export default function TargetCursor({
         const leave = contextSafe((force?: boolean | Event) => {
           // Hover is the only hold-channel — a clicked button keeps focus and
           // must not pin the lock; typing feedback is the input's own accent
-          // caret, not a cursor lock (founder rev 2026-08-06). Forcing is the one
+          // caret, not a cursor lock (rev 2026-08-06). Forcing is the one
           // way past it: a target hidden under the pointer is still hovered.
           if (force !== true && target.isConnected && target.matches(':hover')) return
           target.removeEventListener('mouseleave', leave)

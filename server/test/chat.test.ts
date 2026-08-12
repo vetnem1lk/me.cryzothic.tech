@@ -142,7 +142,7 @@ describe('CLASSIFIER_PROMPT', () => {
     // what to refuse is the system prompt's job, one layer down — hence the explicit
     // "personal questions are still ON" and the ON default when unsure. The site
     // clause is measured too: "How do I open FILE-02 in /nda?" came back OFF in
-    // prod (T5e probe 26) until the site's own nouns were spelled out.
+    // prod until the site's own nouns were spelled out.
     expect(CLASSIFIER_PROMPT).toBe(
       'You decide whether a message is ABOUT Vladislav Klimentev (Vlad) — the subject of this ' +
         'portfolio site — or not. ON = anything about Vlad: his career, skills, projects, ' +

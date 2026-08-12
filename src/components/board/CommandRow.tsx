@@ -11,8 +11,8 @@ const DRIFT_SPEED = 14; // px/s — slow marquee-style drift
 const RESUME_DELAY_MS = 2500; // idle time after manual scroll before drift resumes
 const MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 
-// ponytail: third sanctioned infinite loop (founder-requested, after the
-// marquee and the TextType label) — reduced-motion renders a static row.
+// ponytail: third sanctioned infinite loop (by request, after the marquee
+// and the TextType label) — reduced-motion renders a static row.
 export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) {
   const rowRef = useRef<HTMLDivElement>(null);
   const motionOk = matchMedia(MOTION_QUERY).matches;

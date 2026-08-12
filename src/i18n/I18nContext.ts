@@ -1,5 +1,5 @@
 // ~20-line hand-rolled i18n: a Lang context + dotted-path lookup into content.json.
-// Deliberately no library — two locales do not justify one (stack lock, T5c). The
+// Deliberately no library — two locales do not justify one (a stack decision). The
 // language itself is never stored here; it is derived from the URL by locale.ts and
 // handed down, so the address bar stays the single source of truth.
 import { createContext, useContext } from 'react';

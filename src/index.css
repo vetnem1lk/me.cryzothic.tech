@@ -43,7 +43,7 @@ body.custom-cursor * {
    Doc-verified 2026-08-06: non-auto scrollbar-width/scrollbar-color DISABLE
    ::-webkit-scrollbar* styling in Chromium, so the standard props may only
    ship to Firefox (where the webkit selector is unsupported and the gate
-   below is false). Known limitation, founder-accepted: over a native
+   below is false). Known limitation, accepted: over a native
    scrollbar `cursor: none` has no effect (system cursor shows) and thumb
    drags emit no mousemove — the target cursor freezes until the pointer
    returns to the page. */

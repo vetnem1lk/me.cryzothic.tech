@@ -17,6 +17,7 @@ CLAUDE.md
 graphify-out/
 cryx.deploy.json
 .superpowers/
+gate-shots/
 
 # Editor directories and files
 .vscode/*
