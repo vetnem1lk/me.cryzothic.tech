@@ -54,9 +54,9 @@ const QUEST_BTN =
 const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 
 // One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
-// foot, and the crosshair around the whole of it. A cover that IS a button wears exactly
-// this, which is what keeps a pressable row from advertising itself as one — finding
-// that out is the game.
+// foot. Every cover wears exactly this, button or not, which is what keeps a pressable
+// row from advertising itself as one — finding that out is the game. The crosshair is
+// not part of it, and is added where pressing the cover itself is the quest.
 //
 // The height is a floor rather than a fixed box. Wide, the floor is the height of the
 // photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
@@ -64,7 +64,7 @@ const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 // way a cover that outgrows the floor pushes its own row down instead of scrolling
 // inside a square it can no longer hold. `-safe` centring stays for that case: plain
 // `center` overflows in both directions and puts the top of a long card out of reach.
-const COVER = `cursor-target flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
+const COVER = `flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle. It
 // grows with the row, because on a row this size a small one reads as a caption.
@@ -479,7 +479,7 @@ export default function Nda() {
               if (knock(id)) justOpened.current = id;
             }}
             aria-labelledby={`${id}-code ${hintId}`}
-            className={`${COVER} justify-center-safe`}
+            className={`cursor-target ${COVER} justify-center-safe`}
           >
             {stamp(code, labels.classified, id)}
             {/* Bare: what the number is counting up to is the riddle, and printing a
@@ -498,7 +498,7 @@ export default function Nda() {
             type="button"
             onClick={() => pedal(id)}
             aria-labelledby={`${id}-code ${hintId}`}
-            className={`${COVER} justify-center-safe`}
+            className={`cursor-target ${COVER} justify-center-safe`}
           >
             {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
@@ -513,7 +513,7 @@ export default function Nda() {
         const { phase, choice } = dialogState(id);
         if (phase === 'ask')
           return (
-            <div className={`${COVER} justify-center-safe`}>
+            <div className={`cursor-target ${COVER} justify-center-safe`}>
               {stamp(code, labels.classified, id)}
               <span id={`${id}-npc`} className={SAID}>
                 {dialog.npc}
@@ -554,7 +554,7 @@ export default function Nda() {
             // the one cover whose name carries an outcome, because the outcome is the
             // reward.
             aria-labelledby={`${id}-code ${id}-outcome ${hintId}`}
-            className={`${COVER} justify-center-safe`}
+            className={`cursor-target ${COVER} justify-center-safe`}
           >
             {stamp(code, labels.classified, id)}
             <span id={`${id}-outcome`} className={SAID}>
@@ -679,7 +679,7 @@ export default function Nda() {
               )}
               <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
                 {isUnlocked(id) ? (
-                  <figure className="cursor-target flex max-lg:flex-col">
+                  <figure className="flex max-lg:flex-col">
                     {/* A real button, not a click handler on the image: the photo is
                         cropped to one square — the set runs from a 1.78 landscape to a
                         1:1.78 portrait — so opening the uncropped file is an action and
