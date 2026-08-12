@@ -2,7 +2,7 @@
 // This script is the only check that does. It checks three things.
 //
 // One, it loads the prompts exactly as production boot does, so a lost {{CANARY}}
-// or a deflection that collides with the injection screen fails here instead of on
+// or a deflection that collides with the injection screen fails here instead of in
 // production — where an auto-restarting service turns a boot throw into a crash loop
 // and the chat is down site-wide. Mandatory re-run after any gates.ts pattern edit: a
 // widened injection screen can start matching a deflection that booted fine
@@ -16,8 +16,9 @@
 //
 // Three, it asks OpenRouter whether the pinned slugs still exist. Free-tier models
 // get retired without notice, and a dead slug is silent: the chain just falls
-// through to the next one until the last one goes too. Needs the key, so it runs
-// only where there is one — this is a manual pre-deploy check, never CI.
+// through to the next one until the last one goes too. The endpoint is public;
+// the key gates the check as a stand-in for a deploy environment — a manual
+// pre-deploy check, never CI.
 import { loadConfig } from '../src/config.js';
 import { loadPrompts } from '../src/prompts.js';
 
