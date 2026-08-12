@@ -42,15 +42,22 @@ import {
 } from '../story';
 import Lightbox from './Lightbox';
 
-// Slots: a 420px pane at lg, else the stage column less its chrome (24 + 2 + chat 320 + 32).
+// Slots: a 420px pane once the row form is on at xl. Below it the photo spans the stage
+// column, which is the viewport less everything around it — 24 gutter, 2 frame, 320 chat,
+// 7 scrollbar, 32 card padding, 2 card border. Exact while the chat column sits on its
+// 320 minimum, generous above that where it grows to 30%, which is the safe way to be off.
 const SIZES =
-  '(min-width: 1024px) 420px, (min-width: 768px) calc(100vw - 378px), calc(100vw - 58px)';
+  '(min-width: 1280px) 420px, (min-width: 768px) calc(100vw - 387px), calc(100vw - 58px)';
 
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
 const QUEST_BTN =
   'cursor-target rounded-md border border-dashed border-accent/50 px-2 py-1 font-mono text-xs text-neutral-200 hover:border-accent';
 
+// Every stamp line on the page, at the one size they all share. Spelled out instead of
+// composed wherever a heading wants a different size: the arbitrary 11px is emitted after
+// text-sm and text-xs and carries the same weight, so it wins the tie and `CAPS text-sm`
+// is 11px rather than 14.
 const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 
 // One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
@@ -65,12 +72,12 @@ const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 // way a cover that outgrows the floor pushes its own row down instead of scrolling
 // inside a square it can no longer hold. `-safe` centring stays for that case: plain
 // `center` overflows in both directions and puts the top of a long card out of reach.
-const COVER = `flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
+const COVER = `flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center xl:min-h-[420px]`;
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle. It
 // grows with the row, because on a row this size a small one reads as a caption.
 const BIG = 'block font-mono text-5xl leading-none text-neutral-100 sm:text-6xl lg:text-7xl';
-const HINT = 'block text-xs leading-snug text-neutral-400';
+const HINT = 'block text-sm leading-snug text-neutral-400';
 // The rocket is the one cover carrying two lines of prose under its riddle — the hint
 // and the beam's own report — so both of them shrink to buy the scene its room back.
 // Colourless: the two lines rank differently, and one class list must not try to win
@@ -86,13 +93,20 @@ type Labels = (typeof content)['en']['sector']['nda']['labels'];
 
 // The two lines every cover carries, whatever quest is under them. The file number is
 // id'd so a cover that is a button can say it first, before the riddle's own line.
+//
+// One block in the corner, against the left edge, while the riddle keeps the middle to
+// itself: markings belong on the corner of a cover rather than over the thing the cover
+// is asking. It is the only part of a cover that opts out of the centred flow. A span and
+// not a div, because three of the covers are buttons and a button may hold neither a
+// division nor anything else that is not phrasing — the flex column above blocks it out
+// anyway, so the two readings stack exactly as they did loose.
 const stamp = (code: string, classified: string, id: ChapterId) => (
-  <>
+  <span className="self-start text-left">
     <span id={`${id}-code`} className={`${CAPS} block text-accent`}>
       {code}
     </span>
-    <span className={`${CAPS} block text-neutral-500`}>{classified}</span>
-  </>
+    <span className={`${CAPS} block text-neutral-400`}>{classified}</span>
+  </span>
 );
 
 // Language-neutral on purpose: the mirrors need names that never change with rotation
@@ -192,7 +206,7 @@ function Laser({
           screen high and drag its row with it. These two heights are what is left inside
           the cover's own floor once the stamp and the two lines below have taken theirs,
           so the rocket's row measures what the six other rows measure. */}
-      <div className="relative aspect-square h-52 lg:h-72">
+      <div className="relative aspect-square h-52 xl:h-72">
         <svg
           ref={svg}
           viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -266,7 +280,7 @@ function Laser({
           up: on the rocket, in the floor, or out of the near side. It speaks whenever the
           wording changes, so a turn that moves the beam from one wall to the other is
           heard — which is what makes the puzzle solvable with the screen off. */}
-      <span role="status" className={`${FINE} text-neutral-500`}>
+      <span role="status" className={`${FINE} text-neutral-400`}>
         {beam.hit
           ? labels.laserStatusHit
           : edge === 'bottom'
@@ -642,7 +656,7 @@ export default function Nda() {
   return (
     <section ref={scope} className="flex flex-col gap-5 p-4">
       <div>
-        <h2 className={`${CAPS} text-sm text-accent`}>{title}</h2>
+        <h2 className="font-mono text-sm tracking-widest text-accent uppercase">{title}</h2>
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{intro}</p>
       </div>
 
@@ -667,7 +681,7 @@ export default function Nda() {
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 64"
-                  className="mx-auto h-16 w-6 lg:mx-[210px]"
+                  className="mx-auto h-16 w-6 xl:mx-[198px]"
                 >
                   <path
                     data-wave
@@ -680,7 +694,7 @@ export default function Nda() {
               )}
               <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
                 {isUnlocked(id) ? (
-                  <figure className="flex max-lg:flex-col">
+                  <figure className="flex max-xl:flex-col">
                     {/* A real button, not a click handler on the image: the photo is
                         cropped to one square — the set runs from a 1.78 landscape to a
                         1:1.78 portrait — so opening the uncropped file is an action and
@@ -690,7 +704,7 @@ export default function Nda() {
                       type="button"
                       data-photo={id}
                       onClick={() => setOpenAt(id)}
-                      className="cursor-target block w-full lg:w-[420px] lg:shrink-0"
+                      className="cursor-target block w-full xl:w-[420px] xl:shrink-0"
                     >
                       <picture>
                         <source
@@ -709,11 +723,18 @@ export default function Nda() {
                         />
                       </picture>
                     </button>
-                    <figcaption className="flex-1 p-4">
+                    {/* A column rather than a stack of paragraphs, so the three parts can
+                        take their own places in it: the file's markings at the top, the
+                        credit pinned to the foot, and the story on the auto margins that
+                        divide whatever is left — which centres it against the photo beside
+                        it, and costs nothing once the two stack and there is no slack to
+                        divide. Left-aligned throughout: a cover is centred, an open file
+                        is read. */}
+                    <figcaption className="flex flex-1 flex-col p-4">
                       <p className={`${CAPS} text-accent`}>{ch.code}</p>
-                      <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
-                      <p className="mt-1 text-sm text-neutral-300">{ch.story}</p>
-                      <p className="mt-2 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
+                      <p className="mt-1 text-lg font-semibold text-neutral-100">{ch.title}</p>
+                      <p className="my-auto max-w-prose text-base text-neutral-300">{ch.story}</p>
+                      <p className="mt-2 font-mono text-[11px] text-neutral-400">{ch.credit}</p>
                     </figcaption>
                   </figure>
                 ) : (
@@ -753,7 +774,9 @@ export default function Nda() {
       </details>
 
       <div>
-        <h3 className={`${CAPS} text-xs text-neutral-500`}>{clearanceTitle}</h3>
+        <h3 className="font-mono text-xs tracking-widest text-neutral-400 uppercase">
+          {clearanceTitle}
+        </h3>
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{clearance}</p>
         <div className="mt-3 flex flex-wrap gap-3">
           {[
