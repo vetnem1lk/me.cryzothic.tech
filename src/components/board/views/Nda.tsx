@@ -56,7 +56,8 @@ const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 // One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
 // foot. Every cover wears exactly this, button or not, which is what keeps a pressable
 // row from advertising itself as one — finding that out is the game. The crosshair is
-// not part of it, and is added where pressing the cover itself is the quest.
+// not part of it: it goes on the covers the visitor presses, and on the dialogue while
+// it waits for its answer.
 //
 // The height is a floor rather than a fixed box. Wide, the floor is the height of the
 // photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
