@@ -17,6 +17,9 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { Link } from 'wouter';
 import content from '../../../content.json';
 import { useLang, useT } from '../../../i18n/I18nContext';
+// Aliased: `step` is already a frame of the sprint's clock further down this file, and
+// one name for two things is what someone has to decode later.
+import { step as dial } from '../codelock';
 import { MIRRORS, SOURCE, TARGET, VIEW, blockedEdge, trace } from '../laser';
 import {
   CHAPTERS,
@@ -304,6 +307,87 @@ function Laser({
   );
 }
 
+/**
+ * The lock cover: three wheels and the lever that tries them. Where the code stands is
+ * never read — `guess` takes no code and never did — so the wheels only have to turn,
+ * and turning them is the whole of the quest.
+ */
+function CodeLock({
+  id,
+  code,
+  labels,
+  onTry,
+}: {
+  id: ChapterId;
+  code: string;
+  labels: Labels;
+  onTry: () => void;
+}) {
+  const scope = useRef<HTMLDivElement>(null);
+  const [wheels, setWheels] = useState([0, 0, 0]);
+  // Config only, no callback: nothing runs on mount here. The hook is for the context
+  // the tick below is created in — a tween made loose in a handler would outlive the
+  // cover it belongs to, exactly as the rocket's mirrors would.
+  const { contextSafe } = useGSAP({ scope });
+
+  const spin = contextSafe((i: number, delta: 1 | -1) => {
+    setWheels((w) => w.map((d, j) => (j === i ? dial(d, delta) : d)));
+    // The digit rolls in from the side the press came from — up-press, up from below.
+    // React owns the character and GSAP owns the transform, so the two never contest
+    // the same property; with motion turned down there is no tween, just the new digit.
+    const digit = scope.current?.querySelector(`[data-wheel="${i}"]`);
+    if (digit && matchMedia('(prefers-reduced-motion: no-preference)').matches)
+      gsap.fromTo(digit, { y: delta * 10 }, { y: 0, duration: 0.18, ease: 'power1.out' });
+  });
+
+  return (
+    <div ref={scope} className={`${COVER} justify-center-safe`}>
+      {stamp(code, labels.classified, id)}
+      <span aria-hidden="true" className={BIG}>
+        ?
+      </span>
+      <span id={`${id}-prompt`} className={HINT}>
+        {labels.guessPrompt}
+      </span>
+      {/* A group named by the prompt, and no live region on the digits: a wheel that
+          reads itself out on every press talks over a visitor working three of them.
+          Not a spinbutton either — the APG pattern names one focusable element holding
+          the value, with the arrow keys on it; here the two arrows are the controls,
+          and claiming the role without its keyboard contract is a promise the cover
+          would not keep. Each button is named by the digit it lands on, which is a
+          number and needs no dictionary: the wheel's own digit stands between them. */}
+      <div role="group" aria-labelledby={`${id}-prompt`} className="flex items-center gap-2">
+        {wheels.map((d, i) => (
+          <div key={i} className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              aria-label={`${dial(d, 1)}`}
+              onClick={() => spin(i, 1)}
+              className={QUEST_BTN}
+            >
+              ▲
+            </button>
+            <span data-wheel={i} className="font-mono text-xl text-neutral-100">
+              {d}
+            </span>
+            <button
+              type="button"
+              aria-label={`${dial(d, -1)}`}
+              onClick={() => spin(i, -1)}
+              className={QUEST_BTN}
+            >
+              ▼
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={onTry} className={QUEST_BTN}>
+          {labels.guessHint}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Which way each file comes in once its cover is off. Fixed per chapter rather than
 // random, so a visitor who opens the same file twice in two sessions sees the same
 // thing happen, and cycled so no two files in a row arrive the same way.
@@ -532,7 +616,7 @@ export default function Nda() {
 
   // One cover per chapter, and the cover is the quest. Where the mechanic is nothing
   // but a click the whole row is the button and the file number plus the hint line is
-  // its name; where it needs a field or a choice the row stays a plain box with controls
+  // its name; where it needs wheels or a choice the row stays a plain box with controls
   // inside, because a button may contain neither.
   function cover(id: ChapterId, code: string) {
     const hintId = `${id}-hint`;
@@ -634,44 +718,16 @@ export default function Nda() {
       }
       case 'guess':
         return (
-          <div className={`${COVER} justify-center-safe`}>
-            {stamp(code, labels.classified, id)}
-            <span aria-hidden="true" className={BIG}>
-              ?
-            </span>
-            <span id={`${id}-prompt`} className={HINT}>
-              {labels.guessPrompt}
-            </span>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (guess(id)) justOpened.current = id;
-              }}
-              // One line, at its own width: field then submit, with the row wide enough
-              // that the longer of the two submit words — «Угадать» against "Guess" —
-              // costs the field nothing. Nothing here has to shrink any more.
-              className="flex items-center justify-center gap-2"
-            >
-              {/* The value is never read. Any number is the right number — the medal
-                  in the photo already says which one, and the reward line is the joke.
-                  Named and id'd anyway: a field with neither is what the browser
-                  complains about, and the id is the chapter's, so two cards could
-                  never share one. Autofill is off — this is a riddle, not a form.
-                  Three characters wide, which is three more than it needs. */}
-              <input
-                id={`${id}-guess`}
-                name="guess"
-                aria-labelledby={`${id}-prompt`}
-                inputMode="numeric"
-                autoComplete="off"
-                maxLength={3}
-                className="cursor-target w-16 rounded-md border border-dashed border-accent/50 bg-transparent px-2 py-1 text-center font-mono text-sm text-neutral-100"
-              />
-              <button type="submit" className={QUEST_BTN}>
-                {labels.guessHint}
-              </button>
-            </form>
-          </div>
+          <CodeLock
+            id={id}
+            code={code}
+            labels={labels}
+            // The lever never reads the wheels. Any code is the right code — the medal
+            // in the photo already says which one, and the reward line is the joke.
+            onTry={() => {
+              if (guess(id)) justOpened.current = id;
+            }}
+          />
         );
       case 'laser':
         return (
