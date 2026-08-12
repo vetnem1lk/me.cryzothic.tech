@@ -13,6 +13,7 @@ import { runCommand } from './commands';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
 import { EMPTY, push, take, type DrainState } from './drain';
+import { chain } from './queue';
 import {
   CHAPTERS,
   DIMS,
@@ -119,7 +120,8 @@ export default function VaiShell({
   const [photo, setPhoto] = useState<ChapterId | null>(null);
   const modeRef = useRef<AgentMode>('vai');
   // ponytail: promise-chain serialization — replies land in submit order even
-  // when a future live transport resolves out of order.
+  // when a future live transport resolves out of order. The chaining itself is
+  // queue.ts, which is where that claim is pinned instead of asserted.
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -375,53 +377,54 @@ export default function VaiShell({
     // A command and its answer are shell-local — shown, never replayed to the
     // model, whose message and character budget belongs to the conversation.
     setMsgs((m) => [...m, { role: 'user', text, from: requestMode, id: askId, local: !!cmd }]);
-    queueRef.current = queueRef.current
-      .then(async () => {
-        if (cmd) {
-          // The registry answers with a dictionary key; the language is whatever
-          // the URL said when the visitor pressed Enter. /en and /ru are the two
-          // that then change it — their confirmation is written in the language
-          // they switch to, so it still matches the page it lands on.
-          setMsgs((m) => [
-            ...m,
-            {
-              role: 'agent',
-              text: t(cmd.textKey),
-              from: requestMode,
-              local: true,
-              // The photo's alt is a dictionary key like the answer itself, and is
-              // resolved with it: what goes into the log is what is on the screen.
-              image: cmd.image && { ...cmd.image, alt: t(cmd.image.alt) },
-            },
-          ]);
-          if (cmd.navigateLang) {
-            // Same sector, other language. Read off the address bar rather than
-            // the render that queued this, because a command can sit in the queue
-            // behind a whole model answer while the visitor keeps clicking — the
-            // mirror has to be of where they are now. `~` then puts the result
-            // outside the router base, which is where the other language lives.
-            const to = pathForLang(cmd.navigateLang, window.location.pathname);
-            // Already reading that language: pathForLang is a no-op and so is the
-            // command. Pushing the identical URL would only litter the history.
-            // The guard compares paths alone on purpose — the query and hash
-            // appended below are the ones already in the bar, so weighing them
-            // too would only ever compare each to itself.
-            if (to !== window.location.pathname)
-              navigate('~' + to + window.location.search + window.location.hash);
-          } else if (cmd.navigateTo) navigate(cmd.navigateTo);
-          return;
-        }
-        // An empty pending line is the thinking state: the cursor blinks alone
-        // until the first token lands.
+    // The `.catch` stays here rather than moving into the chain: it is the shell
+    // that has a log to write the failure into, and swallowing it one call earlier
+    // would print nothing.
+    queueRef.current = chain(queueRef.current, async () => {
+      if (cmd) {
+        // The registry answers with a dictionary key; the language is whatever
+        // the URL said when the visitor pressed Enter. /en and /ru are the two
+        // that then change it — their confirmation is written in the language
+        // they switch to, so it still matches the page it lands on.
         setMsgs((m) => [
           ...m,
-          { role: 'agent', text: '', from: requestMode, id: replyId, pending: true },
+          {
+            role: 'agent',
+            text: t(cmd.textKey),
+            from: requestMode,
+            local: true,
+            // The photo's alt is a dictionary key like the answer itself, and is
+            // resolved with it: what goes into the log is what is on the screen.
+            image: cmd.image && { ...cmd.image, alt: t(cmd.image.alt) },
+          },
         ]);
-        await runTurn(text, requestMode, askId, replyId);
-      })
-      .catch(() => {
-        setMsgs((m) => [...m, { role: 'sys', text: t('vai.sys.transport') }]);
-      });
+        if (cmd.navigateLang) {
+          // Same sector, other language. Read off the address bar rather than
+          // the render that queued this, because a command can sit in the queue
+          // behind a whole model answer while the visitor keeps clicking — the
+          // mirror has to be of where they are now. `~` then puts the result
+          // outside the router base, which is where the other language lives.
+          const to = pathForLang(cmd.navigateLang, window.location.pathname);
+          // Already reading that language: pathForLang is a no-op and so is the
+          // command. Pushing the identical URL would only litter the history.
+          // The guard compares paths alone on purpose — the query and hash
+          // appended below are the ones already in the bar, so weighing them
+          // too would only ever compare each to itself.
+          if (to !== window.location.pathname)
+            navigate('~' + to + window.location.search + window.location.hash);
+        } else if (cmd.navigateTo) navigate(cmd.navigateTo);
+        return;
+      }
+      // An empty pending line is the thinking state: the cursor blinks alone
+      // until the first token lands.
+      setMsgs((m) => [
+        ...m,
+        { role: 'agent', text: '', from: requestMode, id: replyId, pending: true },
+      ]);
+      await runTurn(text, requestMode, askId, replyId);
+    }).catch(() => {
+      setMsgs((m) => [...m, { role: 'sys', text: t('vai.sys.transport') }]);
+    });
   }
 
   return (
@@ -485,9 +488,16 @@ export default function VaiShell({
             </p>
           ) : (
             <p
-              key={i}
-              // A line still being typed stays out of the live region: an
-              // announcement every frame is unusable. It is read once, whole.
+              // Two keys for one line, deliberately. A line still being typed is
+              // aria-hidden, because an announcement every frame is unusable —
+              // but that made the finish nothing more than an attribute coming
+              // off, and an un-hidden node is not an added one: several screen
+              // readers say nothing at all. Moving the key on the same commit
+              // makes React replace the <p> rather than update it, so the
+              // finished answer enters the live region as new content and is
+              // read once, whole. Only the typing line's key moves — every other
+              // index keeps the key it had, so nothing else in the log reshuffles.
+              key={m.pending ? `${i}-typing` : i}
               aria-hidden={m.pending || undefined}
               className={
                 m.role === 'agent'

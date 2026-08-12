@@ -54,6 +54,26 @@ const chapterImage = (id: ChapterId) => ({
   alt: chapterKey(id, 'alt'),
 });
 
+// Every sector the board can be standing in, in the order the router tries them.
+// The navigation commands below already owned these paths, so the Stage reads its
+// routes and its nav strip off this list rather than keeping a second copy: a
+// sector cannot exist in one of the three places and not the others.
+//
+// The paths stay English on /ru — the language lives in the router base, never in
+// a route, which is why '/ru' itself can never appear here. commands.test.ts holds
+// the list to that, mirroring how locale.ts reads the prefix back off a URL.
+export const ROUTE_PATHS = [
+  '/career',
+  '/skills',
+  '/nda',
+  '/loot',
+  '/contact',
+  '/code',
+  '/3d',
+] as const;
+
+export type RoutePath = (typeof ROUTE_PATHS)[number];
+
 // Canonical commands — the visible surface (command row + /help). Bare unix
 // verbs read info, slash commands act; no two entries do the same thing.
 const COMMANDS: Record<string, () => CommandResult> = {

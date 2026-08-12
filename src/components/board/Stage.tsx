@@ -3,9 +3,10 @@
 // exception and loads on demand, since it carries this site's source as text.
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
-import { Suspense, lazy, useRef } from 'react';
+import { Suspense, lazy, useRef, type ReactNode } from 'react';
 import { Link, Route, Switch, useLocation } from 'wouter';
 import { useT } from '../../i18n/I18nContext';
+import { ROUTE_PATHS, type RoutePath } from './commands';
 import Briefing from './views/Briefing';
 import Career from './views/Career';
 import Contact from './views/Contact';
@@ -16,16 +17,26 @@ import ThreeDView from './views/ThreeDView';
 
 const CodeBase = lazy(() => import('./views/CodeBase'));
 
-// The paths stay English on /ru too — they are the shell's unix fiction, not copy;
-// only the labels beside them are translated. The three pinned to the right edge
-// below are the interactive ones; /nda joined them when it stopped being a
-// dossier and became a story you play through.
-const NAV = [
-  { href: '/career', key: 'nav.career' },
-  { href: '/skills', key: 'nav.skills' },
-  { href: '/loot', key: 'nav.loot' },
-  { href: '/contact', key: 'nav.contact' },
-];
+// What each sector is called on the strip. The paths themselves are commands.ts'
+// — they are the shell's unix fiction, not copy, and they stay English on /ru;
+// only these labels are translated. Keyed by RoutePath rather than typed as a
+// loose record, which is what makes it exhaustive: a route added without a label
+// (or a label for a route the router will not mount) is a type error here rather
+// than a blank tab in production.
+const NAV_KEY: Record<RoutePath, string> = {
+  '/career': 'nav.career',
+  '/skills': 'nav.skills',
+  '/nda': 'nav.nda',
+  '/loot': 'nav.loot',
+  '/contact': 'nav.contact',
+  '/code': 'nav.code',
+  '/3d': 'nav.threed',
+};
+
+// The interactive sectors, pinned past the spacer to the right edge; everything
+// else reads left to right in route order. /nda joined them when it stopped being
+// a dossier and became a story you play through.
+const PINNED: readonly RoutePath[] = ['/nda', '/code', '/3d'];
 
 const navClass = (active: boolean) =>
   `cursor-target px-1 ${active ? 'text-accent' : 'text-neutral-500 hover:text-neutral-300'}`;
@@ -48,6 +59,25 @@ export default function Stage() {
     { dependencies: [location], revertOnUpdate: true },
   );
 
+  // The view behind each path. Built in render rather than at module scope
+  // because /code's fallback is copy, and copy needs `t` — the elements are the
+  // same objects JSX made one at a time before, in the same order.
+  const VIEWS: Record<RoutePath, ReactNode> = {
+    '/career': <Career />,
+    '/skills': <Skills />,
+    '/nda': <Nda />,
+    '/loot': <Loot />,
+    '/contact': <Contact />,
+    '/code': (
+      <Suspense
+        fallback={<p className="p-4 font-mono text-xs text-neutral-500">{t('nav.cloning')}</p>}
+      >
+        <CodeBase />
+      </Suspense>
+    ),
+    '/3d': <ThreeDView />,
+  };
+
   return (
     <section
       data-dock
@@ -57,51 +87,28 @@ export default function Stage() {
         <Link href="/" className={navClass}>
           {t('nav.home')}
         </Link>
-        {NAV.map((n) => (
-          <Link key={n.href} href={n.href} className={navClass}>
-            {t(n.key)}
+        {ROUTE_PATHS.filter((p) => !PINNED.includes(p)).map((p) => (
+          <Link key={p} href={p} className={navClass}>
+            {t(NAV_KEY[p])}
           </Link>
         ))}
         <span className="flex-1" aria-hidden />
-        <Link href="/nda" className={navClass}>
-          {t('nav.nda')}
-        </Link>
-        <Link href="/code" className={navClass}>
-          {t('nav.code')}
-        </Link>
-        <Link href="/3d" className={navClass}>
-          {t('nav.threed')}
-        </Link>
+        {PINNED.map((p) => (
+          <Link key={p} href={p} className={navClass}>
+            {t(NAV_KEY[p])}
+          </Link>
+        ))}
       </nav>
       <div ref={viewRef} className="scroll-thin min-h-0 flex-1 md:overflow-y-auto">
         <Switch>
-          <Route path="/career">
-            <Career />
-          </Route>
-          <Route path="/skills">
-            <Skills />
-          </Route>
-          <Route path="/nda">
-            <Nda />
-          </Route>
-          <Route path="/loot">
-            <Loot />
-          </Route>
-          <Route path="/contact">
-            <Contact />
-          </Route>
-          <Route path="/code">
-            <Suspense
-              fallback={
-                <p className="p-4 font-mono text-xs text-neutral-500">{t('nav.cloning')}</p>
-              }
-            >
-              <CodeBase />
-            </Suspense>
-          </Route>
-          <Route path="/3d">
-            <ThreeDView />
-          </Route>
+          {/* Switch reads its children flat, arrays included, and takes the first
+              path that matches — so the map keeps route order and the pathless
+              fallback below stays last, which is the only ordering that matters. */}
+          {ROUTE_PATHS.map((p) => (
+            <Route key={p} path={p}>
+              {VIEWS[p]}
+            </Route>
+          ))}
           <Route>
             <Briefing />
           </Route>

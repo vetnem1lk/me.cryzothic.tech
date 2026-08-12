@@ -244,7 +244,8 @@
       "hp": "HP ∞ — direct contact is the only move that lands",
       "emailLabel": "Email",
       "githubSub": "vetnem1lk — this site is open source",
-      "telegramSub": "@cryzoth — fastest response"
+      "telegramSub": "@cryzoth — fastest response",
+      "newTab": "opens in a new tab"
     },
     "threed": {
       "mode": "engine bay — wireframe mode",
@@ -552,7 +553,8 @@
       "hp": "HP ∞ — проходит только прямой контакт",
       "emailLabel": "Почта",
       "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
-      "telegramSub": "@cryzoth — отвечаю быстрее всего"
+      "telegramSub": "@cryzoth — отвечаю быстрее всего",
+      "newTab": "откроется в новой вкладке"
     },
     "threed": {
       "mode": "отсек движка — каркасный режим",
