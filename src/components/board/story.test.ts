@@ -291,6 +291,32 @@ describe('the achievement ledger', () => {
     expect(story.takeAchievement()).toBeNull();
   });
 
+  // The shell announces badges from a subscriber that reads the ledger, so a notify
+  // fired before the badge is in it would hand the announcer the count it already had.
+  test('the badge is in the ledger before the unlock that earned it notifies', () => {
+    let seen = -1;
+    const unsubscribe = story.subscribe(() => {
+      seen = story.earnedCount();
+    });
+    story.guess(GUESS);
+    unsubscribe();
+    expect(seen).toBe(1);
+  });
+
+  // Draining is a change like any other: the badge left the queue, and whoever is
+  // showing one as pending has to be told, or it stays on screen after it was spent.
+  // (takeLoreChapter is deliberately left as it is — this pins the badge lane only.)
+  test('taking a badge notifies; taking from an empty queue does not', () => {
+    story.konamiEntered();
+    const cb = vi.fn();
+    const unsubscribe = story.subscribe(cb);
+    expect(story.takeAchievement()).toBe('konami');
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(story.takeAchievement()).toBeNull();
+    expect(cb).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
   test('the badges nobody unlocks a chapter for land once each', () => {
     story.firstContact();
     story.firstContact();

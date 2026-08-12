@@ -6,7 +6,9 @@
       "ogDescription": "C++/Qt developer heading into game development (tools / gameplay). CV and contacts in one click."
     },
     "marquee": {
-      "status": "UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev"
+      "status": "UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev",
+      "konamiHint": "old code: ↑ ↑ ↓ ↓ ← →",
+      "konamiDone": "CHEAT MODE: honesty only"
     },
     "nav": {
       "home": "~/",
@@ -261,7 +263,12 @@
         "modeVai": "mode: VAI — VladislavAI, this portfolio's agent. Ask about Vlad.",
         "modeGai": "mode: GAI — GlobalAI, general mode — not bound to the portfolio.",
         "empty": "empty response — try again.",
-        "transport": "transport error — try again."
+        "transport": "transport error — try again.",
+        "achFirstFile": "the first seal is off.",
+        "achAllSeven": "no more covers. the archive is yours.",
+        "achKonami": "old code still opens old doors.",
+        "achFirstContact": "first contact logged.",
+        "achBlueprints": "you read the blueprints. respect."
       },
       "error": {
         "connection": "connection failed — try again.",
@@ -307,7 +314,9 @@
       "ogDescription": "C++/Qt разработчик, перехожу в геймдев (инструменты / геймплей). Резюме и контакты в один клик."
     },
     "marquee": {
-      "status": "РАЗБЛОКИРОВАНО: портфолио C++ / Qt разработчика · цель: геймдев"
+      "status": "РАЗБЛОКИРОВАНО: портфолио C++ / Qt разработчика · цель: геймдев",
+      "konamiHint": "старый код: ↑ ↑ ↓ ↓ ← →",
+      "konamiDone": "ЧИТ-РЕЖИМ: только честность"
     },
     "nav": {
       "home": "~/",
@@ -562,7 +571,12 @@
         "modeVai": "режим: VAI — VladislavAI, агент этого портфолио. Спрашивайте о Владе.",
         "modeGai": "режим: GAI — GlobalAI, общий режим — с портфолио не связан.",
         "empty": "пустой ответ — попробуйте ещё раз.",
-        "transport": "ошибка транспорта — попробуйте ещё раз."
+        "transport": "ошибка транспорта — попробуйте ещё раз.",
+        "achFirstFile": "первая печать снята.",
+        "achAllSeven": "обложек больше нет. архив ваш.",
+        "achKonami": "старый код всё ещё открывает старые двери.",
+        "achFirstContact": "первый контакт зафиксирован.",
+        "achBlueprints": "вы читаете чертежи. уважение."
       },
       "error": {
         "connection": "соединение не удалось — попробуйте ещё раз.",

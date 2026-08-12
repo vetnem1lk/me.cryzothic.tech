@@ -13,9 +13,18 @@ import { Router } from 'wouter';
 import { usePathname } from 'wouter/use-browser-location';
 import { LangProvider, translate } from '../../i18n/I18nContext';
 import { langFromPath } from '../../i18n/locale';
+import { KONAMI, advance, swipeDir, type Dir8 } from './konami';
 import Marquee from './Marquee';
 import Stage from './Stage';
+import { konamiEntered } from './story';
 import VaiShell from './VaiShell';
+
+const ARROW: Record<string, Dir8> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+};
 
 const CORNER = 'absolute h-2.5 w-2.5 border-accent';
 const CORNERS = [
@@ -36,6 +45,55 @@ export default function Board() {
   useEffect(() => {
     document.title = translate(lang, 'meta.title');
   }, [lang]);
+
+  // The old cheat code is listened for here, not in the terminal: the stage swaps
+  // views underneath and on a phone the shell is a sheet that can be shut, while the
+  // board is mounted for as long as the visitor is on the site. The arithmetic is
+  // konami.ts; how far along the run is lives inside the effect, so a second mount
+  // starts its own run instead of inheriting a half-finished one.
+  useEffect(() => {
+    let pos = 0;
+    let from: [number, number] | null = null;
+    const step = (dir: Dir8) => {
+      pos = advance(pos, dir);
+      if (pos < KONAMI.length) return;
+      pos = 0;
+      konamiEntered();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      // The same two doors the shell's own hotkeys check: an open viewer owns the
+      // keyboard while it is open, and an arrow inside a field moves a caret.
+      if (document.querySelector('dialog[open]')) return;
+      const el = document.activeElement;
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) return;
+      const dir = ARROW[e.key];
+      if (dir) step(dir);
+      else pos = 0; // any other key is a wrong step, and a wrong step drops the run
+    };
+    const onStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      from = t ? [t.clientX, t.clientY] : null;
+    };
+    const onEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      if (!from || !t) return;
+      const dir = swipeDir(t.clientX - from[0], t.clientY - from[1]);
+      from = null;
+      // A tap is how the whole board is played, so it is not a wrong step: anything
+      // shorter than a swipe leaves the run exactly where it was.
+      if (dir) step(dir);
+    };
+    document.addEventListener('keydown', onKey);
+    // Passive, and nothing is prevented: the code is read off the gestures the
+    // visitor was making anyway, and must never cost them a scroll.
+    document.addEventListener('touchstart', onStart, { passive: true });
+    document.addEventListener('touchend', onEnd, { passive: true });
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('touchstart', onStart);
+      document.removeEventListener('touchend', onEnd);
+    };
+  }, []);
 
   useGSAP(
     () => {

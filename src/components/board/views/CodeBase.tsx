@@ -1,12 +1,18 @@
 // The /code view: a file tree and a pane that shows this site's own source,
 // verbatim. Reading the code is the point of the exhibit, so this is deliberately
 // a plain <pre> — no syntax highlighter, no extra kilobytes for decoration.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { sourceRead } from '../story';
 import { PROJECTS, type CodeProject } from './codebaseManifest';
 
 export default function CodeBase() {
   const [project, setProject] = useState<CodeProject>(PROJECTS[0]);
   const [file, setFile] = useState(project.files[0]);
+
+  // Opening the exhibit at all is the whole quest — nobody arrives here by accident.
+  useEffect(() => {
+    sourceRead();
+  }, []);
 
   function pickProject(p: CodeProject) {
     setProject(p);

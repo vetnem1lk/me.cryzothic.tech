@@ -13,7 +13,18 @@ import { runCommand } from './commands';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
 import { EMPTY, push, take, type DrainState } from './drain';
-import { CHAPTERS, DIMS, isUnlocked, photoSlug, subscribe, type ChapterId } from './story';
+import {
+  CHAPTERS,
+  DIMS,
+  earnedCount,
+  firstContact,
+  isUnlocked,
+  photoSlug,
+  subscribe,
+  takeAchievement,
+  type Achievement,
+  type ChapterId,
+} from './story';
 import { MODE_NAME, history, type AgentMode, type ChatMessage } from './transport';
 import Lightbox from './views/Lightbox';
 
@@ -30,6 +41,16 @@ const segClass = (active: boolean, side: 'l' | 'r') =>
 // A number, so React can compare snapshots without a memo: the shell only cares how
 // many covers are off, not which.
 const openFileCount = () => CHAPTERS.filter(isUnlocked).length;
+
+// What each badge is called out loud. The ids are the store's; the lines are the
+// dictionary's, and the `[sys]` badge is still the renderer's.
+const ACH_KEY: Record<Achievement, string> = {
+  'first-file': 'vai.sys.achFirstFile',
+  'all-seven': 'vai.sys.achAllSeven',
+  konami: 'vai.sys.achKonami',
+  'first-contact': 'vai.sys.achFirstContact',
+  blueprints: 'vai.sys.achBlueprints',
+};
 
 // Which chapter a chat photo is of, read back off its own URL. The message carries
 // what it shows rather than an id — the wire shape stays two strings — and the slug
@@ -227,6 +248,17 @@ export default function VaiShell({
     announced.current = openFiles;
   }, [openFiles]);
 
+  // The badges, on the same principle and one lane over: earned all over the board —
+  // and three of them nowhere near a cover — announced by the one thing standing
+  // beside all of them. Its own snapshot, because a badge can be earned without a
+  // cover coming off; the queue is what is read, not the count, so a second run of
+  // this effect finds it already empty rather than saying everything twice.
+  const badges = useSyncExternalStore(subscribe, earnedCount);
+  useEffect(() => {
+    for (let a = takeAchievement(); a; a = takeAchievement())
+      setMsgs((m) => [...m, { role: 'sys', text: tRef.current(ACH_KEY[a]) }]);
+  }, [badges]);
+
   // Navigation is the sheet's exit: on a phone the shell covers the board, so a
   // route change — an action link, or any /command that navigates — means the
   // visitor chose a destination hidden behind the overlay. Only a *change*
@@ -309,6 +341,10 @@ export default function VaiShell({
           },
           onDone: () => {
             st = { ...st, doneFeeding: true };
+            // A word said to VAI and answered. Here rather than at submit, so a
+            // question the transport never got an answer to earns nothing — and
+            // idempotent in the store, so every turn after the first is free.
+            firstContact();
           },
           onError: (msg, vars) => {
             // Ending the feed is what closes the turn: the loop types out
