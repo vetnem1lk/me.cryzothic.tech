@@ -54,8 +54,11 @@ const SIZES =
 
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
+// No crosshair here: a target nested inside a cover that is itself one shadows the frame
+// the whole card would otherwise get. The lock's wheels and lever add it back, their
+// cover being no target; the dialogue's choices go without, its cover waiting as one.
 const QUEST_BTN =
-  'cursor-target rounded-md border border-dashed border-accent/50 px-2 py-1 font-mono text-sm text-neutral-200 hover:border-accent';
+  'rounded-md border border-dashed border-accent/50 px-2 py-1 font-mono text-sm text-neutral-200 hover:border-accent';
 
 // Every stamp line on the page, at the one size they all share. Spelled out instead of
 // composed wherever a heading wants a different size: two font-size classes in one list
@@ -363,7 +366,7 @@ function CodeLock({
               type="button"
               aria-label={`${dial(d, 1)}`}
               onClick={() => spin(i, 1)}
-              className={QUEST_BTN}
+              className={`cursor-target ${QUEST_BTN}`}
             >
               ▲
             </button>
@@ -374,13 +377,13 @@ function CodeLock({
               type="button"
               aria-label={`${dial(d, -1)}`}
               onClick={() => spin(i, -1)}
-              className={QUEST_BTN}
+              className={`cursor-target ${QUEST_BTN}`}
             >
               ▼
             </button>
           </div>
         ))}
-        <button type="button" onClick={onTry} className={QUEST_BTN}>
+        <button type="button" onClick={onTry} className={`cursor-target ${QUEST_BTN}`}>
           {labels.guessHint}
         </button>
       </div>
