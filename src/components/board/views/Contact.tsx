@@ -41,6 +41,11 @@ export default function Contact() {
             <span className="mt-1 block font-mono text-[11px] break-all text-neutral-500">
               {c.sub}
             </span>
+            {/* The same condition as the target above, said out loud: a link that
+                leaves for a new tab announces it, because a screen reader user
+                gets no window to watch change. The mail link stays silent — it
+                opens a client, not a tab. */}
+            {c.href.startsWith('http') && <span className="sr-only">{t('contact.newTab')}</span>}
           </a>
         ))}
       </div>

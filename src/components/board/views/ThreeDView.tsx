@@ -6,7 +6,7 @@ import gsap from 'gsap';
 import { useRef } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 
-// No infinite loops here (T3b.6), and not a .cursor-target: it performs no action.
+// No infinite loops here, and not a .cursor-target: it performs no action.
 export default function ThreeDView() {
   const t = useT();
   const scope = useRef<HTMLElement>(null);

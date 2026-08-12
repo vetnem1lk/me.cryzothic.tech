@@ -42,34 +42,43 @@ import {
 } from '../story';
 import Lightbox from './Lightbox';
 
-// Slots: a 420px pane at lg, else the stage column less its chrome (24 + 2 + chat 320 + 32).
+// Slots: a 420px pane once the row form is on at xl. Below it the photo spans the stage
+// column, which is the viewport less everything around it — 24 gutter, 2 frame, 320 chat,
+// 7 scrollbar, 32 card padding, 2 card border. Exact while the chat column sits on its
+// 320 minimum, generous above that where it grows to 30%, which is the safe way to be off.
 const SIZES =
-  '(min-width: 1024px) 420px, (min-width: 768px) calc(100vw - 378px), calc(100vw - 58px)';
+  '(min-width: 1280px) 420px, (min-width: 768px) calc(100vw - 387px), calc(100vw - 58px)';
 
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
 const QUEST_BTN =
   'cursor-target rounded-md border border-dashed border-accent/50 px-2 py-1 font-mono text-xs text-neutral-200 hover:border-accent';
 
+// Every stamp line on the page, at the one size they all share. Spelled out instead of
+// composed wherever a heading wants a different size: the arbitrary 11px is emitted after
+// text-sm and text-xs and carries the same weight, so it wins the tie and `CAPS text-sm`
+// is 11px rather than 14.
 const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 
-// One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
-// foot, and the crosshair around the whole of it. A cover that IS a button wears exactly
-// this, which is what keeps a pressable row from advertising itself as one — finding
-// that out is the game.
+// One cover, one row: the stamp in the top-left corner, the riddle in the middle, the
+// hint under it. Every cover wears exactly this, button or not, which is what keeps a
+// pressable row from advertising itself as one — finding that out is the game. The
+// crosshair is not part of it: it goes on the covers the visitor presses, and on the
+// dialogue while it waits for its answer. `relative` is here for the stamp alone, which
+// hangs off this box's corner rather than standing in the column with the riddle.
 //
 // The height is a floor rather than a fixed box. Wide, the floor is the height of the
-// photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
-// above its caption and the floor only comes close, so the page moves a little. Either
+// photo pane the cover hides, so lifting one shifts nothing; stacked, the photo alone
+// can run past the floor several times over, so lifting a cover grows the row. Either
 // way a cover that outgrows the floor pushes its own row down instead of scrolling
 // inside a square it can no longer hold. `-safe` centring stays for that case: plain
 // `center` overflows in both directions and puts the top of a long card out of reach.
-const COVER = `cursor-target flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center lg:min-h-[420px]`;
+const COVER = `relative flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center xl:min-h-[420px]`;
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle. It
 // grows with the row, because on a row this size a small one reads as a caption.
 const BIG = 'block font-mono text-5xl leading-none text-neutral-100 sm:text-6xl lg:text-7xl';
-const HINT = 'block text-xs leading-snug text-neutral-400';
+const HINT = 'block text-sm leading-snug text-neutral-400';
 // The rocket is the one cover carrying two lines of prose under its riddle — the hint
 // and the beam's own report — so both of them shrink to buy the scene its room back.
 // Colourless: the two lines rank differently, and one class list must not try to win
@@ -85,13 +94,23 @@ type Labels = (typeof content)['en']['sector']['nda']['labels'];
 
 // The two lines every cover carries, whatever quest is under them. The file number is
 // id'd so a cover that is a button can say it first, before the riddle's own line.
+//
+// One block in the true corner of the cover, while the riddle keeps the middle to
+// itself: markings belong on the corner of a cover rather than over the thing the cover
+// is asking. It opts out of the centred flow altogether — `top-3 left-3` pins it to the
+// cover's own padding corner whatever the flow below it does (the rocket pads its flow
+// clear of this corner), and leaving the flow is what stops a two-line header from
+// pushing the riddle off centre.
+// A span and not a div, because three of the covers are buttons and a button may hold
+// neither a division nor anything else that is not phrasing — an absolutely positioned
+// box is blockified anyway, so the two readings stack exactly as they did loose.
 const stamp = (code: string, classified: string, id: ChapterId) => (
-  <>
+  <span className="absolute top-3 left-3 text-left">
     <span id={`${id}-code`} className={`${CAPS} block text-accent`}>
       {code}
     </span>
-    <span className={`${CAPS} block text-neutral-500`}>{classified}</span>
-  </>
+    <span className={`${CAPS} block text-neutral-400`}>{classified}</span>
+  </span>
 );
 
 // Language-neutral on purpose: the mirrors need names that never change with rotation
@@ -183,15 +202,24 @@ function Laser({
     paint(svg.current, id, matchMedia('(prefers-reduced-motion: no-preference)').matches);
   });
 
+  // Centred like the other six, and the only one that has to buy room to do it: the scene
+  // is 208px of square before either line under it is counted, so a flow centred in the
+  // whole cover would start level with the stamp's last line. The extra top padding is
+  // measured against the stamp rather than chosen — 48px clears the 45 the block occupies
+  // (12 down, then two 16.5px lines) — and it is padding rather than a gap under the stamp
+  // because the stamp is positioned against the padding box and so does not move with it.
+  // `-safe` centring falls back to the top edge when a translation runs long, so the flow
+  // starts at 48 at worst and can never climb into the corner, whatever the wrapping does.
   return (
-    <div className={`${COVER} justify-between`}>
+    <div className={`${COVER} justify-center-safe pt-12`}>
       {stamp(code, labels.classified, id)}
       {/* Square by a height it is given, never by the width it is offered: the row is far
           wider than it is tall, and a square that took the width would stand a whole
-          screen high and drag its row with it. These two heights are what is left inside
-          the cover's own floor once the stamp and the two lines below have taken theirs,
-          so the rocket's row measures what the six other rows measure. */}
-      <div className="relative aspect-square h-52 lg:h-72">
+          screen high and drag its row with it. These two heights are what the cover's own
+          floor holds with the two lines below them — the stamp is off in the corner and
+          costs the scene nothing — so the rocket's row measures what the six other rows
+          measure. */}
+      <div className="relative aspect-square h-52 xl:h-72">
         <svg
           ref={svg}
           viewBox={`0 0 ${VIEW} ${VIEW}`}
@@ -265,7 +293,7 @@ function Laser({
           up: on the rocket, in the floor, or out of the near side. It speaks whenever the
           wording changes, so a turn that moves the beam from one wall to the other is
           heard — which is what makes the puzzle solvable with the screen off. */}
-      <span role="status" className={`${FINE} text-neutral-500`}>
+      <span role="status" className={`${FINE} text-neutral-400`}>
         {beam.hit
           ? labels.laserStatusHit
           : edge === 'bottom'
@@ -301,7 +329,15 @@ function reveal(card: Element | null | undefined, id: ChapterId): void {
   if (!card) return;
   switch (REVEALS[id]) {
     case 'resolve':
-      gsap.from(card, { filter: 'blur(16px)', scale: 1.02, duration: 0.45 });
+      // Dropped at the end like the other two, and for the same reason: where the tween
+      // lands is where the stylesheet was going to put the card anyway, so writing it out
+      // buys nothing and costs an inline declaration no later rule of ours can outrank.
+      gsap.from(card, {
+        filter: 'blur(16px)',
+        scale: 1.02,
+        duration: 0.45,
+        clearProps: 'filter,scale',
+      });
       return;
     case 'blueprint':
       // The one that has to be written out at both ends. A card with no filter of its
@@ -357,7 +393,11 @@ export default function Nda() {
   const [now, setNow] = useState(0);
   const frame = useRef(0);
 
-  useSyncExternalStore(subscribe, getVersion);
+  // The count of moves the case file has taken, which is what the arrival below waits on:
+  // every quest verb bumps it, so the render that lands an open file is the render after
+  // the bump — whoever asked for it, a cover under the visitor's hand or a code typed at
+  // the agent on the other side of the board.
+  const version = useSyncExternalStore(subscribe, getVersion);
 
   // The rocket's door, and the one quest whose unlock is on a clock rather than on a
   // click: the panel holds this in a timer for the length of its hit-frame, so it has to
@@ -368,25 +408,51 @@ export default function Nda() {
     laserIgnite(chapter);
   }, []);
 
-  useEffect(() => {
-    const opened = justOpened.current;
-    const chose = justChose.current;
-    if (!opened && !chose) return;
-    justOpened.current = null;
-    justChose.current = null;
-    const handle = scope.current?.querySelector<HTMLElement>(
-      opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`,
-    );
-    handle?.focus();
-    // Only a cover coming off has a file to bring in: answering the guard leaves his
-    // cover where it was, and running an arrival over it would say otherwise. Focus is
-    // already gone by here, so nothing a visitor is waiting on is behind the motion —
-    // and with motion turned down there is nothing to run at all. What arrives is the
-    // card — the framed box the photo and its caption share, nearest one above the
-    // button, and the only element here carrying a border to bring up with it.
-    if (opened && matchMedia('(prefers-reduced-motion: no-preference)').matches)
-      reveal(handle?.closest('div'), opened);
-  });
+  // Which files have already come in. The first pass fills this and owes nothing: a view
+  // that mounts on a case already part-way through — a route back, the CV quest already
+  // won on another page — has files to show, not files arriving. Every id that turns up
+  // unlocked after that is one that was just unlocked, and its file arrives whatever took
+  // the cover off. A pass that runs twice on mount, as the development build's double
+  // invoke does, finds its own baseline and stays still.
+  const arrived = useRef<Set<ChapterId> | null>(null);
+
+  // Before the paint, and inside the hook's own context, which is what these tweens need
+  // on both counts: a `from` reads the card's painted values as the end it comes back to,
+  // so a pass running after the paint shows the finished card for a frame and only then
+  // starts from the blur — and a tween created loose would outlive the view that owns it.
+  useGSAP(
+    () => {
+      const first = arrived.current === null;
+      const seen = (arrived.current ??= new Set<ChapterId>());
+      const opened = justOpened.current;
+      const chose = justChose.current;
+      justOpened.current = null;
+      justChose.current = null;
+      // The handoff, and only for a cover the visitor was standing on when it went: the
+      // control he pressed is gone with it and focus went to <body>, which restarts
+      // tabbing at the top of the page. It is no longer what decides the arrival — a file
+      // opened by a word typed at the agent leaves him typing, and moving the cursor out
+      // of the field would be the site answering him by taking his hands off the keys.
+      if (opened || chose)
+        scope.current
+          ?.querySelector<HTMLElement>(
+            opened ? `[data-photo="${opened}"]` : `[data-dialog="${chose}"]`,
+          )
+          ?.focus();
+      // What arrives is the card — the framed box the photo and its caption share, and
+      // the only element here carrying a border to bring up with it. Focus, where there
+      // was any to move, is already gone by here, so nothing a visitor is waiting on sits
+      // behind the motion; and with motion turned down there is nothing to run at all,
+      // the file being already open and already where it ends up.
+      for (const id of CHAPTERS) {
+        if (!isUnlocked(id) || seen.has(id)) continue;
+        seen.add(id);
+        if (!first && matchMedia('(prefers-reduced-motion: no-preference)').matches)
+          reveal(scope.current?.querySelector(`[data-card="${id}"]`), id);
+      }
+    },
+    { scope, dependencies: [version] },
+  );
 
   // The pedal loop is the only frame work on this page; it must not outlive the view.
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
@@ -479,7 +545,7 @@ export default function Nda() {
               if (knock(id)) justOpened.current = id;
             }}
             aria-labelledby={`${id}-code ${hintId}`}
-            className={`${COVER} justify-center-safe`}
+            className={`cursor-target ${COVER} justify-center-safe`}
           >
             {stamp(code, labels.classified, id)}
             {/* Bare: what the number is counting up to is the riddle, and printing a
@@ -498,7 +564,7 @@ export default function Nda() {
             type="button"
             onClick={() => pedal(id)}
             aria-labelledby={`${id}-code ${hintId}`}
-            className={`${COVER} justify-center-safe`}
+            className={`cursor-target ${COVER} justify-center-safe`}
           >
             {stamp(code, labels.classified, id)}
             <span aria-hidden="true" className={BIG}>
@@ -513,7 +579,7 @@ export default function Nda() {
         const { phase, choice } = dialogState(id);
         if (phase === 'ask')
           return (
-            <div className={`${COVER} justify-center-safe`}>
+            <div className={`cursor-target ${COVER} justify-center-safe`}>
               {stamp(code, labels.classified, id)}
               <span id={`${id}-npc`} className={SAID}>
                 {dialog.npc}
@@ -554,7 +620,7 @@ export default function Nda() {
             // the one cover whose name carries an outcome, because the outcome is the
             // reward.
             aria-labelledby={`${id}-code ${id}-outcome ${hintId}`}
-            className={`${COVER} justify-center-safe`}
+            className={`cursor-target ${COVER} justify-center-safe`}
           >
             {stamp(code, labels.classified, id)}
             <span id={`${id}-outcome`} className={SAID}>
@@ -641,7 +707,7 @@ export default function Nda() {
   return (
     <section ref={scope} className="flex flex-col gap-5 p-4">
       <div>
-        <h2 className={`${CAPS} text-sm text-accent`}>{title}</h2>
+        <h2 className="font-mono text-sm tracking-widest text-accent uppercase">{title}</h2>
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{intro}</p>
       </div>
 
@@ -666,7 +732,7 @@ export default function Nda() {
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 24 64"
-                  className="mx-auto h-16 w-6 lg:mx-[210px]"
+                  className="mx-auto h-16 w-6 xl:mx-[198px]"
                 >
                   <path
                     data-wave
@@ -677,9 +743,17 @@ export default function Nda() {
                   />
                 </svg>
               )}
-              <div className="overflow-hidden rounded-md border border-dashed border-accent/40">
+              {/* The frame, and the id on it is how an arriving file finds its own card.
+                  The cover-to-photo swap happens inside it, and the frame is the thing
+                  seen to arrive: it holds the photo and the caption together, it carries
+                  the border, and it leaves out the run that leads into it — which belongs
+                  to neither file and would be clipped or blurred along with this one. */}
+              <div
+                data-card={id}
+                className="overflow-hidden rounded-md border border-dashed border-accent/40"
+              >
                 {isUnlocked(id) ? (
-                  <figure className="cursor-target flex max-lg:flex-col">
+                  <figure className="flex max-xl:flex-col">
                     {/* A real button, not a click handler on the image: the photo is
                         cropped to one square — the set runs from a 1.78 landscape to a
                         1:1.78 portrait — so opening the uncropped file is an action and
@@ -689,7 +763,7 @@ export default function Nda() {
                       type="button"
                       data-photo={id}
                       onClick={() => setOpenAt(id)}
-                      className="cursor-target block w-full lg:w-[420px] lg:shrink-0"
+                      className="cursor-target block w-full xl:w-[420px] xl:shrink-0"
                     >
                       <picture>
                         <source
@@ -708,11 +782,22 @@ export default function Nda() {
                         />
                       </picture>
                     </button>
-                    <figcaption className="flex-1 p-4">
+                    {/* A column rather than a stack of paragraphs, so the three parts can
+                        take their own places in it: the file's markings at the top, the
+                        credit pinned to the foot, and the story on the auto margins that
+                        divide whatever is left — which centres it against the photo beside
+                        it. Stacked, there is no slack to divide and the autos are not
+                        asked for at all: the story keeps the same small gap under the
+                        title that the title keeps under the code, so the three read as one
+                        block. Left-aligned throughout: a cover is centred, an open file
+                        is read. */}
+                    <figcaption className="flex flex-1 flex-col p-4">
                       <p className={`${CAPS} text-accent`}>{ch.code}</p>
-                      <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
-                      <p className="mt-1 text-sm text-neutral-300">{ch.story}</p>
-                      <p className="mt-2 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
+                      <p className="mt-1 text-lg font-semibold text-neutral-100">{ch.title}</p>
+                      <p className="mt-1 max-w-prose text-base text-neutral-300 xl:my-auto">
+                        {ch.story}
+                      </p>
+                      <p className="mt-2 font-mono text-[11px] text-neutral-400">{ch.credit}</p>
                     </figcaption>
                   </figure>
                 ) : (
@@ -726,7 +811,7 @@ export default function Nda() {
 
       <details className="rounded-md border border-dashed border-neutral-700 p-3">
         <summary className={`cursor-target ${CAPS} text-neutral-400`}>{archive.label}</summary>
-        <p id="archive-classified" className={`mt-3 ${CAPS} text-neutral-500`}>
+        <p id="archive-classified" className={`mt-3 ${CAPS} text-neutral-400`}>
           {labels.classified}
         </p>
         {/* The strike-through is what says "withheld" — the colour must not, or these
@@ -738,7 +823,7 @@ export default function Nda() {
             </li>
           ))}
         </ul>
-        <p id="archive-declassified" className={`mt-3 ${CAPS} text-neutral-500`}>
+        <p id="archive-declassified" className={`mt-3 ${CAPS} text-neutral-400`}>
           {labels.declassified}
         </p>
         <ul
@@ -752,7 +837,9 @@ export default function Nda() {
       </details>
 
       <div>
-        <h3 className={`${CAPS} text-xs text-neutral-500`}>{clearanceTitle}</h3>
+        <h3 className="font-mono text-xs tracking-widest text-neutral-400 uppercase">
+          {clearanceTitle}
+        </h3>
         <p className="mt-2 max-w-2xl text-sm text-neutral-400">{clearance}</p>
         <div className="mt-3 flex flex-wrap gap-3">
           {[

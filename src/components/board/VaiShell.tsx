@@ -13,7 +13,19 @@ import { runCommand } from './commands';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
 import { EMPTY, push, take, type DrainState } from './drain';
-import { CHAPTERS, DIMS, isUnlocked, photoSlug, subscribe, type ChapterId } from './story';
+import { chain } from './queue';
+import {
+  CHAPTERS,
+  DIMS,
+  earnedCount,
+  firstContact,
+  isUnlocked,
+  photoSlug,
+  subscribe,
+  takeAchievement,
+  type Achievement,
+  type ChapterId,
+} from './story';
 import { MODE_NAME, history, type AgentMode, type ChatMessage } from './transport';
 import Lightbox from './views/Lightbox';
 
@@ -30,6 +42,16 @@ const segClass = (active: boolean, side: 'l' | 'r') =>
 // A number, so React can compare snapshots without a memo: the shell only cares how
 // many covers are off, not which.
 const openFileCount = () => CHAPTERS.filter(isUnlocked).length;
+
+// What each badge is called out loud. The ids are the store's; the lines are the
+// dictionary's, and the `[sys]` badge is still the renderer's.
+const ACH_KEY: Record<Achievement, string> = {
+  'first-file': 'vai.sys.achFirstFile',
+  'all-seven': 'vai.sys.achAllSeven',
+  konami: 'vai.sys.achKonami',
+  'first-contact': 'vai.sys.achFirstContact',
+  blueprints: 'vai.sys.achBlueprints',
+};
 
 // Which chapter a chat photo is of, read back off its own URL. The message carries
 // what it shows rather than an id — the wire shape stays two strings — and the slug
@@ -98,7 +120,8 @@ export default function VaiShell({
   const [photo, setPhoto] = useState<ChapterId | null>(null);
   const modeRef = useRef<AgentMode>('vai');
   // ponytail: promise-chain serialization — replies land in submit order even
-  // when a future live transport resolves out of order.
+  // when a future live transport resolves out of order. The chaining itself is
+  // queue.ts, which is where that claim is pinned instead of asserted.
   const queueRef = useRef<Promise<void>>(Promise.resolve());
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -227,6 +250,18 @@ export default function VaiShell({
     announced.current = openFiles;
   }, [openFiles]);
 
+  // The badges, on the same principle and one lane over: earned all over the board —
+  // and three of them nowhere near a cover — announced by the one thing standing
+  // beside all of them. Its own snapshot, because a badge can be earned without a
+  // cover coming off; the queue is what is read, not the count, so a second run of
+  // this effect finds it already empty rather than saying everything twice; the
+  // dep is the doorbell — remove it and the queue is only read once.
+  const badges = useSyncExternalStore(subscribe, earnedCount);
+  useEffect(() => {
+    for (let a = takeAchievement(); a; a = takeAchievement())
+      setMsgs((m) => [...m, { role: 'sys', text: tRef.current(ACH_KEY[a]) }]);
+  }, [badges]);
+
   // Navigation is the sheet's exit: on a phone the shell covers the board, so a
   // route change — an action link, or any /command that navigates — means the
   // visitor chose a destination hidden behind the overlay. Only a *change*
@@ -309,6 +344,11 @@ export default function VaiShell({
           },
           onDone: () => {
             st = { ...st, doneFeeding: true };
+            // A word said to VAI and answered. Here rather than at submit, so a
+            // question the transport never got an answer to earns nothing — and
+            // idempotent in the store, so every turn after the first is free.
+            // A clean stream that said nothing is not an answer either.
+            if (st.buf) firstContact();
           },
           onError: (msg, vars) => {
             // Ending the feed is what closes the turn: the loop types out
@@ -337,53 +377,54 @@ export default function VaiShell({
     // A command and its answer are shell-local — shown, never replayed to the
     // model, whose message and character budget belongs to the conversation.
     setMsgs((m) => [...m, { role: 'user', text, from: requestMode, id: askId, local: !!cmd }]);
-    queueRef.current = queueRef.current
-      .then(async () => {
-        if (cmd) {
-          // The registry answers with a dictionary key; the language is whatever
-          // the URL said when the visitor pressed Enter. /en and /ru are the two
-          // that then change it — their confirmation is written in the language
-          // they switch to, so it still matches the page it lands on.
-          setMsgs((m) => [
-            ...m,
-            {
-              role: 'agent',
-              text: t(cmd.textKey),
-              from: requestMode,
-              local: true,
-              // The photo's alt is a dictionary key like the answer itself, and is
-              // resolved with it: what goes into the log is what is on the screen.
-              image: cmd.image && { ...cmd.image, alt: t(cmd.image.alt) },
-            },
-          ]);
-          if (cmd.navigateLang) {
-            // Same sector, other language. Read off the address bar rather than
-            // the render that queued this, because a command can sit in the queue
-            // behind a whole model answer while the visitor keeps clicking — the
-            // mirror has to be of where they are now. `~` then puts the result
-            // outside the router base, which is where the other language lives.
-            const to = pathForLang(cmd.navigateLang, window.location.pathname);
-            // Already reading that language: pathForLang is a no-op and so is the
-            // command. Pushing the identical URL would only litter the history.
-            // The guard compares paths alone on purpose — the query and hash
-            // appended below are the ones already in the bar, so weighing them
-            // too would only ever compare each to itself.
-            if (to !== window.location.pathname)
-              navigate('~' + to + window.location.search + window.location.hash);
-          } else if (cmd.navigateTo) navigate(cmd.navigateTo);
-          return;
-        }
-        // An empty pending line is the thinking state: the cursor blinks alone
-        // until the first token lands.
+    // The `.catch` stays here rather than moving into the chain: it is the shell
+    // that has a log to write the failure into, and swallowing it one call earlier
+    // would print nothing.
+    queueRef.current = chain(queueRef.current, async () => {
+      if (cmd) {
+        // The registry answers with a dictionary key; the language is whatever
+        // the URL said when the visitor pressed Enter. /en and /ru are the two
+        // that then change it — their confirmation is written in the language
+        // they switch to, so it still matches the page it lands on.
         setMsgs((m) => [
           ...m,
-          { role: 'agent', text: '', from: requestMode, id: replyId, pending: true },
+          {
+            role: 'agent',
+            text: t(cmd.textKey),
+            from: requestMode,
+            local: true,
+            // The photo's alt is a dictionary key like the answer itself, and is
+            // resolved with it: what goes into the log is what is on the screen.
+            image: cmd.image && { ...cmd.image, alt: t(cmd.image.alt) },
+          },
         ]);
-        await runTurn(text, requestMode, askId, replyId);
-      })
-      .catch(() => {
-        setMsgs((m) => [...m, { role: 'sys', text: t('vai.sys.transport') }]);
-      });
+        if (cmd.navigateLang) {
+          // Same sector, other language. Read off the address bar rather than
+          // the render that queued this, because a command can sit in the queue
+          // behind a whole model answer while the visitor keeps clicking — the
+          // mirror has to be of where they are now. `~` then puts the result
+          // outside the router base, which is where the other language lives.
+          const to = pathForLang(cmd.navigateLang, window.location.pathname);
+          // Already reading that language: pathForLang is a no-op and so is the
+          // command. Pushing the identical URL would only litter the history.
+          // The guard compares paths alone on purpose — the query and hash
+          // appended below are the ones already in the bar, so weighing them
+          // too would only ever compare each to itself.
+          if (to !== window.location.pathname)
+            navigate('~' + to + window.location.search + window.location.hash);
+        } else if (cmd.navigateTo) navigate(cmd.navigateTo);
+        return;
+      }
+      // An empty pending line is the thinking state: the cursor blinks alone
+      // until the first token lands.
+      setMsgs((m) => [
+        ...m,
+        { role: 'agent', text: '', from: requestMode, id: replyId, pending: true },
+      ]);
+      await runTurn(text, requestMode, askId, replyId);
+    }).catch(() => {
+      setMsgs((m) => [...m, { role: 'sys', text: t('vai.sys.transport') }]);
+    });
   }
 
   return (
@@ -447,9 +488,16 @@ export default function VaiShell({
             </p>
           ) : (
             <p
-              key={i}
-              // A line still being typed stays out of the live region: an
-              // announcement every frame is unusable. It is read once, whole.
+              // Two keys for one line, deliberately. A line still being typed is
+              // aria-hidden, because an announcement every frame is unusable —
+              // but that made the finish nothing more than an attribute coming
+              // off, and an un-hidden node is not an added one: several screen
+              // readers say nothing at all. Moving the key on the same commit
+              // makes React replace the <p> rather than update it, so the
+              // finished answer enters the live region as new content and is
+              // read once, whole. Only the typing line's key moves — every other
+              // index keeps the key it had, so nothing else in the log reshuffles.
+              key={m.pending ? `${i}-typing` : i}
               aria-hidden={m.pending || undefined}
               className={
                 m.role === 'agent'

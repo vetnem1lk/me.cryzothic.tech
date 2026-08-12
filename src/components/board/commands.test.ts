@@ -5,7 +5,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import content from '../../content.json';
 import { translate } from '../../i18n/I18nContext';
-import { COMMAND_ROW, runCommand } from './commands';
+import { COMMAND_ROW, ROUTE_PATHS, runCommand } from './commands';
 import {
   CHAPTERS,
   DECLASSIFY_CHAPTER,
@@ -44,6 +44,16 @@ describe('runCommand', () => {
   });
   it('unknown input returns null (falls through to transport)', () => {
     expect(runCommand('tell me about vlad')).toBeNull();
+  });
+  // The registry is a plain object literal, so every key on Object.prototype is
+  // reachable through it by inheritance. `Object.hasOwn` is what keeps the lookup
+  // to the twenty-odd commands actually written down: `key in COMMANDS` would
+  // answer '__proto__' with the prototype itself and 'constructor' with a function
+  // that returns `{}` — one throws on call, the other prints a line nobody wrote.
+  it('inherited keys are not commands', () => {
+    expect(runCommand('__proto__')).toBeNull();
+    expect(runCommand('constructor')).toBeNull();
+    expect(runCommand('/__proto__')).toBeNull();
   });
   it('jokes rotate', () => {
     expect(runCommand('/joke')?.textKey).not.toBe(runCommand('/joke')?.textKey);
@@ -99,6 +109,33 @@ describe('runCommand', () => {
     const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(Boolean);
     expect(routes).toHaveLength(7);
     expect(new Set(routes).size).toBe(routes.length);
+  });
+});
+
+// The route table the Stage mounts and the destinations these commands name are one
+// list now. These two pins are what that buys: the language can never leak into a
+// path, and a sector can never be reachable from the shell but absent from the router.
+describe('ROUTE_PATHS', () => {
+  it('never carries a language prefix', () => {
+    // Case-folded like locale.ts reads it back: wouter matches the router base
+    // case-insensitively, so a '/RU/…' route would mount the Russian router and
+    // be exactly as wrong as the lower-case one.
+    for (const p of ROUTE_PATHS) {
+      const q = p.toLowerCase();
+      expect(q === '/ru' || q.startsWith('/ru/'), p).toBe(false);
+    }
+    // Non-vacuous: an emptied list would satisfy the loop above in silence.
+    expect(ROUTE_PATHS).toContain('/nda');
+  });
+
+  it('holds every destination the commands name, and nothing else', () => {
+    const routes = COMMAND_ROW.map((c) => runCommand(c)?.navigateTo).filter(
+      (r): r is string => !!r,
+    );
+    // Set-equal both ways: a route the shell cannot reach is as much a drift as a
+    // command pointing at a sector the router will not mount. `cat resume` is the
+    // one alias with a destination and it is /loot, already on the list.
+    expect([...new Set(routes)].sort()).toEqual([...ROUTE_PATHS].sort());
   });
 });
 

@@ -16,7 +16,9 @@ import apiTransportSrc from '../apiTransport.ts?raw';
 import commandsSrc from '../commands.ts?raw';
 import cvFlagSrc from '../cvFlag.ts?raw';
 import drainSrc from '../drain.ts?raw';
+import konamiSrc from '../konami.ts?raw';
 import laserSrc from '../laser.ts?raw';
+import queueSrc from '../queue.ts?raw';
 import sprintSrc from '../sprint.ts?raw';
 import storySrc from '../story.ts?raw';
 import transportSrc from '../transport.ts?raw';
@@ -42,9 +44,9 @@ export interface CodeProject {
   files: CodeFile[];
 }
 
-// ponytail: two curated projects, not a directory walk — more land when the founder
-// picks them (spec §T3c.5). The server entries are the three guardrail modules; the
-// private prompts they load are, deliberately, not among them.
+// ponytail: two curated projects, not a directory walk — more land as they are
+// picked. The server entries are the three guardrail modules; the private prompts
+// they load are, deliberately, not among them.
 export const PROJECTS: CodeProject[] = [
   {
     id: 'site',
@@ -62,7 +64,9 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/board/commands.ts', content: commandsSrc },
       { path: 'src/components/board/cvFlag.ts', content: cvFlagSrc },
       { path: 'src/components/board/drain.ts', content: drainSrc },
+      { path: 'src/components/board/konami.ts', content: konamiSrc },
       { path: 'src/components/board/laser.ts', content: laserSrc },
+      { path: 'src/components/board/queue.ts', content: queueSrc },
       { path: 'src/components/board/sprint.ts', content: sprintSrc },
       { path: 'src/components/board/story.ts', content: storySrc },
       { path: 'src/components/board/transport.ts', content: transportSrc },

@@ -6,7 +6,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 // Read-and-parse rather than `import … with { type: 'json' }`: this build also runs
-// on the VPS, and JSON import attributes only became stable in Node 22.12.
+// on older Node, and JSON import attributes are only stable since 22.12.
 const content = JSON.parse(readFileSync(new URL('../src/content.json', import.meta.url), 'utf8'));
 
 const ORIGIN = 'https://me.cryzothic.tech';

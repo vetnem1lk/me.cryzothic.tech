@@ -148,7 +148,7 @@ export default function Lightbox({ chapters, openAt, onClose }: Props) {
           <figcaption className="bg-neutral-950/85 p-3">
             <p className="font-mono text-[11px] tracking-widest text-accent uppercase">{ch.code}</p>
             <p className="mt-1 text-sm font-semibold text-neutral-100">{ch.title}</p>
-            <p className="mt-1 font-mono text-[11px] text-neutral-500">{ch.credit}</p>
+            <p className="mt-1 font-mono text-[11px] text-neutral-400">{ch.credit}</p>
           </figcaption>
           <button
             type="button"

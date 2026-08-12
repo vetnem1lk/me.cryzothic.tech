@@ -42,14 +42,16 @@ describe('the quest table', () => {
 });
 
 describe('knock', () => {
-  test('unlocks on the 3rd knock, once', () => {
+  test('unlocks on the 5th knock, once', () => {
     expect(story.knock(KNOCK)).toBe(false);
     expect(story.knockCount(KNOCK)).toBe(1);
+    expect(story.knock(KNOCK)).toBe(false);
+    expect(story.knock(KNOCK)).toBe(false);
     expect(story.knock(KNOCK)).toBe(false);
     expect(story.knock(KNOCK)).toBe(true);
     expect(story.isUnlocked(KNOCK)).toBe(true);
     expect(story.knock(KNOCK)).toBe(false); // no re-unlock
-    expect(story.knockCount(KNOCK)).toBe(3);
+    expect(story.knockCount(KNOCK)).toBe(5);
   });
 
   test('leaves every chapter another quest guards alone', () => {
@@ -100,11 +102,11 @@ describe('sprint', () => {
   // stored state would spend the visitor's pushes on rendering them.
   test('reading the speed is free: it never spends what was pushed', () => {
     story.sprintPush(SPRINT, 1000);
-    expect(story.sprintSpeed(SPRINT, 1000)).toBeCloseTo(7);
-    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(1); // a second of coasting
-    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(1); // and asking twice costs nothing
+    expect(story.sprintSpeed(SPRINT, 1000)).toBeCloseTo(18);
+    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(3); // a second of coasting
+    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(3); // and asking twice costs nothing
     story.sprintPush(SPRINT, 2000);
-    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(8); // 1 + one push, decayed once
+    expect(story.sprintSpeed(SPRINT, 2000)).toBeCloseTo(21); // 3 + one push, decayed once
   });
 
   test('leaves every chapter another quest guards alone', () => {
@@ -224,10 +226,118 @@ describe('the lore queue', () => {
     story.knock(KNOCK);
     story.knock(KNOCK);
     story.knock(KNOCK);
+    story.knock(KNOCK);
+    story.knock(KNOCK);
     story.guess(GUESS);
     expect(story.takeLoreChapter()).toBe(KNOCK);
     expect(story.takeLoreChapter()).toBe(GUESS);
     expect(story.takeLoreChapter()).toBeNull();
+  });
+});
+
+// The badges sit beside the chapters and drain the same way: a second queue, filled
+// once per badge, that whoever announces them empties. Two of them are the covers
+// themselves — the first one off and the whole set — so they are earned through the
+// quests rather than by anyone calling for them.
+describe('the achievement ledger', () => {
+  /** Six of the seven doors, each answering only to its own quest. Laser is left shut. */
+  const openSix = () => {
+    for (let i = 0; i < 5; i++) story.knock(KNOCK);
+    story.guess(GUESS);
+    markCvDownloaded();
+    story.syncCvQuest();
+    story.declassify(`declassify ${DECLASSIFY_CHAPTER}`);
+    for (let i = 0; i < 8; i++) story.sprintPush(SPRINT, i * 250);
+    story.dialogChoose(DIALOG, 0);
+    story.dialogOpen(DIALOG);
+  };
+
+  const igniteLaser = () => {
+    story.rotateMirror(LASER, 0);
+    story.rotateMirror(LASER, 1);
+    story.laserIgnite(LASER);
+  };
+
+  test('the first cover off earns a badge, once', () => {
+    expect(story.earnedCount()).toBe(0);
+    for (let i = 0; i < 5; i++) story.knock(KNOCK);
+    expect(story.isUnlocked(KNOCK)).toBe(true);
+    expect(story.earnedCount()).toBe(1);
+    expect(story.takeAchievement()).toBe('first-file');
+    expect(story.takeAchievement()).toBeNull();
+  });
+
+  test('the seventh cover earns the set, and no cover before it does', () => {
+    openSix();
+    expect(CHAPTERS.filter(story.isUnlocked)).toHaveLength(6);
+    expect(story.takeAchievement()).toBe('first-file'); // the queue is FIFO, like /lore's
+    expect(story.takeAchievement()).toBeNull(); // six is not seven
+    igniteLaser();
+    expect(story.takeAchievement()).toBe('all-seven');
+    expect(story.hasEarned('all-seven')).toBe(true);
+  });
+
+  test('a badge is earned once — the second time is not a second badge', () => {
+    const cb = vi.fn();
+    const unsubscribe = story.subscribe(cb);
+    story.konamiEntered();
+    expect(story.earnedCount()).toBe(1);
+    expect(cb).toHaveBeenCalledTimes(1);
+    story.konamiEntered();
+    expect(story.earnedCount()).toBe(1);
+    expect(cb).toHaveBeenCalledTimes(1); // nothing changed, so nobody is told
+    unsubscribe();
+    expect(story.takeAchievement()).toBe('konami');
+    expect(story.takeAchievement()).toBeNull();
+  });
+
+  // The shell announces badges from a subscriber that reads the ledger, so a notify
+  // fired before the badge is in it would hand the announcer the count it already had.
+  test('the badge is in the ledger before the unlock that earned it notifies', () => {
+    let seen = -1;
+    const unsubscribe = story.subscribe(() => {
+      seen = story.earnedCount();
+    });
+    story.guess(GUESS);
+    unsubscribe();
+    expect(seen).toBe(1);
+  });
+
+  // Draining is a change like any other: the badge left the queue, and whoever is
+  // showing one as pending has to be told, or it stays on screen after it was spent.
+  // (takeLoreChapter is deliberately left as it is — this pins the badge lane only.)
+  test('taking a badge notifies; taking from an empty queue does not', () => {
+    story.konamiEntered();
+    const cb = vi.fn();
+    const unsubscribe = story.subscribe(cb);
+    expect(story.takeAchievement()).toBe('konami');
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(story.takeAchievement()).toBeNull();
+    expect(cb).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  test('the badges nobody unlocks a chapter for land once each', () => {
+    story.firstContact();
+    story.firstContact();
+    story.sourceRead();
+    story.sourceRead();
+    expect(story.earnedCount()).toBe(2);
+    expect(story.hasEarned('first-contact')).toBe(true);
+    expect(story.hasEarned('blueprints')).toBe(true);
+    expect(story.hasEarned('konami')).toBe(false);
+    expect(story.takeAchievement()).toBe('first-contact');
+    expect(story.takeAchievement()).toBe('blueprints');
+    expect(story.takeAchievement()).toBeNull();
+  });
+
+  test('resetStory takes the ledger with it, undrained badges included', () => {
+    story.konamiEntered();
+    story.firstContact();
+    story.resetStory();
+    expect(story.earnedCount()).toBe(0);
+    expect(story.hasEarned('konami')).toBe(false);
+    expect(story.takeAchievement()).toBeNull();
   });
 });
 
@@ -316,6 +426,8 @@ describe('stepping across the open chapters', () => {
 
   test('a covered neighbour is stepped over, not landed on', () => {
     // Two quests with at least one chapter standing between them, left covered.
+    story.knock(KNOCK);
+    story.knock(KNOCK);
     story.knock(KNOCK);
     story.knock(KNOCK);
     story.knock(KNOCK);

@@ -1,10 +1,25 @@
 // The status bar across the top of the board — the line that tells a visitor
-// what this site is before any of the game furniture makes sense. The string is
-// repeated for width only, and every copy past the first is aria-hidden.
+// what this site is before any of the game furniture makes sense, and beside it
+// the one hint the site gives away for free. The last slot is width only, and so
+// is the second track; both are aria-hidden.
+import { useSyncExternalStore } from 'react';
 import { useT } from '../../i18n/I18nContext';
+import { hasEarned, subscribe } from './story';
+
+// Module scope, so useSyncExternalStore is handed the same function every render.
+const cheatOn = () => hasEarned('konami');
 
 export default function Marquee() {
-  const status = useT()('marquee.status');
+  const t = useT();
+  const cheat = useSyncExternalStore(subscribe, cheatOn);
+  // The hint is up from the first paint — a code nobody is told about is not an
+  // easter egg, it is dead code. Once it has been entered, its slot keeps the
+  // payoff for the rest of the session instead of teaching what is already known.
+  const phrases = [
+    t('marquee.status'),
+    t(cheat ? 'marquee.konamiDone' : 'marquee.konamiHint'),
+    t('marquee.status'),
+  ];
 
   return (
     <div
@@ -17,8 +32,10 @@ export default function Marquee() {
           aria-hidden={dup === 1 || undefined}
           className="marquee-track flex min-w-full shrink-0 justify-around gap-12 font-mono text-[11px] tracking-[0.2em] whitespace-nowrap text-neutral-500 uppercase"
         >
-          {[0, 1, 2].map((i) => (
-            <span key={i} aria-hidden={i > 0 || undefined}>{status}</span>
+          {phrases.map((p, i) => (
+            <span key={i} aria-hidden={i > 1 || undefined}>
+              {p}
+            </span>
           ))}
         </div>
       ))}
