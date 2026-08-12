@@ -60,11 +60,12 @@ const QUEST_BTN =
 // is 11px rather than 14.
 const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 
-// One cover, one row: the stamp at the top, the riddle in the middle, the hint at the
-// foot. Every cover wears exactly this, button or not, which is what keeps a pressable
-// row from advertising itself as one — finding that out is the game. The crosshair is
-// not part of it: it goes on the covers the visitor presses, and on the dialogue while
-// it waits for its answer.
+// One cover, one row: the stamp in the top-left corner, the riddle in the middle, the
+// hint under it. Every cover wears exactly this, button or not, which is what keeps a
+// pressable row from advertising itself as one — finding that out is the game. The
+// crosshair is not part of it: it goes on the covers the visitor presses, and on the
+// dialogue while it waits for its answer. `relative` is here for the stamp alone, which
+// hangs off this box's corner rather than standing in the column with the riddle.
 //
 // The height is a floor rather than a fixed box. Wide, the floor is the height of the
 // photo pane the cover hides, so lifting one shifts nothing; stacked, the photo sits
@@ -72,7 +73,7 @@ const CAPS = 'font-mono text-[11px] tracking-widest uppercase';
 // way a cover that outgrows the floor pushes its own row down instead of scrolling
 // inside a square it can no longer hold. `-safe` centring stays for that case: plain
 // `center` overflows in both directions and puts the top of a long card out of reach.
-const COVER = `flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center xl:min-h-[420px]`;
+const COVER = `relative flex min-h-[360px] w-full flex-col items-center gap-1.5 bg-gradient-to-b from-neutral-950/80 to-neutral-900/40 p-3 text-center xl:min-h-[420px]`;
 
 // The riddle element: a digit or a symbol, never a word — reading it is the puzzle. It
 // grows with the row, because on a row this size a small one reads as a caption.
@@ -94,14 +95,16 @@ type Labels = (typeof content)['en']['sector']['nda']['labels'];
 // The two lines every cover carries, whatever quest is under them. The file number is
 // id'd so a cover that is a button can say it first, before the riddle's own line.
 //
-// One block in the corner, against the left edge, while the riddle keeps the middle to
+// One block in the true corner of the cover, while the riddle keeps the middle to
 // itself: markings belong on the corner of a cover rather than over the thing the cover
-// is asking. It is the only part of a cover that opts out of the centred flow. A span and
-// not a div, because three of the covers are buttons and a button may hold neither a
-// division nor anything else that is not phrasing — the flex column above blocks it out
-// anyway, so the two readings stack exactly as they did loose.
+// is asking. It opts out of the centred flow altogether — `top-3 left-3` is the padding
+// the cover already keeps, so the block starts exactly where its content box does, and
+// leaving the flow is what stops a two-line header from pushing the riddle off centre.
+// A span and not a div, because three of the covers are buttons and a button may hold
+// neither a division nor anything else that is not phrasing — an absolutely positioned
+// box is blockified anyway, so the two readings stack exactly as they did loose.
 const stamp = (code: string, classified: string, id: ChapterId) => (
-  <span className="self-start text-left">
+  <span className="absolute top-3 left-3 text-left">
     <span id={`${id}-code`} className={`${CAPS} block text-accent`}>
       {code}
     </span>
@@ -198,14 +201,23 @@ function Laser({
     paint(svg.current, id, matchMedia('(prefers-reduced-motion: no-preference)').matches);
   });
 
+  // Centred like the other six, and the only one that has to buy room to do it: the scene
+  // is 208px of square before either line under it is counted, so a flow centred in the
+  // whole cover would start level with the stamp's last line. The extra top padding is
+  // measured against the stamp rather than chosen — 48px clears the 45 the block occupies
+  // (12 down, then two 16.5px lines) — and it is padding rather than a gap under the stamp
+  // because the stamp is positioned against the padding box and so does not move with it.
+  // `-safe` centring falls back to the top edge when a translation runs long, so the flow
+  // starts at 48 at worst and can never climb into the corner, whatever the wrapping does.
   return (
-    <div className={`${COVER} justify-between`}>
+    <div className={`${COVER} justify-center-safe pt-12`}>
       {stamp(code, labels.classified, id)}
       {/* Square by a height it is given, never by the width it is offered: the row is far
           wider than it is tall, and a square that took the width would stand a whole
-          screen high and drag its row with it. These two heights are what is left inside
-          the cover's own floor once the stamp and the two lines below have taken theirs,
-          so the rocket's row measures what the six other rows measure. */}
+          screen high and drag its row with it. These two heights are what the cover's own
+          floor holds with the two lines below them — the stamp is off in the corner and
+          costs the scene nothing — so the rocket's row measures what the six other rows
+          measure. */}
       <div className="relative aspect-square h-52 xl:h-72">
         <svg
           ref={svg}
@@ -727,13 +739,17 @@ export default function Nda() {
                         take their own places in it: the file's markings at the top, the
                         credit pinned to the foot, and the story on the auto margins that
                         divide whatever is left — which centres it against the photo beside
-                        it, and costs nothing once the two stack and there is no slack to
-                        divide. Left-aligned throughout: a cover is centred, an open file
+                        it. Stacked, there is no slack to divide and the autos are not
+                        asked for at all: the story keeps the same small gap under the
+                        title that the title keeps under the code, so the three read as one
+                        block. Left-aligned throughout: a cover is centred, an open file
                         is read. */}
                     <figcaption className="flex flex-1 flex-col p-4">
                       <p className={`${CAPS} text-accent`}>{ch.code}</p>
                       <p className="mt-1 text-lg font-semibold text-neutral-100">{ch.title}</p>
-                      <p className="my-auto max-w-prose text-base text-neutral-300">{ch.story}</p>
+                      <p className="mt-1 max-w-prose text-base text-neutral-300 xl:my-auto">
+                        {ch.story}
+                      </p>
                       <p className="mt-2 font-mono text-[11px] text-neutral-400">{ch.credit}</p>
                     </figcaption>
                   </figure>
@@ -748,7 +764,7 @@ export default function Nda() {
 
       <details className="rounded-md border border-dashed border-neutral-700 p-3">
         <summary className={`cursor-target ${CAPS} text-neutral-400`}>{archive.label}</summary>
-        <p id="archive-classified" className={`mt-3 ${CAPS} text-neutral-500`}>
+        <p id="archive-classified" className={`mt-3 ${CAPS} text-neutral-400`}>
           {labels.classified}
         </p>
         {/* The strike-through is what says "withheld" — the colour must not, or these
@@ -760,7 +776,7 @@ export default function Nda() {
             </li>
           ))}
         </ul>
-        <p id="archive-declassified" className={`mt-3 ${CAPS} text-neutral-500`}>
+        <p id="archive-declassified" className={`mt-3 ${CAPS} text-neutral-400`}>
           {labels.declassified}
         </p>
         <ul
