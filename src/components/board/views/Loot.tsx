@@ -3,6 +3,7 @@
 // guessing which one is on the other end of the download.
 import { useT } from '../../../i18n/I18nContext';
 import { markCvDownloaded } from '../cvFlag';
+import { Masthead, Rail } from './Masthead';
 
 // The file names are fixed assets; only the drop's label and rarity are copy.
 const LOOT = [
@@ -32,15 +33,15 @@ export default function Loot() {
   const t = useT();
 
   return (
-    <section className="flex flex-col gap-5 p-4">
-      <div>
+    <section className="flex min-h-full flex-col gap-5 p-4">
+      <Masthead path="/loot" count={LOOT.length}>
         <h2 className="font-mono text-base tracking-widest text-accent uppercase">
           {t('loot.title')}
         </h2>
         {/* One line for the whole table: the same sentence printed on four cards was
             four times the noise and no extra information. */}
         <p className="mt-1 font-mono text-xs text-neutral-400">{t('loot.note')}</p>
-      </div>
+      </Masthead>
       {/* Two columns only from xl: at 768 the stage column is ~383 px, so a half-width
           card is ~185 px and the file names wrap into a stack of fragments. */}
       <div className="grid gap-3 xl:grid-cols-2">
@@ -72,6 +73,7 @@ export default function Loot() {
           );
         })}
       </div>
+      <Rail path="/loot" count={LOOT.length} />
     </section>
   );
 }

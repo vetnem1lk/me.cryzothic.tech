@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -13,6 +14,13 @@ export default defineConfig({
   // pays for glyphs only the RU page uses. They are the only assets in that window,
   // so this splits exactly those two out as on-demand files.
   build: { assetsInlineLimit: 2000 },
+  // The commit the bundle was built from, printed by the sector rails. Resolved at
+  // config load, so it also runs under vitest — where git may be absent, hence 'dev'.
+  define: {
+    __BUILD_REV__: JSON.stringify((() => {
+      try { return execSync('git rev-parse --short HEAD').toString().trim() } catch { return 'dev' }
+    })()),
+  },
   // The site's own tests only; server/ is a separate npm project with its own suite.
   test: { include: ['src/**/*.test.{ts,tsx}'] },
 })

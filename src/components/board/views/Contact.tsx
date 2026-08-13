@@ -2,6 +2,7 @@
 // boss-fight panel to stay inside the shell's fiction. No form — a form needs a
 // backend to receive it, and a recruiter would rather use their own mail client.
 import { useT } from '../../../i18n/I18nContext';
+import { Masthead, Rail } from './Masthead';
 
 export default function Contact() {
   const t = useT();
@@ -20,10 +21,12 @@ export default function Contact() {
   ];
 
   return (
-    <section className="flex flex-col gap-5 p-4">
-      <h2 className="font-mono text-base tracking-widest text-accent uppercase">
-        {t('contact.title')}
-      </h2>
+    <section className="flex min-h-full flex-col gap-5 p-4">
+      <Masthead path="/contact" count={CONTACTS.length}>
+        <h2 className="font-mono text-base tracking-widest text-accent uppercase">
+          {t('contact.title')}
+        </h2>
+      </Masthead>
       <div>
         <p className="font-mono text-xs tracking-widest text-accent uppercase">{t('contact.boss')}</p>
         {/* The bar is decor. A dashed accent frame is what the three real links wear,
@@ -56,6 +59,7 @@ export default function Contact() {
           </a>
         ))}
       </div>
+      <Rail path="/contact" count={CONTACTS.length} />
     </section>
   );
 }

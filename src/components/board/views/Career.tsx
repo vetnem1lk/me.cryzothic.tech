@@ -4,13 +4,16 @@
 import content from '../../../content.json';
 import { useLang } from '../../../i18n/I18nContext';
 import Corners from '../Corners';
+import { Masthead, Rail } from './Masthead';
 
 export default function Career() {
   const { title, entries, levelUpsTitle, levelUps } = content[useLang()].sector.career;
 
   return (
-    <section className="flex flex-col gap-5 p-4">
-      <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
+    <section className="flex min-h-full flex-col gap-5 p-4">
+      <Masthead path="/career" count={entries.length}>
+        <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
+      </Masthead>
       <ol className="flex flex-col gap-3">
         {entries.map((e) => (
           <li key={e.period} className="relative border border-dashed border-accent/40 p-4">
@@ -37,6 +40,7 @@ export default function Career() {
           ))}
         </ul>
       </div>
+      <Rail path="/career" count={entries.length} />
     </section>
   );
 }

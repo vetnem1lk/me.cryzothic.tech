@@ -3,13 +3,17 @@
 // honest caveat (where Unreal Engine actually stands) is the closing note.
 import content from '../../../content.json';
 import { useLang } from '../../../i18n/I18nContext';
+import { Masthead, Rail } from './Masthead';
 
 export default function Skills() {
   const { title, groups, note } = content[useLang()].sector.skills;
+  const chips = groups.reduce((a, g) => a + g.items.length, 0);
 
   return (
-    <section className="flex flex-col gap-5 p-4">
-      <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
+    <section className="flex min-h-full flex-col gap-5 p-4">
+      <Masthead path="/skills" count={chips}>
+        <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
+      </Masthead>
       <div className="flex flex-col gap-4">
         {groups.map((g) => (
           <div key={g.name}>
@@ -40,6 +44,7 @@ export default function Skills() {
         ))}
       </div>
       <p className="max-w-2xl text-base text-neutral-400">{note}</p>
+      <Rail path="/skills" count={chips} />
     </section>
   );
 }
