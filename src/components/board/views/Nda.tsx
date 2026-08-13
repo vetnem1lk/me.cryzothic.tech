@@ -363,15 +363,16 @@ function CodeLock({
           Not a spinbutton either — the APG pattern names one focusable element holding
           the value, with the arrow keys on it; here the two arrows are the controls,
           and claiming the role without its keyboard contract is a promise the cover
-          would not keep. Each button is named by its direction and the digit the wheel
-          is standing on — "raise digit 3" — because the digit between the two arrows is
-          the one thing a visitor working this by ear cannot see. */}
+          would not keep. Each button is named by its direction and which wheel it drives —
+          "raise digit 2" — never by the digit standing there: a name built from the value
+          renames the control under the finger, and leaves all three wheels announcing the
+          same thing whenever their digits happen to match. */}
       <div role="group" aria-labelledby={`${id}-prompt`} className="flex items-center gap-2">
         {wheels.map((d, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
             <button
               type="button"
-              aria-label={`${labels.wheelUp} ${d}`}
+              aria-label={`${labels.wheelUp} ${i + 1}`}
               onClick={() => spin(i, 1)}
               className={`cursor-target ${QUEST_BTN}`}
             >
@@ -382,7 +383,7 @@ function CodeLock({
             </span>
             <button
               type="button"
-              aria-label={`${labels.wheelDown} ${d}`}
+              aria-label={`${labels.wheelDown} ${i + 1}`}
               onClick={() => spin(i, -1)}
               className={`cursor-target ${QUEST_BTN}`}
             >

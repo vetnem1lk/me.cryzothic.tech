@@ -48,12 +48,12 @@ export default function Briefing() {
       <Link href="/nda" className={CHIP}>
         {t('vai.cta.story')}
       </Link>
-      <div className="grid w-full max-w-lg gap-3 sm:grid-cols-2">
+      <div className="grid w-full max-w-lg gap-3 xl:grid-cols-2">
         {ACTIONS.map((a) => (
           <Link
             key={a.href}
             href={a.href}
-            className={`${CARD} ${a.href === '/contact' ? 'sm:col-span-2' : ''}`}
+            className={`${CARD} ${a.href === '/contact' ? 'xl:col-span-2' : ''}`}
           >
             {t(a.key)}
           </Link>
