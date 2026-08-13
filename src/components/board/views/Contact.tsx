@@ -55,8 +55,8 @@ export default function Contact() {
       {/* Three across from @2xl — 672 px of this section's own inline size, not the
           viewport's: the section is a scrolled column inside the shell, so the old
           xl: breakpoint was measuring the wrong box entirely. At 672 px a third of
-          the row is ~217 px, where the address soft-wraps once; below that the
-          thirds fall under 200 px and the cards read as fragments. */}
+          the row is ~216 px, where the address soft-wraps once; under a ~624 px
+          container the thirds drop below 200 px and the cards read as fragments. */}
       <div className="grid gap-3 @2xl:grid-cols-3">
         {CONTACTS.map((c) => (
           <a

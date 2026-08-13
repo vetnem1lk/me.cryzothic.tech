@@ -23,9 +23,9 @@ export default function Loot() {
       {/* Two columns from @md — 448 px of this section's own inline size, not the
           viewport's. The stage is a scrolled column inside the shell (~870 px at a 1280
           viewport), so the old viewport breakpoint was measuring the wrong box entirely.
-          448 px is where the arithmetic turns: minus the padding and the gap, a
-          half-width card lands at ~200 px, and below that the file names wrap into a
-          stack of fragments. */}
+          448 px is where the arithmetic turns: minus the gap, a half-width card lands
+          at ~218 px, and much below that the file names wrap into a stack of
+          fragments. */}
       <div className="grid gap-3 @md:grid-cols-2">
         {LOOT.map((row) => {
           // Rarity in the one colour grammar the shell already has: the epic pair

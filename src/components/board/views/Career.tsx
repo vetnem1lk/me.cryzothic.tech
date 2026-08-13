@@ -15,7 +15,7 @@ export default function Career() {
         <h2 className="font-mono text-base tracking-widest text-accent uppercase">{title}</h2>
       </Masthead>
       {/* md+ splits an entry into a date gutter (period + tech) and the role column, sized
-          to hold the longest English period on one line and wrap the Russian ones to two. */}
+          to hold the longest English period on one line and let the longer Russian ones wrap. */}
       <ol className="divide-y divide-dashed divide-neutral-800">
         {entries.map((e) => (
           <li

@@ -18,7 +18,7 @@ export default defineConfig({
   // config load, so it also runs under vitest — where git may be absent, hence 'dev'.
   define: {
     __BUILD_REV__: JSON.stringify((() => {
-      try { return execSync('git rev-parse --short HEAD').toString().trim() } catch { return 'dev' }
+      try { return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() } catch { return 'dev' }
     })()),
   },
   // The site's own tests only; server/ is a separate npm project with its own suite.

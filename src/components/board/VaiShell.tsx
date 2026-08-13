@@ -229,9 +229,13 @@ export default function VaiShell({
     return () => document.removeEventListener('keydown', onKey);
   }, [mobileOpen, onMobileClose]);
 
+  // `mobileOpen` is a dependency and not a stray: the sheet is hidden with `display:
+  // none`, so a line arriving while it is closed scrolls a box that has no height at
+  // all, and the reopened sheet sits wherever the transcript used to end. Re-running on
+  // the reopen is what puts the newest line back on screen.
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [messages]);
+  }, [messages, mobileOpen]);
 
   // Covers come off all over the board — a tile on /nda, a CV taken from the loot
   // table — and the terminal is the one thing standing beside all of them, so it is

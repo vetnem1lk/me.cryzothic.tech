@@ -3,8 +3,11 @@
      --allow-file-access-from-files is load-bearing: without it the mask SVG below is blocked
      as cross-origin and the card renders face-less, with no error and no failed exit code.
      `msedge` may need spelling out: "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe".
-     msedge --headless --allow-file-access-from-files --screenshot=<repo>/public/og.png --window-size=1200,630 --force-device-scale-factor=1 --hide-scrollbars "file:///<repo>/og/card.html"
-     msedge --headless --allow-file-access-from-files --screenshot=<repo>/public/og-ru.png --window-size=1200,630 --force-device-scale-factor=1 --hide-scrollbars "file:///<repo>/og/card.html?lang=ru" -->
+     --user-data-dir is the second load-bearing flag: with a browser already running, the
+     command hands the arguments to that live instance and exits 0 having written nothing.
+     Point it at a fresh temp directory so the render gets a profile of its own.
+     msedge --headless --allow-file-access-from-files --user-data-dir=<fresh temp dir> --screenshot=<repo>/public/og.png --window-size=1200,630 --force-device-scale-factor=1 --hide-scrollbars "file:///<repo>/og/card.html"
+     msedge --headless --allow-file-access-from-files --user-data-dir=<fresh temp dir> --screenshot=<repo>/public/og-ru.png --window-size=1200,630 --force-device-scale-factor=1 --hide-scrollbars "file:///<repo>/og/card.html?lang=ru" -->
 <html>
 <head>
 <meta charset="utf-8">
