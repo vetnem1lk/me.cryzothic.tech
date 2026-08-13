@@ -35,7 +35,9 @@ export default function Loot() {
           return (
             <a
               key={row.href}
-              href={row.href}
+              // The byte count doubles as a cache-buster: the filenames are stable
+              // and sit behind a 24 h CDN TTL, so a content swap must change the URL.
+              href={`${row.href}?v=${row.bytes}`}
               download
               // Noted, not intercepted: taking any drop opens a chapter of the /nda story.
               onClick={markCvDownloaded}
