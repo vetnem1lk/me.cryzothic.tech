@@ -4,6 +4,7 @@
 import content from '../../../content.json';
 import { useLang } from '../../../i18n/I18nContext';
 import { Masthead, Rail } from './Masthead';
+import NextSector from './NextSector';
 
 // Weight comes from position, not from data: the groups are already ordered
 // strongest-first, so the opening group reads filled, the closing one — the branch
@@ -52,6 +53,7 @@ export default function Skills() {
         <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">{noteEyebrow}</p>
         <p className="mt-1 max-w-2xl text-base text-neutral-400">{note}</p>
       </div>
+      <NextSector route="/skills" />
       <Rail path="/skills" count={chips} />
     </section>
   );

@@ -901,7 +901,7 @@ export default function Nda() {
         </p>
         <ul
           aria-labelledby="archive-declassified"
-          className="mt-1 list-disc space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent"
+          className="mt-1 list-[square] space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent"
         >
           {archive.declassified.map((d) => (
             <li key={d}>{d}</li>

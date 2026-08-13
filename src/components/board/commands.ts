@@ -74,6 +74,33 @@ export const ROUTE_PATHS = [
 
 export type RoutePath = (typeof ROUTE_PATHS)[number];
 
+// What each sector is called on the nav strip. The paths above are the shell's unix
+// fiction, not copy, and they stay English on /ru; only these labels are translated.
+// Keyed by RoutePath rather than typed as a loose record, which is what makes it
+// exhaustive: a route added without a label (or a label for a route the router will
+// not mount) is a type error here rather than a blank tab in production.
+export const NAV_KEY: Record<RoutePath, string> = {
+  '/career': 'nav.career',
+  '/skills': 'nav.skills',
+  '/nda': 'nav.nda',
+  '/loot': 'nav.loot',
+  '/contact': 'nav.contact',
+  '/code': 'nav.code',
+  '/3d': 'nav.threed',
+};
+
+// Where the chip at the foot of a sector points: the reading order for a visitor who
+// never touches the strip. Four of the seven, ending at /nda — the story is where the
+// walk is meant to leave you, and /code and /3d are exhibits you go to rather than
+// places you are led. Partial is what lets the chain stop, and it costs the
+// exhaustiveness NAV_KEY has above; commands.test.ts is what buys that back.
+export const NEXT_SECTOR: Partial<Record<RoutePath, RoutePath>> = {
+  '/career': '/skills',
+  '/skills': '/loot',
+  '/loot': '/contact',
+  '/contact': '/nda',
+};
+
 // Canonical commands — the visible surface (command row + /help). Bare unix
 // verbs read info, slash commands act; no two entries do the same thing.
 const COMMANDS: Record<string, () => CommandResult> = {

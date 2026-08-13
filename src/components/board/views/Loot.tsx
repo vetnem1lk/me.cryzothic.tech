@@ -5,6 +5,7 @@ import { useT } from '../../../i18n/I18nContext';
 import { markCvDownloaded } from '../cvFlag';
 import { LOOT } from './loot.data';
 import { Masthead, Rail } from './Masthead';
+import NextSector from './NextSector';
 
 export default function Loot() {
   const t = useT();
@@ -63,6 +64,7 @@ export default function Loot() {
           );
         })}
       </div>
+      <NextSector route="/loot" />
       <Rail path="/loot" count={LOOT.length} />
     </section>
   );

@@ -5,7 +5,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import content from '../../content.json';
 import { translate } from '../../i18n/I18nContext';
-import { COMMAND_ROW, ROUTE_PATHS, runCommand } from './commands';
+import { COMMAND_ROW, NEXT_SECTOR, ROUTE_PATHS, runCommand } from './commands';
 import {
   CHAPTERS,
   DECLASSIFY_CHAPTER,
@@ -147,6 +147,23 @@ describe('ROUTE_PATHS', () => {
   it('holds every destination the briefing cards name', () => {
     expect(ACTIONS).not.toHaveLength(0); // an emptied list would satisfy the loop in silence
     for (const a of ACTIONS) expect(ROUTE_PATHS, a.href).toContain(a.href);
+  });
+
+  // NEXT_SECTOR is Partial, so the type can no longer tell a mistyped path from a
+  // sector that simply has no successor — this is what buys that back: the chain is
+  // one walk from /career to /nda, every end of it is a real route, and /nda is the
+  // terminus rather than a link back into the loop.
+  it('NEXT_SECTOR chains the four sector views and ends at /nda', () => {
+    expect(Object.keys(NEXT_SECTOR)).toHaveLength(4);
+    for (const [from, to] of Object.entries(NEXT_SECTOR)) {
+      expect(ROUTE_PATHS).toContain(from);
+      expect(ROUTE_PATHS).toContain(to);
+    }
+    expect(NEXT_SECTOR['/career']).toBe('/skills');
+    expect(NEXT_SECTOR['/skills']).toBe('/loot');
+    expect(NEXT_SECTOR['/loot']).toBe('/contact');
+    expect(NEXT_SECTOR['/contact']).toBe('/nda');
+    expect('/nda' in NEXT_SECTOR).toBe(false);
   });
 });
 

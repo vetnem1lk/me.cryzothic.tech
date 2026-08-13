@@ -4,6 +4,7 @@
 import content from '../../../content.json';
 import { useLang } from '../../../i18n/I18nContext';
 import { Masthead, Rail } from './Masthead';
+import NextSector from './NextSector';
 
 export default function Career() {
   const { title, entries, levelUpsTitle, levelUps } = content[useLang()].sector.career;
@@ -29,7 +30,7 @@ export default function Career() {
               <p className="text-base font-semibold text-neutral-100">{e.role}</p>
               <p className="text-base text-neutral-400">{e.place}</p>
               <p className="font-mono text-xs text-neutral-400 md:hidden">{e.tech}</p>
-              <ul className="mt-2 max-w-prose list-disc space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent">
+              <ul className="mt-2 max-w-prose list-[square] space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent">
                 {e.bullets.map((b) => (
                   <li key={b}>{b}</li>
                 ))}
@@ -42,12 +43,13 @@ export default function Career() {
         <h3 className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
           {levelUpsTitle}
         </h3>
-        <ul className="mt-2 max-w-prose list-disc space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent">
+        <ul className="mt-2 max-w-prose list-[square] space-y-1.5 pl-5 text-base text-neutral-300 marker:text-accent">
           {levelUps.map((l) => (
             <li key={l}>{l}</li>
           ))}
         </ul>
       </div>
+      <NextSector route="/career" />
       <Rail path="/career" count={entries.length} />
     </section>
   );

@@ -3,6 +3,7 @@
 // backend to receive it, and a recruiter would rather use their own mail client.
 import { useT } from '../../../i18n/I18nContext';
 import { Masthead, Rail } from './Masthead';
+import NextSector from './NextSector';
 
 export default function Contact() {
   const t = useT();
@@ -84,6 +85,7 @@ export default function Contact() {
           </a>
         ))}
       </div>
+      <NextSector route="/contact" />
       <Rail path="/contact" count={CONTACTS.length} />
     </section>
   );

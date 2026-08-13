@@ -6,7 +6,7 @@ import gsap from 'gsap';
 import { Suspense, lazy, useRef, type ReactNode } from 'react';
 import { Link, Route, Switch, useLocation } from 'wouter';
 import { useT } from '../../i18n/I18nContext';
-import { ROUTE_PATHS, type RoutePath } from './commands';
+import { NAV_KEY, ROUTE_PATHS, type RoutePath } from './commands';
 import Briefing from './views/Briefing';
 import Career from './views/Career';
 import Contact from './views/Contact';
@@ -16,22 +16,6 @@ import Skills from './views/Skills';
 import ThreeDView from './views/ThreeDView';
 
 const CodeBase = lazy(() => import('./views/CodeBase'));
-
-// What each sector is called on the strip. The paths themselves are commands.ts'
-// — they are the shell's unix fiction, not copy, and they stay English on /ru;
-// only these labels are translated. Keyed by RoutePath rather than typed as a
-// loose record, which is what makes it exhaustive: a route added without a label
-// (or a label for a route the router will not mount) is a type error here rather
-// than a blank tab in production.
-const NAV_KEY: Record<RoutePath, string> = {
-  '/career': 'nav.career',
-  '/skills': 'nav.skills',
-  '/nda': 'nav.nda',
-  '/loot': 'nav.loot',
-  '/contact': 'nav.contact',
-  '/code': 'nav.code',
-  '/3d': 'nav.threed',
-};
 
 // The interactive sectors, pinned past the spacer to the right edge; everything
 // else reads left to right in route order. /nda joined them when it stopped being
