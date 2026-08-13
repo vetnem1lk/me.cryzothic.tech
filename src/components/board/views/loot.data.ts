@@ -15,13 +15,13 @@ export const LOOT: LootRow[] = [
     href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf',
     nameKey: 'loot.item.enVisual',
     tierKey: 'loot.tier.epic',
-    bytes: 70478,
+    bytes: 70561,
   },
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_RU.pdf',
     nameKey: 'loot.item.ruVisual',
     tierKey: 'loot.tier.epic',
-    bytes: 183898,
+    bytes: 183686,
   },
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_EN_ATS.pdf',
