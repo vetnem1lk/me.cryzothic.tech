@@ -55,7 +55,7 @@ const SIZES =
 
 // Not Briefing's CHIP, which only ever looked like it: this one is the control a quest
 // hands the visitor when a bare cover-press will not do — a submit, a line of dialogue.
-// No crosshair here: a target nested inside a cover that is itself one shadows the frame
+// No target here: a target nested inside a cover that is itself one shadows the frame
 // the whole card would otherwise get. The lock's wheels and lever add it back, their
 // cover being no target; the dialogue's choices go without, its cover waiting as one.
 const QUEST_BTN =
@@ -363,14 +363,15 @@ function CodeLock({
           Not a spinbutton either — the APG pattern names one focusable element holding
           the value, with the arrow keys on it; here the two arrows are the controls,
           and claiming the role without its keyboard contract is a promise the cover
-          would not keep. Each button is named by the digit it lands on, which is a
-          number and needs no dictionary: the wheel's own digit stands between them. */}
+          would not keep. Each button is named by its direction and the digit the wheel
+          is standing on — "raise digit 3" — because the digit between the two arrows is
+          the one thing a visitor working this by ear cannot see. */}
       <div role="group" aria-labelledby={`${id}-prompt`} className="flex items-center gap-2">
         {wheels.map((d, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
             <button
               type="button"
-              aria-label={`${dial(d, 1)}`}
+              aria-label={`${labels.wheelUp} ${d}`}
               onClick={() => spin(i, 1)}
               className={`cursor-target ${QUEST_BTN}`}
             >
@@ -381,7 +382,7 @@ function CodeLock({
             </span>
             <button
               type="button"
-              aria-label={`${dial(d, -1)}`}
+              aria-label={`${labels.wheelDown} ${d}`}
               onClick={() => spin(i, -1)}
               className={`cursor-target ${QUEST_BTN}`}
             >

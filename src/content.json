@@ -2,8 +2,8 @@
   "en": {
     "meta": {
       "title": "Vladislav Klimentev · C++ Developer",
-      "description": "Vladislav Klimentev - C++/Qt developer (tools / gameplay). Interactive portfolio, CV downloads, contacts.",
-      "ogDescription": "C++/Qt developer heading into game development (tools / gameplay). CV and contacts in one click."
+      "description": "Vladislav Klimentev - C++/Qt developer (Tools / Gameplay). Interactive portfolio, CV downloads, contacts.",
+      "ogDescription": "C++/Qt developer heading into game development (Tools / Gameplay). CV and contacts in one click."
     },
     "marquee": {
       "status": "UNLOCKED: C++ / Qt Developer Portfolio · Target: GameDev",
@@ -22,7 +22,7 @@
       "cloning": "cloning code_base…"
     },
     "briefing": {
-      "tagline": "C++ developer — tools / gameplay. Pick a sector, or ask VAI about me · GAI about anything."
+      "tagline": "C++ developer — Tools / Gameplay. Pick a sector, or ask VAI about me · GAI about anything."
     },
     "sector": {
       "career": {
@@ -96,8 +96,8 @@
           },
           {
             "name": "Data & platforms",
-            "items": ["MySQL", "SQL", "C#", "Astra Linux"],
-            "lines": ["Embedded C/C++ — microcontrollers"]
+            "items": ["MySQL", "SQL", "C#", "Astra Linux", "Embedded C/C++ — microcontrollers"],
+            "lines": []
           },
           {
             "name": "Side quests",
@@ -125,6 +125,8 @@
           "dialogOpenHint": "Nobody is checking anymore.",
           "guessPrompt": "I picked a number. Which one?",
           "guessHint": "Try the code",
+          "wheelUp": "raise digit",
+          "wheelDown": "lower digit",
           "laserHint": "The beam only knows straight. Somebody else does the turning.",
           "laserStatusBottom": "The beam runs off the bottom edge, into the floor — the rocket stays dark.",
           "laserStatusLeft": "The beam runs off the left edge — the rocket stays dark.",
@@ -269,7 +271,7 @@
       }
     },
     "commands": {
-      "whoami": "Vladislav Klimentev — C++ developer (Qt tools platform in production; custom C++ glTF engine; TG mini-games). Target: gamedev — tools / gameplay.",
+      "whoami": "Vladislav Klimentev — C++ developer (Qt tools platform in production; custom C++ glTF engine; TG mini-games). Target: gamedev — Tools / Gameplay.",
       "ls": "donut-engine/      C++17 glTF renderer, Qt Quick integration\nsed-pro-platform/  Qt Widgets + MySQL, data-driven UI (NDA)\ncyberhockey2077/   neon air-hockey TG mini app\nthis-site/         React 19 + GSAP, open source",
       "loadout": "main weapon: C++17\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React · Python",
       "career": "Jumping to career progression.",
@@ -396,8 +398,8 @@
           },
           {
             "name": "Данные и платформы",
-            "items": ["MySQL", "SQL", "C#", "Astra Linux"],
-            "lines": ["Embedded C/C++ — микроконтроллеры"]
+            "items": ["MySQL", "SQL", "C#", "Astra Linux", "Embedded C/C++ — микроконтроллеры"],
+            "lines": []
           },
           {
             "name": "Побочные квесты",
@@ -425,6 +427,8 @@
           "dialogOpenHint": "Дальше уже никто не спрашивает.",
           "guessPrompt": "Я загадал число. Какое?",
           "guessHint": "Ввести код",
+          "wheelUp": "цифра выше",
+          "wheelDown": "цифра ниже",
           "laserHint": "Луч умеет только прямо. Повороты — не его работа.",
           "laserStatusBottom": "Луч уходит вниз, в пол — ракета так и стоит тёмной.",
           "laserStatusLeft": "Луч уходит за левый край — ракета так и стоит тёмной.",
@@ -560,7 +564,7 @@
         "achAllSeven": "обложек больше нет. архив ваш.",
         "achKonami": "старый код всё ещё открывает старые двери.",
         "achFirstContact": "первый контакт зафиксирован.",
-        "achBlueprints": "вы читаете чертежи. респект."
+        "achBlueprints": "вы прочитали чертежи. респект."
       },
       "error": {
         "connection": "соединение не удалось — попробуйте ещё раз.",
