@@ -3,37 +3,14 @@
 // guessing which one is on the other end of the download.
 import { useT } from '../../../i18n/I18nContext';
 import { markCvDownloaded } from '../cvFlag';
+import { LOOT } from './loot.data';
 import { Masthead, Rail } from './Masthead';
-
-// The file names are fixed assets; only the drop's label and rarity are copy.
-const LOOT = [
-  {
-    href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf',
-    nameKey: 'loot.item.enVisual',
-    tierKey: 'loot.tier.epic',
-  },
-  {
-    href: '/cv/Klimentev_Vladislav_CPP_Developer_RU.pdf',
-    nameKey: 'loot.item.ruVisual',
-    tierKey: 'loot.tier.epic',
-  },
-  {
-    href: '/cv/Klimentev_Vladislav_CPP_Developer_EN_ATS.pdf',
-    nameKey: 'loot.item.enAts',
-    tierKey: 'loot.tier.common',
-  },
-  {
-    href: '/cv/Klimentev_Vladislav_CPP_Developer_RU_ATS.pdf',
-    nameKey: 'loot.item.ruAts',
-    tierKey: 'loot.tier.common',
-  },
-];
 
 export default function Loot() {
   const t = useT();
 
   return (
-    <section className="flex min-h-full flex-col gap-5 p-4">
+    <section className="@container flex min-h-full flex-col gap-5 p-4">
       <Masthead path="/loot" count={LOOT.length}>
         <h2 className="font-mono text-base tracking-widest text-accent uppercase">
           {t('loot.title')}
@@ -42,23 +19,32 @@ export default function Loot() {
             four times the noise and no extra information. */}
         <p className="mt-1 font-mono text-xs text-neutral-400">{t('loot.note')}</p>
       </Masthead>
-      {/* Two columns only from xl: at 768 the stage column is ~383 px, so a half-width
-          card is ~185 px and the file names wrap into a stack of fragments. */}
-      <div className="grid gap-3 xl:grid-cols-2">
-        {LOOT.map((l) => {
+      {/* Two columns from @md — 448 px of this section's own inline size, not the
+          viewport's. The stage is a scrolled column inside the shell (~870 px at a 1280
+          viewport), so the old viewport breakpoint was measuring the wrong box entirely.
+          448 px is where the arithmetic turns: minus the padding and the gap, a
+          half-width card lands at ~200 px, and below that the file names wrap into a
+          stack of fragments. */}
+      <div className="grid gap-3 @md:grid-cols-2">
+        {LOOT.map((row) => {
           // Rarity in the one colour grammar the shell already has: the epic pair
           // carries a firmer frame and an accent tier, the parser-safe pair reads grey.
-          const epic = l.tierKey === 'loot.tier.epic';
+          const epic = row.tierKey === 'loot.tier.epic';
 
           return (
             <a
-              key={l.href}
-              href={l.href}
+              key={row.href}
+              href={row.href}
               download
               // Noted, not intercepted: taking any drop opens a chapter of the /nda story.
               onClick={markCvDownloaded}
+              // The rarity is structural before it is chromatic: a solid 2 px left edge
+              // against the dashed frame, so the epic pair reads as a rank even where
+              // the accent colour does not survive (greyscale print, forced colours).
               className={`cursor-target rounded-md border border-dashed p-4 hover:border-accent ${
-                epic ? 'border-accent/60' : 'border-accent/50'
+                epic
+                  ? 'border-accent/60 border-l-2 [border-left-style:solid] border-l-accent'
+                  : 'border-accent/50 border-l-2 [border-left-style:solid] border-l-neutral-700'
               }`}
             >
               <span
@@ -66,9 +52,13 @@ export default function Loot() {
                   epic ? 'text-accent' : 'text-neutral-400'
                 }`}
               >
-                {t(l.tierKey)}
+                [ {t(row.tierKey)} ]
               </span>
-              <span className="mt-1 block text-base text-neutral-200">{t(l.nameKey)}</span>
+              <span className="mt-1 block text-base text-neutral-200">{t(row.nameKey)}</span>
+              {/* Weight and format, in the one grammar that needs no translation. */}
+              <p className="font-mono text-xs text-neutral-400">
+                PDF · {Math.round(row.bytes / 1024)} KB
+              </p>
             </a>
           );
         })}
