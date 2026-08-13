@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Router } from 'wouter';
 import { usePathname } from 'wouter/use-browser-location';
 import { LangProvider, translate } from '../../i18n/I18nContext';
-import { langFromPath } from '../../i18n/locale';
+import { langFromPath, pathForLang } from '../../i18n/locale';
 import Corners from './Corners';
 import { KONAMI, advance, swipeDir, type Dir8 } from './konami';
 import Marquee from './Marquee';
@@ -30,7 +30,12 @@ const ARROW: Record<string, Dir8> = {
 export default function Board() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const scope = useRef<HTMLDivElement>(null);
-  const lang = langFromPath(usePathname());
+  const pathname = usePathname();
+  const lang = langFromPath(pathname);
+  // The shell's own greeting test, spelled without the router base this sits outside
+  // of: a greeting is whatever has the root for its English twin, which is '/', '/ru'
+  // and the canonical '/ru/' alike.
+  const onGreeting = pathForLang('en', pathname) === '/';
 
   // Title only — spec D3 bans runtime mutation of canonical/hreflang (crawlers do not
   // run our JS, so those must stay the static head scripts/emit-ru-html.mjs emits), but
@@ -113,8 +118,9 @@ export default function Board() {
             <div className="min-h-0 flex-1 md:grid md:grid-cols-[minmax(320px,30%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
               <VaiShell mobileOpen={sheetOpen} onMobileClose={() => setSheetOpen(false)} />
               {/* Mobile: plain air between chat and board. On md+ the columns sit
-                  side by side and the shell's dashed right border divides them. */}
-              <div aria-hidden className="h-4 md:hidden" />
+                  side by side and the shell's dashed right border divides them, and
+                  where the shell is hidden there is nothing to separate. */}
+              {onGreeting && <div aria-hidden className="h-4 md:hidden" />}
               <Stage />
             </div>
           </div>

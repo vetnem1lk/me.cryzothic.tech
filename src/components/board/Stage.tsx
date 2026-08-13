@@ -39,7 +39,7 @@ const NAV_KEY: Record<RoutePath, string> = {
 const PINNED: readonly RoutePath[] = ['/nda', '/code', '/3d'];
 
 const navClass = (active: boolean) =>
-  `cursor-target px-1 ${active ? 'text-accent' : 'text-neutral-500 hover:text-neutral-300'}`;
+  `cursor-target px-1.5 py-1.5 ${active ? 'text-accent' : 'text-neutral-500 hover:text-neutral-300'}`;
 
 export default function Stage() {
   const viewRef = useRef<HTMLDivElement>(null);
@@ -99,7 +99,12 @@ export default function Stage() {
           </Link>
         ))}
       </nav>
-      <div ref={viewRef} className="scroll-thin min-h-0 flex-1 md:overflow-y-auto">
+      {/* The mobile padding is the VAI button's seat: it floats over this scroller,
+          and without the reserve the last line of a view ends up underneath it. */}
+      <div
+        ref={viewRef}
+        className="scroll-thin min-h-0 flex-1 max-md:pb-[calc(62px+env(safe-area-inset-bottom))] md:overflow-y-auto"
+      >
         <Switch>
           {/* Switch reads its children flat, arrays included, and takes the first
               path that matches — so the map keeps route order and the pathless

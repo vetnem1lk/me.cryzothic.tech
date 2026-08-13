@@ -111,6 +111,10 @@ export default function VaiShell({
   // the browser-location module: `/loot` from a command becomes `/ru/loot` under
   // the RU base. Commands stay unprefixed; wouter prepends.
   const [location, navigate] = useLocation();
+  // Base-relative: under the RU base '/ru' arrives as '/', so one test covers both
+  // greetings. A sector has the stage to itself on a phone — the terminal is CSS-hidden
+  // there, never unmounted, because this instance owns the transcript the sheet reopens.
+  const onGreeting = location === '/';
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [mode, setMode] = useState<AgentMode>('vai');
@@ -436,7 +440,9 @@ export default function VaiShell({
       className={`flex min-h-0 flex-col md:border-r md:border-dashed md:border-neutral-800 ${
         mobileOpen
           ? 'max-md:fixed max-md:inset-x-2 max-md:bottom-2 max-md:z-50 max-md:max-h-[70dvh] max-md:rounded-lg max-md:border max-md:border-accent/50 max-md:bg-neutral-950/95 max-md:backdrop-blur'
-          : ''
+          : onGreeting
+            ? ''
+            : 'max-md:hidden'
       }`}
     >
       <header className="flex items-center justify-between border-b border-dashed border-neutral-800 px-3 py-2">
