@@ -206,7 +206,10 @@ export default function TargetCursor({
         // is not worth dropping the current lock for.
         const ct = measure(target)
         if (!ct) return
-        currentLeave?.()
+        // Forced: whenever the incoming target sits inside the outgoing one, the
+        // outgoing one is still hovered, and an unforced leave holds the lock there —
+        // stranding one armed mouseleave listener on it per hop back in.
+        currentLeave?.(true)
         setIbeam(target.matches(TEXT_ENTRY))
 
         activeTarget = target

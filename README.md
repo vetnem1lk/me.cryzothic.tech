@@ -71,6 +71,7 @@ me.cryzothic.tech/
 │           ├── VaiShell.tsx         # the terminal: log, submit queue, paced typing
 │           ├── CommandRow.tsx       # drifting ticker that advertises the commands
 │           ├── TextType.tsx         # looping type/delete placeholder label
+│           ├── Corners.tsx          # the four corner marks any framed box can wear
 │           ├── commands.ts          # local commands — work with the API down
 │           ├── transport.ts         # the chat contract the UI codes against
 │           ├── apiTransport.ts      # its live implementation: POST + SSE reader
@@ -80,9 +81,10 @@ me.cryzothic.tech/
 │           ├── story.ts             # /nda chapters: quests, photo slots, unlock state, lore + badge queues
 │           ├── laser.ts             # pure mirror optics for the rocket quest (no SVG, no clock)
 │           ├── sprint.ts            # pure click→speed momentum for the sprint quest
+│           ├── codelock.ts          # pure wheel-digit math for the code-lock quest
 │           ├── konami.ts            # pure sequence + swipe math for the old cheat code
 │           ├── cvFlag.ts            # the one boolean the CV links set, session-only
-│           ├── *.test.ts            # vitest: commands, drain, konami, laser, queue, sprint, story, transport, wheelMath
+│           ├── *.test.ts            # vitest: codelock, commands, drain, konami, laser, queue, sprint, story, transport, wheelMath
 │           └── views/               # Briefing · Career · Skills · Nda · Loot · Contact · CodeBase · ThreeDView
 │               ├── Lightbox.tsx     # native <dialog> photo viewer for the /nda chapters
 │               ├── codebaseManifest.ts  # what /code displays, imported `?raw`

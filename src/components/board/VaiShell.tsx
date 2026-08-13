@@ -89,7 +89,7 @@ function ChatPhoto({
         height={h}
         loading="lazy"
         decoding="async"
-        className="h-auto w-full rounded border border-dashed border-accent/40"
+        className="h-auto w-full rounded border border-dashed border-accent/40 hover:border-accent"
       />
     </button>
   );
@@ -184,10 +184,10 @@ export default function VaiShell({
   };
 
   // One string, three jobs: the field's accessible name, its placeholder and the
-  // label that types itself while the field is empty. `C:\>` and `/help` are shell
-  // syntax, not prose, so only the verb between them is translated.
+  // label that types itself while the field is empty. Only the `C:\>` prefix is
+  // composed here — shell syntax, not prose, so it stays out of the dictionary.
   const ask = t('vai.sys.ask', { mode: MODE_NAME[mode] });
-  const prompt = `C:\\> ${ask} · /help`;
+  const prompt = `C:\\> ${ask}`;
 
   useGSAP(
     () => {
@@ -321,6 +321,13 @@ export default function VaiShell({
               .filter((m) => m.id !== replyId || m.text)
               .map((m) => (m.id === replyId ? { ...m, pending: false } : m)),
           );
+          // A word said to VAI and answered. Here rather than at submit or the end
+          // of the feed, so the badge lands under a reply the visitor has finished
+          // reading instead of interrupting one still being typed out — and
+          // idempotent in the store, so every turn after the first is free. A
+          // question the transport never answered earns nothing: a clean stream that
+          // said nothing is not an answer, and neither is half of one under an error.
+          if (st.buf && !failed) firstContact();
           return resolve();
         }
         requestAnimationFrame(paint);
@@ -344,11 +351,6 @@ export default function VaiShell({
           },
           onDone: () => {
             st = { ...st, doneFeeding: true };
-            // A word said to VAI and answered. Here rather than at submit, so a
-            // question the transport never got an answer to earns nothing — and
-            // idempotent in the store, so every turn after the first is free.
-            // A clean stream that said nothing is not an answer either.
-            if (st.buf) firstContact();
           },
           onError: (msg, vars) => {
             // Ending the feed is what closes the turn: the loop types out
@@ -438,11 +440,11 @@ export default function VaiShell({
       }`}
     >
       <header className="flex items-center justify-between border-b border-dashed border-neutral-800 px-3 py-2">
-        <span className="font-mono text-xs tracking-widest text-accent uppercase">
+        <span className="font-mono text-sm tracking-widest text-accent uppercase">
           {MODE_NAME[mode]}
         </span>
         <div className="flex items-center gap-3">
-          <div role="group" aria-label={t('vai.modeGroup')} className="flex font-mono text-[11px]">
+          <div role="group" aria-label={t('vai.modeGroup')} className="flex font-mono text-xs">
             <button
               type="button"
               aria-pressed={mode === 'vai'}
@@ -464,7 +466,7 @@ export default function VaiShell({
             <button
               type="button"
               onClick={onMobileClose}
-              className="cursor-target font-mono text-xs text-neutral-400 md:hidden"
+              className="cursor-target font-mono text-sm text-neutral-400 md:hidden"
             >
               {t('vai.close')}
             </button>
@@ -475,7 +477,7 @@ export default function VaiShell({
         ref={logRef}
         role="log"
         aria-live="polite"
-        className="scroll-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm max-md:max-h-56"
+        className="scroll-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-base max-md:max-h-56"
       >
         {[greeting, ...messages].map((m, i) =>
           m.role === 'sys' ? (
@@ -483,7 +485,7 @@ export default function VaiShell({
             // talking about itself rather than answering, and every line of that
             // kind lands here — the dictionary's, the transport's, and whatever a
             // later feature writes — so none of them carries its own.
-            <p key={i} className="font-mono text-[11px] text-sep-mint/80">
+            <p key={i} className="font-mono text-xs text-sep-mint/80">
               [sys] {m.text}
             </p>
           ) : (
@@ -536,7 +538,7 @@ export default function VaiShell({
                       // otherwise leave the overlay sitting over the page it just
                       // asked for. Closing twice is free.
                       onClick={onMobileClose}
-                      className="cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent"
+                      className="cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-xs text-accent hover:border-accent"
                     >
                       {a.label}
                     </Link>
@@ -567,7 +569,7 @@ export default function VaiShell({
           // round trip that comes back a 400.
           maxLength={500}
           placeholder={prompt}
-          className="caret-terminal peer w-full bg-transparent px-1 py-1 font-mono text-sm outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
+          className="caret-terminal peer w-full bg-transparent px-1 py-1 font-mono text-base outline-none placeholder:text-transparent focus:placeholder:text-neutral-600"
         />
         <TextType
           // Remounts on a language switch as well as a mode switch, so the label
@@ -575,7 +577,7 @@ export default function VaiShell({
           key={`${mode}-${lang}`}
           text={prompt}
           variableSpeed={TYPE_SPEED}
-          className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 font-mono text-sm peer-focus:hidden peer-not-placeholder-shown:hidden"
+          className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 font-mono text-base peer-focus:hidden peer-not-placeholder-shown:hidden"
         />
       </form>
       {/* The dialog lives in the top layer, so where it is mounted decides nothing

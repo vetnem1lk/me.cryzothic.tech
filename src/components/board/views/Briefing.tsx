@@ -8,8 +8,12 @@ import { useT } from '../../../i18n/I18nContext';
 // heading are the same string in both languages. The engine bay and the source
 // browser have no prose heading of their own, so they are named by their tab
 // label — the same word in both languages — and they are listed here at all
-// because the nav strip used to be the only way into them.
-const ACTIONS = [
+// because the nav strip used to be the only way into them. Exported for the pin in
+// commands.test.ts: every door here has to be a sector the router actually mounts.
+// A table of objects is not the literal `allowConstantExport` waives, so the export
+// costs this one file its fast refresh in dev — paid once, for a list that is static.
+// eslint-disable-next-line react/only-export-components
+export const ACTIONS = [
   { href: '/career', key: 'sector.career.title' },
   { href: '/skills', key: 'sector.skills.title' },
   { href: '/nda', key: 'sector.nda.title' },
@@ -20,12 +24,12 @@ const ACTIONS = [
 ];
 
 const CARD =
-  'cursor-target block rounded-md border border-dashed border-accent/50 px-4 py-3 text-center text-sm text-neutral-200 hover:border-accent';
+  'cursor-target block rounded-md border border-dashed border-accent/50 px-4 py-3 text-center text-base text-neutral-200 hover:border-accent';
 
 // The same chip VAI offers in its greeting, so the story reads as one invitation
 // wherever the visitor meets it first.
 const CHIP =
-  'cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-[11px] text-accent hover:border-accent';
+  'cursor-target rounded border border-dashed border-accent/60 px-2 py-0.5 font-mono text-xs text-accent hover:border-accent';
 
 export default function Briefing() {
   const t = useT();
@@ -40,7 +44,7 @@ export default function Briefing() {
           WebkitMask: 'url(/face-icon-tight.svg) center / contain no-repeat',
         }}
       />
-      <p className="max-w-md text-center text-sm text-neutral-400">{t('briefing.tagline')}</p>
+      <p className="max-w-md text-center text-base text-neutral-400">{t('briefing.tagline')}</p>
       <Link href="/nda" className={CHIP}>
         {t('vai.cta.story')}
       </Link>

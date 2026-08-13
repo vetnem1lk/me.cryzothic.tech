@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 import { loadConfig } from '../src/config.js';
 
 const CHAIN = [
-  'nvidia/nemotron-3-super-120b-a12b:free',
   'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free',
   'openai/gpt-oss-20b:free',
 ];
 
@@ -39,7 +39,7 @@ describe('loadConfig', () => {
   it('applies defaults when nothing is set', () => {
     const c = loadConfig({ OPENROUTER_API_KEY: 'k' });
     expect(c.port).toBe(13331);
-    expect(c.dailyCap).toBe(800);
+    expect(c.dailyCap).toBe(450);
     expect(c.promptsDir).toBe('./prompts');
     expect(c.mockLlm).toBe(false);
     expect(c.apiKey).toBe('k');
@@ -63,7 +63,7 @@ describe('loadConfig', () => {
       MOCK_LLM: '',
     });
     expect(c.port).toBe(13331);
-    expect(c.dailyCap).toBe(800);
+    expect(c.dailyCap).toBe(450);
     expect(c.promptsDir).toBe('./prompts');
     expect(c.mockLlm).toBe(false);
   });
@@ -71,7 +71,7 @@ describe('loadConfig', () => {
   it('treats unparsable numbers as unset', () => {
     const c = loadConfig({ OPENROUTER_API_KEY: 'k', PORT: 'abc', DAILY_CAP: 'lots' });
     expect(c.port).toBe(13331);
-    expect(c.dailyCap).toBe(800);
+    expect(c.dailyCap).toBe(450);
   });
 
   it('reads overrides', () => {

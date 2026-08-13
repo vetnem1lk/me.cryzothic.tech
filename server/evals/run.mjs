@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 // The endpoint allows ten requests per minute per IP, and this runner is one IP.
-// ponytail: a fixed gap rather than a token bucket — the whole run is 25 requests.
+// ponytail: a fixed gap rather than a token bucket — the whole run is 26 requests.
 const DEFAULT_GAP_MS = 6_500;
 const LIMIT_WAIT_MS = 61_000; // one full window, so a stray 429 costs a probe no more than a minute
 
@@ -104,7 +104,7 @@ async function readStream(body) {
           else if (frame.message) error = String(frame.message);
         } catch {
           // A frame this runner cannot parse is a server defect, but crashing the run
-          // would hide the other 24 verdicts. It surfaces as a missing [DONE] instead.
+          // would hide the other 25 verdicts. It surfaces as a missing [DONE] instead.
         }
       }
     }

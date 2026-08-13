@@ -15,6 +15,19 @@
   --font-mono: 'JetBrains Mono Variable', ui-monospace, Consolas, monospace;
 }
 
+/* The keyboard's own corner mark: one dashed ring for everything focusable, in the
+   accent, offset so it sits outside the control's border rather than on top of it.
+   The @layer is load-bearing — every other rule in this file is unlayered and so
+   outranks all of Tailwind, which would put a ring on the chat input the terminal
+   deliberately strips with `outline-none`. In `base` the utility wins there, and
+   everything the site does not exempt keeps the ring. */
+@layer base {
+  :focus-visible {
+    outline: 1px dashed var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
 /* TargetCursor adds this class while alive; author rule beats UA cursors (the
    pointer hand on links, the I-beam on fields) so no system cursor doubles the
    custom one. Class dies with the component — system cursor is the failsafe. */

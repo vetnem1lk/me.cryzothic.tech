@@ -9,10 +9,12 @@ import cssSrc from '../../../index.css?raw';
 import cursorSrc from '../../TargetCursor.tsx?raw';
 import boardSrc from '../Board.tsx?raw';
 import commandRowSrc from '../CommandRow.tsx?raw';
+import cornersSrc from '../Corners.tsx?raw';
 import stageSrc from '../Stage.tsx?raw';
 import textTypeSrc from '../TextType.tsx?raw';
 import vaiSrc from '../VaiShell.tsx?raw';
 import apiTransportSrc from '../apiTransport.ts?raw';
+import codelockSrc from '../codelock.ts?raw';
 import commandsSrc from '../commands.ts?raw';
 import cvFlagSrc from '../cvFlag.ts?raw';
 import drainSrc from '../drain.ts?raw';
@@ -57,10 +59,12 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/components/TargetCursor.tsx', content: cursorSrc },
       { path: 'src/components/board/Board.tsx', content: boardSrc },
       { path: 'src/components/board/CommandRow.tsx', content: commandRowSrc },
+      { path: 'src/components/board/Corners.tsx', content: cornersSrc },
       { path: 'src/components/board/Stage.tsx', content: stageSrc },
       { path: 'src/components/board/TextType.tsx', content: textTypeSrc },
       { path: 'src/components/board/VaiShell.tsx', content: vaiSrc },
       { path: 'src/components/board/apiTransport.ts', content: apiTransportSrc },
+      { path: 'src/components/board/codelock.ts', content: codelockSrc },
       { path: 'src/components/board/commands.ts', content: commandsSrc },
       { path: 'src/components/board/cvFlag.ts', content: cvFlagSrc },
       { path: 'src/components/board/drain.ts', content: drainSrc },

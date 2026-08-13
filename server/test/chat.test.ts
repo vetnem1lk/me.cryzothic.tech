@@ -188,7 +188,7 @@ describe('POST /api/chat — on-topic VAI answer', () => {
     const answer = bodyOf(f, 1);
     expect(answer.stream).toBe(true);
     expect(answer.temperature).toBe(0.6);
-    expect(answer.reasoning).toEqual({ effort: 'low', exclude: true });
+    expect(answer.reasoning).toEqual({ enabled: false, exclude: true });
     expect(answer.messages[0]).toEqual({ role: 'system', content: prompts.vaiSystem });
     expect(answer.messages[1]).toEqual({ role: 'user', content: 'What did Vlad build?' });
   });

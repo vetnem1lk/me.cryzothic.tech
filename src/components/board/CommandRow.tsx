@@ -133,7 +133,7 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
             type="button"
             tabIndex={hidden ? -1 : undefined}
             onClick={() => onRun(c)}
-            className="cursor-target shrink-0 px-1 font-mono text-[11px] text-neutral-400 hover:text-accent"
+            className="cursor-target shrink-0 px-1 font-mono text-xs text-neutral-400 hover:text-accent"
           >
             {c}
           </button>

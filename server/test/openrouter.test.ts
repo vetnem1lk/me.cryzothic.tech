@@ -204,15 +204,17 @@ describe('chatRequestInit', () => {
 
   it('sends the fallback chain as top-level models[], primary first', () => {
     expect(body.models).toEqual(cfg.models);
-    expect((body.models as string[])[0]).toBe('nvidia/nemotron-3-super-120b-a12b:free');
+    expect((body.models as string[])[0]).toBe('google/gemma-4-31b-it:free');
   });
 
-  it('asks the model to reason without returning the reasoning', () => {
-    // `exclude` keeps the deliberation off the wire, so no model in the chain can
-    // render its analysis channel as the answer. `low` is the budget half: reasoning
-    // tokens bill as output tokens, and prod measured 1634 reasoning characters
-    // against 424 of answer on a 600-token cap — that is why replies came truncated.
-    expect(body.reasoning).toEqual({ effort: 'low', exclude: true });
+  it('asks the model not to think, and not to show its thinking either', () => {
+    // Two halves, and only together. `enabled: false` is the one that actually skips
+    // deliberation: `exclude` alone leaves the model reasoning in full, billing those
+    // tokens as output and spending the wall-clock before the first word appears —
+    // prod measured 1634 characters of reasoning against 424 of answer on a 600-token
+    // cap. `exclude` stays for the model that cannot be talked out of it: slot 3's
+    // reasoning is mandatory, and its analysis channel must never reach a browser.
+    expect(body.reasoning).toEqual({ enabled: false, exclude: true });
   });
 
   it('leaves the field out entirely for a caller that did not ask to reason', () => {
@@ -297,6 +299,10 @@ describe('callBuffered', () => {
     // Never for this call: a verdict is two letters, and a model that thinks first
     // spends the whole budget on thinking and answers with an empty string.
     expect('reasoning' in body).toBe(false);
+    // Sorted by latency, and only here: this gate runs before a single token of the
+    // answer can stream, so its round trip is dead time the visitor watches. The
+    // answering call keeps the default routing — it is graded on more than speed.
+    expect(body.provider).toEqual({ sort: 'latency' });
   });
 
   it('throws with the status on a non-OK response, and logs the reason', async () => {

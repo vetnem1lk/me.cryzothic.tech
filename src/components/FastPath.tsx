@@ -24,7 +24,7 @@ const CV_LINKS = [
 ]
 
 const CV_BUTTON =
-  'cursor-target rounded-lg border border-dashed border-accent/45 px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:border-accent hover:bg-accent/10'
+  'cursor-target rounded-lg border border-dashed border-accent/45 px-3 py-1.5 text-base font-semibold text-accent transition-colors hover:border-accent hover:bg-accent/10'
 
 /* Mobile-only replacement for the two CV buttons: one button, a dashed dropdown
    with the language choice. Desktop keeps the flat strip. */
@@ -85,7 +85,7 @@ function CvDropdown({ lang }: { lang: Lang }) {
                 markCvDownloaded()
                 setOpen(false)
               }}
-              className="cursor-target block px-3 py-2.5 text-sm font-semibold text-accent transition-colors hover:bg-accent/10"
+              className="cursor-target block px-3 py-2.5 text-base font-semibold text-accent transition-colors hover:bg-accent/10"
             >
               {menuLabel}
             </a>
@@ -124,7 +124,7 @@ export default function FastPath({ lang }: { lang: Lang }) {
             href="https://github.com/vetnem1lk"
             target="_blank"
             rel="noreferrer"
-            className="cursor-target px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white"
+            className="cursor-target px-2 py-1.5 text-base text-neutral-300 transition-colors hover:text-white"
           >
             GitHub
           </a>
@@ -132,13 +132,13 @@ export default function FastPath({ lang }: { lang: Lang }) {
             href="https://t.me/cryzoth"
             target="_blank"
             rel="noreferrer"
-            className="cursor-target px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white"
+            className="cursor-target px-2 py-1.5 text-base text-neutral-300 transition-colors hover:text-white"
           >
             Telegram
           </a>
           <a
             href="mailto:klimentev.vlad@gmail.com"
-            className="cursor-target px-2 py-1.5 text-sm text-neutral-300 transition-colors hover:text-white"
+            className="cursor-target px-2 py-1.5 text-base text-neutral-300 transition-colors hover:text-white"
           >
             {STRIP[lang].email}
           </a>

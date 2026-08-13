@@ -22,14 +22,18 @@ export interface OrChunk {
   done?: boolean;
 }
 
-// The model may think; it may not think out loud. `exclude` keeps the reasoning off
-// the wire entirely — a fallback model that maps its analysis channel into `content`
-// once put "We must not mention other people" on a visitor's screen. `low` is the
-// budget half: reasoning bills as output tokens, and prod measured 1634 characters of
-// reasoning against 424 of answer under a 600-token cap. Non-reasoning models ignore
-// it. Sent only to calls that ask for it — a short answer budget cannot afford to
-// think. (Doc-verified 2026-08-07: openrouter.ai/docs/use-cases/reasoning-tokens.)
-const REASONING = { effort: 'low', exclude: true } as const;
+// The model should not think, and may not think out loud. `enabled: false` is the
+// half that actually skips the deliberation; `effort: 'low'` only made it cheaper,
+// and the price was never only tokens — the 1634 characters of reasoning prod
+// measured against 424 of answer are also a wait the visitor sits through before the
+// first word. `effort` is gone because asking for an effort level is asking to reason.
+// `exclude` stays regardless: slot 3 reasons whatever we send (its provider makes it
+// mandatory), and a model that maps its analysis channel into `content` once put "We
+// must not mention other people" on a visitor's screen. Sent only to calls that ask
+// for it. (Doc-verified 2026-08-12: openrouter.ai/docs/guides/best-practices/
+// reasoning-tokens — `enabled` is otherwise "inferred from `effort` or `max_tokens`",
+// and `exclude` on its own still reasons, it only withholds the tokens.)
+const REASONING = { enabled: false, exclude: true } as const;
 
 export function chatRequestInit(
   cfg: Config,
@@ -40,10 +44,11 @@ export function chatRequestInit(
     maxTokens: number;
     temperature: number;
     /**
-     * Opt-in, because the classifier must not reason: its whole budget is 8 tokens
-     * and reasoning bills as output tokens, so a thinking model spends the lot
-     * deliberating and returns an empty verdict — a topic gate that silently fails
-     * open. Only the answering stream, which has 600 tokens to play with, asks.
+     * Whether to send the `reasoning` block at all — not whether to reason, since the
+     * block we send switches thinking off. The classifier omits it rather than sending
+     * the same off-switch, because omission is the shape prod measured: 4 of 8 probes
+     * came back with empty content while a thinking field was present, 0 of 8 once it
+     * was gone, and an 8-token budget has no room to re-litigate that.
      */
     reasoning?: boolean;
   },
@@ -150,6 +155,14 @@ export async function callBuffered(
       { messages, models: [model], stream: false, maxTokens: opts.maxTokens, temperature: 0 },
       signal,
     );
+    // Latency-sorted routing, spliced in here and not in the shared builder: this gate
+    // runs before the answer can start streaming, so its round trip is dead time the
+    // visitor watches, while the answering call is graded on more than speed. Sorting
+    // also disables OpenRouter's load balancing — harmless for a one-model call.
+    init.body = JSON.stringify({
+      ...(JSON.parse(init.body as string) as object),
+      provider: { sort: 'latency' },
+    });
     const res = await call(CHAT_URL, init);
     if (!res.ok) {
       // Free-tier 429s are steady state, not an exception — but they still go to
@@ -222,7 +235,7 @@ export async function* streamChat(
         stream: true,
         maxTokens: cfg.caps.maxTokens,
         temperature: opts.temperature,
-        reasoning: true, // a 600-token answer can afford to think; the classifier cannot
+        reasoning: true, // send the off-switch; the classifier omits the field instead
       },
       signal,
     );
