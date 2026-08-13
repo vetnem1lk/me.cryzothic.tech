@@ -238,6 +238,7 @@
       "emailLabel": "Email",
       "githubSub": "vetnem1lk — this site is open source",
       "telegramSub": "@cryzoth — fastest response",
+      "primaryTag": "fastest reply",
       "newTab": "opens in a new tab"
     },
     "threed": {
@@ -540,6 +541,7 @@
       "emailLabel": "Почта",
       "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
       "telegramSub": "@cryzoth — отвечаю быстрее всего",
+      "primaryTag": "самый быстрый ответ",
       "newTab": "откроется в новой вкладке"
     },
     "threed": {

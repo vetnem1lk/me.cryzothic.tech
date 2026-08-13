@@ -10,18 +10,31 @@ export default function Contact() {
   // Built here rather than at module scope so `t` can resolve the two halves that
   // are copy. GitHub and Telegram are product names and the address is an address —
   // those three stay literal in both languages, and the list is the same shape either way.
+  // Ordered by how fast an answer comes back, not alphabetically: Telegram is where
+  // Vlad actually replies, so it leads the row and wears the primary frame.
   const CONTACTS = [
-    { href: 'https://github.com/vetnem1lk', label: 'GitHub', sub: t('contact.githubSub') },
-    { href: 'https://t.me/cryzoth', label: 'Telegram', sub: t('contact.telegramSub') },
+    {
+      href: 'https://t.me/cryzoth',
+      label: 'Telegram',
+      sub: t('contact.telegramSub'),
+      primary: true,
+    },
     {
       href: 'mailto:klimentev.vlad@gmail.com',
       label: t('contact.emailLabel'),
       sub: 'klimentev.vlad@gmail.com',
+      primary: false,
+    },
+    {
+      href: 'https://github.com/vetnem1lk',
+      label: 'GitHub',
+      sub: t('contact.githubSub'),
+      primary: false,
     },
   ];
 
   return (
-    <section className="flex min-h-full flex-col gap-5 p-4">
+    <section className="@container flex min-h-full flex-col gap-5 p-4">
       <Masthead path="/contact" count={CONTACTS.length}>
         <h2 className="font-mono text-base tracking-widest text-accent uppercase">
           {t('contact.title')}
@@ -30,24 +43,36 @@ export default function Contact() {
       <div>
         <p className="font-mono text-xs tracking-widest text-accent uppercase">{t('contact.boss')}</p>
         {/* The bar is decor. A dashed accent frame is what the three real links wear,
-            so it borrowed their affordance — grey stops it looking clickable. */}
-        <div aria-hidden className="mt-1 h-2 w-full rounded-sm border border-dashed border-neutral-700">
-          <div className="h-full w-full rounded-sm bg-accent/70" />
+            so it borrowed their affordance — grey stops it looking clickable. The fill
+            is segmented (`.gauge-fill`) and square-edged, because a smooth rounded bar
+            reads as a loading percentage rather than a game meter. */}
+        <div aria-hidden className="mt-1 h-2 w-full border border-dashed border-neutral-700">
+          <div className="gauge-fill h-full w-full" />
         </div>
         <p className="mt-1 font-mono text-xs text-neutral-400">{t('contact.hp')}</p>
       </div>
-      {/* Three across only from xl: at 768 the stage column is ~383 px, so a third of it
-          is ~120 px and the address breaks apart inside it. */}
-      <div className="grid gap-3 xl:grid-cols-3">
+      {/* Three across from @2xl — 672 px of this section's own inline size, not the
+          viewport's: the section is a scrolled column inside the shell, so the old
+          xl: breakpoint was measuring the wrong box entirely. At 672 px a third of
+          the row is ~217 px, where the address soft-wraps once; below that the
+          thirds fall under 200 px and the cards read as fragments. */}
+      <div className="grid gap-3 @2xl:grid-cols-3">
         {CONTACTS.map((c) => (
           <a
             key={c.href}
             href={c.href}
             target={c.href.startsWith('http') ? '_blank' : undefined}
             rel={c.href.startsWith('http') ? 'noreferrer' : undefined}
-            className="cursor-target rounded-md border border-dashed border-accent/50 p-4 hover:border-accent"
+            className={`cursor-target rounded-md border border-dashed p-4 hover:border-accent ${
+              c.primary ? 'border-accent/60' : 'border-accent/50'
+            }`}
           >
             <span className="block text-base text-neutral-200">{c.label}</span>
+            {/* The rank is said in the same bracket grammar the loot tiers use, and it
+                is copy rather than an icon so a screen reader reads it in order. */}
+            {c.primary && (
+              <span className="font-mono text-xs text-accent">[ {t('contact.primaryTag')} ]</span>
+            )}
             <span className="mt-1 block font-mono text-sm break-words text-neutral-300">
               {c.sub}
             </span>
