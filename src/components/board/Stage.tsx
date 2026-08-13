@@ -6,7 +6,7 @@ import gsap from 'gsap';
 import { Suspense, lazy, useRef, type ReactNode } from 'react';
 import { Link, Route, Switch, useLocation } from 'wouter';
 import { useT } from '../../i18n/I18nContext';
-import { ROUTE_PATHS, type RoutePath } from './commands';
+import { NAV_KEY, ROUTE_PATHS, type RoutePath } from './commands';
 import Briefing from './views/Briefing';
 import Career from './views/Career';
 import Contact from './views/Contact';
@@ -17,29 +17,20 @@ import ThreeDView from './views/ThreeDView';
 
 const CodeBase = lazy(() => import('./views/CodeBase'));
 
-// What each sector is called on the strip. The paths themselves are commands.ts'
-// — they are the shell's unix fiction, not copy, and they stay English on /ru;
-// only these labels are translated. Keyed by RoutePath rather than typed as a
-// loose record, which is what makes it exhaustive: a route added without a label
-// (or a label for a route the router will not mount) is a type error here rather
-// than a blank tab in production.
-const NAV_KEY: Record<RoutePath, string> = {
-  '/career': 'nav.career',
-  '/skills': 'nav.skills',
-  '/nda': 'nav.nda',
-  '/loot': 'nav.loot',
-  '/contact': 'nav.contact',
-  '/code': 'nav.code',
-  '/3d': 'nav.threed',
-};
-
 // The interactive sectors, pinned past the spacer to the right edge; everything
 // else reads left to right in route order. /nda joined them when it stopped being
 // a dossier and became a story you play through.
 const PINNED: readonly RoutePath[] = ['/nda', '/code', '/3d'];
 
+// wouter calls this with the active flag, so the brackets can key off it — but
+// only inside the class string. `aria-current` lives on the Link elements below,
+// where the component's own `location` is in scope.
 const navClass = (active: boolean) =>
-  `cursor-target px-1 ${active ? 'text-accent' : 'text-neutral-500 hover:text-neutral-300'}`;
+  `cursor-target px-1.5 py-1.5 ${
+    active
+      ? "text-accent before:content-['[_'] before:text-accent/60 after:content-['_]'] after:text-accent/60"
+      : 'text-neutral-400 hover:text-neutral-300'
+  }`;
 
 export default function Stage() {
   const viewRef = useRef<HTMLDivElement>(null);
@@ -83,23 +74,41 @@ export default function Stage() {
       data-dock
       className="flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-b-0"
     >
-      <nav className="flex flex-wrap items-center gap-3 border-b border-dashed border-neutral-800 p-2 font-mono text-sm font-semibold">
-        <Link href="/" className={navClass}>
+      <nav className="flex flex-wrap items-center gap-2 border-b border-dashed border-neutral-800 p-2 font-mono text-sm font-semibold">
+        <Link href="/" className={navClass} aria-current={location === '/' ? 'page' : undefined}>
           {t('nav.home')}
         </Link>
         {ROUTE_PATHS.filter((p) => !PINNED.includes(p)).map((p) => (
-          <Link key={p} href={p} className={navClass}>
+          <Link
+            key={p}
+            href={p}
+            className={navClass}
+            aria-current={location === p ? 'page' : undefined}
+          >
             {t(NAV_KEY[p])}
           </Link>
         ))}
-        <span className="flex-1" aria-hidden />
+        <span
+          className="flex-1 self-stretch border-r border-dashed border-neutral-800"
+          aria-hidden
+        />
         {PINNED.map((p) => (
-          <Link key={p} href={p} className={navClass}>
+          <Link
+            key={p}
+            href={p}
+            className={navClass}
+            aria-current={location === p ? 'page' : undefined}
+          >
             {t(NAV_KEY[p])}
           </Link>
         ))}
       </nav>
-      <div ref={viewRef} className="scroll-thin min-h-0 flex-1 md:overflow-y-auto">
+      {/* The mobile padding is the VAI button's seat: it floats over this scroller,
+          and without the reserve the last line of a view ends up underneath it. */}
+      <div
+        ref={viewRef}
+        className="scroll-thin min-h-0 flex-1 max-md:pb-[calc(62px+env(safe-area-inset-bottom))] md:overflow-y-auto"
+      >
         <Switch>
           {/* Switch reads its children flat, arrays included, and takes the first
               path that matches — so the map keeps route order and the pathless

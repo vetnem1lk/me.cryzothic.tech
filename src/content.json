@@ -78,7 +78,7 @@
         "groups": [
           {
             "name": "Main weapon — C++",
-            "items": ["C++17", "C", "STL", "Boost", "OOP", "Data structures & algorithms"],
+            "items": ["C++17/20", "C", "STL", "EASTL", "Boost", "OOP", "Data structures & algorithms"],
             "lines": []
           },
           {
@@ -88,7 +88,7 @@
           },
           {
             "name": "Graphics & 3D",
-            "items": ["OpenGL", "glTF 2.0 import"],
+            "items": ["OpenGL", "raylib", "glTF 2.0 import"],
             "lines": [
               "PBR materials — base color, metallic-roughness, normal maps",
               "Vector and matrix math, from writing the renderer"
@@ -102,7 +102,10 @@
           {
             "name": "Side quests",
             "items": ["TypeScript", "React", "Node.js", "WebSocket", "Python"],
-            "lines": ["Real-time game loop and custom physics"]
+            "lines": [
+              "Real-time game loop and custom physics",
+              "Commissioned production work — live site for a PC repair shop (ревенант.рф)"
+            ]
           },
           {
             "name": "Skill tree — leveling",
@@ -110,7 +113,8 @@
             "lines": []
           }
         ],
-        "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line."
+        "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line.",
+        "noteEyebrow": "field note"
       },
       "nda": {
         "title": "NDA: New position",
@@ -237,7 +241,8 @@
       "hp": "HP ∞ — direct contact is the only move that lands",
       "emailLabel": "Email",
       "githubSub": "vetnem1lk — this site is open source",
-      "telegramSub": "@cryzoth — fastest response",
+      "telegramSub": "@cryzoth",
+      "primaryTag": "fastest reply",
       "newTab": "opens in a new tab"
     },
     "threed": {
@@ -272,8 +277,8 @@
     },
     "commands": {
       "whoami": "Vladislav Klimentev — C++ developer (Qt tools platform in production; custom C++ glTF engine; TG mini-games). Target: gamedev — Tools / Gameplay.",
-      "ls": "donut-engine/      C++17 glTF renderer, Qt Quick integration\nsed-pro-platform/  Qt Widgets + MySQL, data-driven UI (NDA)\ncyberhockey2077/   neon air-hockey TG mini app\nthis-site/         React 19 + GSAP, open source",
-      "loadout": "main weapon: C++17\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React · Python",
+      "ls": "donut-engine/      C++17 glTF renderer, Qt Quick integration\nsed-pro-platform/  Qt Widgets + MySQL, data-driven UI (NDA)\ncyberhockey2077/   neon air-hockey TG mini app\nrevenant/          commissioned site for a PC repair shop (React), live\nthis-site/         React 19 + GSAP, open source",
+      "loadout": "main weapon: C++17/20\noff-hand: Qt (Widgets + Quick)\nskill tree: Unreal Engine — leveling\nside quests: TypeScript · React · Python",
       "career": "Jumping to career progression.",
       "skills": "Jumping to core competencies.",
       "nda": "Accessing the classified files…",
@@ -380,7 +385,7 @@
         "groups": [
           {
             "name": "Основное оружие — C++",
-            "items": ["C++17", "C", "STL", "Boost", "ООП", "Алгоритмы и структуры данных"],
+            "items": ["C++17/20", "C", "STL", "EASTL", "Boost", "ООП", "Алгоритмы и структуры данных"],
             "lines": []
           },
           {
@@ -390,7 +395,7 @@
           },
           {
             "name": "Графика и 3D",
-            "items": ["OpenGL", "Импорт glTF 2.0"],
+            "items": ["OpenGL", "raylib", "Импорт glTF 2.0"],
             "lines": [
               "PBR-материалы — base color, metallic-roughness, normal maps",
               "Векторная и матричная математика — из собственного рендера"
@@ -404,7 +409,10 @@
           {
             "name": "Побочные квесты",
             "items": ["TypeScript", "React", "Node.js", "WebSocket", "Python"],
-            "lines": ["Игровой цикл в реальном времени и своя физика"]
+            "lines": [
+              "Игровой цикл в реальном времени и своя физика",
+              "Заказная разработка в проде — сайт ПК-мастерской (ревенант.рф)"
+            ]
           },
           {
             "name": "Ветка навыков — качается",
@@ -412,7 +420,8 @@
             "lines": []
           }
         ],
-        "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно."
+        "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно.",
+        "noteEyebrow": "полевая заметка"
       },
       "nda": {
         "title": "NDA: Новая позиция",
@@ -539,7 +548,8 @@
       "hp": "HP ∞ — проходит только прямой контакт",
       "emailLabel": "Почта",
       "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
-      "telegramSub": "@cryzoth — отвечаю быстрее всего",
+      "telegramSub": "@cryzoth",
+      "primaryTag": "самый быстрый ответ",
       "newTab": "откроется в новой вкладке"
     },
     "threed": {
@@ -574,8 +584,8 @@
     },
     "commands": {
       "whoami": "Владислав Климентьев — C++ разработчик (Qt-платформа инструментов в продакшене; свой C++ движок с glTF; мини-игры в Telegram). Цель — геймдев: Tools / Gameplay.",
-      "ls": "donut-engine/      C++17, glTF-рендер, интеграция с Qt Quick\nsed-pro-platform/  Qt Widgets + MySQL, интерфейс из данных (NDA)\ncyberhockey2077/   неоновый аэрохоккей, Telegram mini app\nthis-site/         React 19 + GSAP, открытый код",
-      "loadout": "основное оружие: C++17\nвторое оружие: Qt (Widgets + Quick)\nветка навыков: Unreal Engine — качается\nпобочные квесты: TypeScript · React · Python",
+      "ls": "donut-engine/      C++17, glTF-рендер, интеграция с Qt Quick\nsed-pro-platform/  Qt Widgets + MySQL, интерфейс из данных (NDA)\ncyberhockey2077/   неоновый аэрохоккей, Telegram mini app\nrevenant/          заказной сайт ПК-мастерской (React), в проде\nthis-site/         React 19 + GSAP, открытый код",
+      "loadout": "основное оружие: C++17/20\nвторое оружие: Qt (Widgets + Quick)\nветка навыков: Unreal Engine — качается\nпобочные квесты: TypeScript · React · Python",
       "career": "Перехожу к карьерному росту.",
       "skills": "Перехожу к ключевым навыкам.",
       "nda": "Открываю засекреченные файлы…",
