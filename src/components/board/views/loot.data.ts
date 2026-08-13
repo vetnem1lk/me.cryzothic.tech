@@ -15,24 +15,24 @@ export const LOOT: LootRow[] = [
     href: '/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf',
     nameKey: 'loot.item.enVisual',
     tierKey: 'loot.tier.epic',
-    bytes: 113123,
+    bytes: 70478,
   },
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_RU.pdf',
     nameKey: 'loot.item.ruVisual',
     tierKey: 'loot.tier.epic',
-    bytes: 303878,
+    bytes: 183898,
   },
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_EN_ATS.pdf',
     nameKey: 'loot.item.enAts',
     tierKey: 'loot.tier.common',
-    bytes: 80160,
+    bytes: 78844,
   },
   {
     href: '/cv/Klimentev_Vladislav_CPP_Developer_RU_ATS.pdf',
     nameKey: 'loot.item.ruAts',
     tierKey: 'loot.tier.common',
-    bytes: 85795,
+    bytes: 93497,
   },
 ];
