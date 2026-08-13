@@ -22,7 +22,7 @@ export const STRIP: Record<
 > = {
   en: {
     name: 'Vladislav Klimentev',
-    role: 'C++17/20 Developer · Tools / Gameplay',
+    role: 'C++ Developer · Tools / Gameplay',
     cvMenu: 'CV language',
     quickActions: 'Quick actions',
     email: 'Email',
@@ -30,7 +30,7 @@ export const STRIP: Record<
   },
   ru: {
     name: 'Владислав Климентьев',
-    role: 'C++17/20 разработчик · Tools / Gameplay',
+    role: 'C++ разработчик · Tools / Gameplay',
     cvMenu: 'Язык резюме',
     quickActions: 'Быстрые действия',
     email: 'Почта',

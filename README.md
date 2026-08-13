@@ -1,6 +1,6 @@
 # me.cryzothic.tech
 
-Interactive, game-shell portfolio of **Vladislav Klimentev** - C++17/20 / Qt developer moving
+Interactive, game-shell portfolio of **Vladislav Klimentev** - C++/Qt developer moving
 into game development (tools / gameplay track).
 
 > Demo GIF: TBA

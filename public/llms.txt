@@ -1,6 +1,6 @@
-# Vladislav Klimentev - C++17/20 Developer (Tools / Gameplay)
+# Vladislav Klimentev - C++ Developer (Tools / Gameplay)
 
-> Interactive portfolio of Vladislav Klimentev, a C++17/20 / Qt developer with production
+> Interactive portfolio of Vladislav Klimentev, a C++/Qt developer with production
 > desktop-tooling experience moving into game development.
 
 ## CV
