@@ -38,8 +38,15 @@ const NAV_KEY: Record<RoutePath, string> = {
 // a dossier and became a story you play through.
 const PINNED: readonly RoutePath[] = ['/nda', '/code', '/3d'];
 
+// wouter calls this with the active flag, so the brackets can key off it — but
+// only inside the class string. `aria-current` lives on the Link elements below,
+// where the component's own `location` is in scope.
 const navClass = (active: boolean) =>
-  `cursor-target px-1.5 py-1.5 ${active ? 'text-accent' : 'text-neutral-500 hover:text-neutral-300'}`;
+  `cursor-target px-1.5 py-1.5 ${
+    active
+      ? "text-accent before:content-['[_'] before:text-accent/60 after:content-['_]'] after:text-accent/60"
+      : 'text-neutral-400 hover:text-neutral-300'
+  }`;
 
 export default function Stage() {
   const viewRef = useRef<HTMLDivElement>(null);
@@ -83,18 +90,31 @@ export default function Stage() {
       data-dock
       className="flex min-h-0 flex-col border-b border-dashed border-neutral-800 md:border-b-0"
     >
-      <nav className="flex flex-wrap items-center gap-3 border-b border-dashed border-neutral-800 p-2 font-mono text-sm font-semibold">
-        <Link href="/" className={navClass}>
+      <nav className="flex flex-wrap items-center gap-2 border-b border-dashed border-neutral-800 p-2 font-mono text-sm font-semibold">
+        <Link href="/" className={navClass} aria-current={location === '/' ? 'page' : undefined}>
           {t('nav.home')}
         </Link>
         {ROUTE_PATHS.filter((p) => !PINNED.includes(p)).map((p) => (
-          <Link key={p} href={p} className={navClass}>
+          <Link
+            key={p}
+            href={p}
+            className={navClass}
+            aria-current={location === p ? 'page' : undefined}
+          >
             {t(NAV_KEY[p])}
           </Link>
         ))}
-        <span className="flex-1" aria-hidden />
+        <span
+          className="flex-1 self-stretch border-r border-dashed border-neutral-800"
+          aria-hidden
+        />
         {PINNED.map((p) => (
-          <Link key={p} href={p} className={navClass}>
+          <Link
+            key={p}
+            href={p}
+            className={navClass}
+            aria-current={location === p ? 'page' : undefined}
+          >
             {t(NAV_KEY[p])}
           </Link>
         ))}
