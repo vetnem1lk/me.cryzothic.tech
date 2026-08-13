@@ -110,7 +110,8 @@
             "lines": []
           }
         ],
-        "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line."
+        "note": "Unreal Engine sits in the skill tree, not the main weapon: a 2022 course plus ongoing self-study, no commercial UE production yet. Everything else on this board is shipped work I can walk through line by line.",
+        "noteEyebrow": "field note"
       },
       "nda": {
         "title": "NDA: New position",
@@ -413,7 +414,8 @@
             "lines": []
           }
         ],
-        "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно."
+        "note": "Unreal Engine пока в ветке навыков, а не в основном оружии: курс 2022 года и постоянное самообучение, коммерческих проектов на UE ещё нет. Всё остальное здесь — рабочий код, который я готов разобрать построчно.",
+        "noteEyebrow": "полевая заметка"
       },
       "nda": {
         "title": "NDA: Новая позиция",
