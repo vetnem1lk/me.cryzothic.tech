@@ -9,9 +9,11 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { brotliCompressSync, constants } from 'node:zlib';
 
-// Text formats only. Images, fonts and PDFs are already compressed containers -
-// brotli over them spends build time to add bytes.
-const COMPRESSIBLE = /\.(js|css|html|svg|json|txt)$/;
+// Text formats plus wasm. Images, fonts and PDFs are already compressed
+// containers - brotli over them spends build time to add bytes. Wasm is the
+// exception among binaries (~2.2x here), and the did-not-shrink guard below
+// would catch a build where that stops being true.
+const COMPRESSIBLE = /\.(js|css|html|svg|json|txt|wasm)$/;
 
 // Under a kilobyte the win is a few hundred bytes that vanish inside one TCP
 // segment, against a file the deploy has to copy and the server has to stat.

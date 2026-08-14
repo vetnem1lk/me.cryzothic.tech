@@ -20,6 +20,13 @@ cryx.deploy.json
 .superpowers/
 gate-shots/
 
+# 3D source/optimized assets never ship through git — they live under /g2/v1/
+# on the host (versioned URL, immutable cache); the poster render is the one
+# committable artifact of the pipeline.
+*.glb
+*.ktx2
+*.fbx
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

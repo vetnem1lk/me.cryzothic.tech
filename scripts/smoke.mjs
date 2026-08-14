@@ -36,6 +36,12 @@ const TARGETS = [
   ['/cv/Klimentev_Vladislav_CPP_Developer_EN.pdf', ['application/pdf']],
   ['/robots.txt', ['text/plain']],
   ['/sitemap.xml', ['application/xml', 'text/xml']],
+  // The 3D viewer's assets live outside the deploy root (versioned /g2/v1/ path,
+  // immutable cache) - HEAD only: a body row would pull megabytes through CI to
+  // learn nothing the headers don't already say. Byte sizes are pinned elsewhere.
+  ['/g2/v1/scene_mb_final.glb', ['model/gltf-binary'], undefined, 'head'],
+  ['/g2/v1/scene_fb_final.glb', ['model/gltf-binary'], undefined, 'head'],
+  ['/g2/v1/masks/Shirts_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
 ];
 
 const [base, ...flags] = process.argv.slice(2);
@@ -54,6 +60,7 @@ for (const [path, types, needle, scope] of TARGETS) {
     continue;
   }
 
+  const head = scope === 'head';
   let response;
   let bytes;
   let body;
@@ -62,16 +69,19 @@ for (const [path, types, needle, scope] of TARGETS) {
     // are the ones crawlers and CV readers hold, and they must answer for themselves.
     // The timeout keeps a hung front end a FAIL row below rather than a hung script.
     response = await fetch(origin + path, {
+      method: head ? 'HEAD' : 'GET',
       redirect: 'manual',
       signal: AbortSignal.timeout(10_000),
     });
-    // The body, not the content-length header: a compressing front end drops that
-    // header and answers chunked, so the bytes that actually arrived are the only
-    // count present on every hop.
-    const buffer = await response.arrayBuffer();
-    bytes = buffer.byteLength;
-    // Decoded only where a needle asks for it - the image and PDF rows must stay bytes.
-    if (needle) body = new TextDecoder().decode(buffer);
+    if (!head) {
+      // The body, not the content-length header: a compressing front end drops that
+      // header and answers chunked, so the bytes that actually arrived are the only
+      // count present on every hop.
+      const buffer = await response.arrayBuffer();
+      bytes = buffer.byteLength;
+      // Decoded only where a needle asks for it - the image and PDF rows must stay bytes.
+      if (needle) body = new TextDecoder().decode(buffer);
+    }
   } catch (error) {
     failures += 1;
     console.log(`FAIL ${path} - ${error.message}`);
@@ -84,14 +94,23 @@ for (const [path, types, needle, scope] of TARGETS) {
   if (!types.some((type) => contentType.startsWith(type))) {
     problems.push(`content-type ${contentType || '(none)'}, want ${types.join(' | ')}`);
   }
-  if (bytes === 0) problems.push('empty body');
-  if (needle && !body.includes(needle)) problems.push(`body missing ${needle}`);
+  if (head) {
+    // Immutable is the whole hosting contract for /g2: unhashed filenames are only
+    // honest to cache forever because the path itself is versioned.
+    const cacheControl = response.headers.get('cache-control') ?? '';
+    if (!cacheControl.includes('immutable')) {
+      problems.push(`cache-control ${cacheControl || '(none)'}, want immutable`);
+    }
+  } else {
+    if (bytes === 0) problems.push('empty body');
+    if (needle && !body.includes(needle)) problems.push(`body missing ${needle}`);
+  }
 
   if (problems.length) {
     failures += 1;
     console.log(`FAIL ${path} - ${problems.join('; ')}`);
   } else {
-    console.log(`ok   ${path} - ${contentType.split(';')[0]}, ${bytes} B`);
+    console.log(`ok   ${path} - ${contentType.split(';')[0]}${head ? ' (HEAD)' : `, ${bytes} B`}`);
   }
 }
 
