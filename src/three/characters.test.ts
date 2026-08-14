@@ -1,12 +1,14 @@
 // The registry doubles as the progress denominator and the head-swap map, so a
 // silent edit here breaks loading UX and the visibility toggle at once — pin it.
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AnimationClip, NumberKeyframeTrack } from 'three';
 import {
   CHARACTERS,
   characterById,
   loadCharacter,
   onCharacterProgress,
   progressPct,
+  trimLoopSeam,
 } from './characters';
 
 describe('character registry', () => {
@@ -47,6 +49,42 @@ describe('progressPct', () => {
 
   it('floors instead of rounding so 100 means actually done', () => {
     expect(progressPct(999, 1000)).toBe(99);
+  });
+});
+
+// Shaped like the shipped clips: keys start at frame 1, the key that closes the
+// cycle repeats frame 0's value, and one more key repeats it again as padding.
+const seamClip = (frames: number[], name = 'Walk') =>
+  new AnimationClip(name, -1, [
+    new NumberKeyframeTrack(
+      '.x',
+      frames.map((_, i) => (i + 1) / 30),
+      frames,
+    ),
+  ]);
+
+describe('trimLoopSeam', () => {
+  it('drops the repeated tail key and lands the duration on the real cycle', () => {
+    // 5 keys, 4 of them the cycle (0,1,2 then back to 0) plus one padding repeat.
+    const clip = trimLoopSeam(seamClip([0, 1, 2, 0, 0]));
+    expect(clip.tracks[0].times.length).toBe(4);
+    expect(clip.tracks[0].times[0]).toBe(0);
+    expect(clip.duration).toBeCloseTo(3 / 30, 6);
+    // The pose at the wrap is frame 0's again — that is what makes it seamless.
+    expect([...clip.tracks[0].values]).toEqual([0, 1, 2, 0]);
+  });
+
+  it('is idempotent, so a re-parsed or re-used clip is not trimmed twice', () => {
+    const once = trimLoopSeam(seamClip([0, 1, 2, 0, 0]));
+    const twice = trimLoopSeam(once);
+    expect(twice.duration).toBeCloseTo(3 / 30, 6);
+    expect([...twice.tracks[0].values]).toEqual([0, 1, 2, 0]);
+  });
+
+  it('leaves a clip with no padding alone apart from the frame-1 offset', () => {
+    const clip = trimLoopSeam(seamClip([0, 1, 2, 0]));
+    expect(clip.tracks[0].times.length).toBe(4);
+    expect(clip.duration).toBeCloseTo(3 / 30, 6);
   });
 });
 

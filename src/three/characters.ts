@@ -4,7 +4,7 @@
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { NoColorSpace, type Texture, type WebGLRenderer } from 'three';
+import { NoColorSpace, type AnimationClip, type Texture, type WebGLRenderer } from 'three';
 
 export interface Character {
   id: 'm' | 'f';
@@ -72,6 +72,38 @@ export function loadSideTexture(url: string): Promise<Texture> {
     texture.colorSpace = NoColorSpace;
     return texture;
   });
+}
+
+const sameKey = (v: ArrayLike<number>, a: number, b: number, size: number): boolean => {
+  for (let i = 0; i < size; i++) if (v[a * size + i] !== v[b * size + i]) return false;
+  return true;
+};
+
+/**
+ * Both GLBs carry two dead frames at every loop seam: the tracks start at frame
+ * 1 (t = 1/30, and the mixer holds the first pose over the gap before it) and
+ * the final key repeats its predecessor verbatim. Together they freeze the pose
+ * for ~2 frames at the wrap — the Walk hitch. The models are closed, so the trim
+ * is runtime-side: drop repeated tail keys, then shift the clip onto t=0. The
+ * resulting durations are the UE play lengths (M Walk 1.033 s, F Walk 1.167 s),
+ * which is the check that this removes exactly the padding and no real motion.
+ * Idempotent — a second pass finds no repeat and nothing to shift.
+ */
+export function trimLoopSeam(clip: AnimationClip): AnimationClip {
+  let start = Infinity;
+  for (const track of clip.tracks) {
+    const n = track.times.length;
+    const size = track.getValueSize();
+    // A repeated tail key is value-neutral: the track already holds that value
+    // to its end, so dropping it only pulls clip.duration off the padding.
+    if (n > 1 && sameKey(track.values, n - 1, n - 2, size)) {
+      track.times = track.times.slice(0, n - 1);
+      track.values = track.values.slice(0, (n - 1) * size);
+    }
+    start = Math.min(start, track.times[0]);
+  }
+  if (start > 0 && Number.isFinite(start)) for (const track of clip.tracks) track.shift(-start);
+  return clip.resetDuration();
 }
 
 const cache = new Map<CharacterId, Promise<GLTF>>();
@@ -164,7 +196,12 @@ export function loadCharacter(id: CharacterId, onProgress?: (pct: number) => voi
   const loading = fetchWithProgress(character.glb, character.bytes, (pct) => {
     lastPct.set(id, pct);
     for (const cb of reporters.get(id) ?? []) cb(pct);
-  }).then((buffer) => gltfLoader.parseAsync(buffer, '/g2/v1/'));
+  })
+    .then((buffer) => gltfLoader.parseAsync(buffer, '/g2/v1/'))
+    .then((gltf) => {
+      for (const clip of gltf.animations) trimLoopSeam(clip);
+      return gltf;
+    });
   const settle = () => {
     reporters.delete(id);
     lastPct.delete(id);
