@@ -1,7 +1,13 @@
 // The registry doubles as the progress denominator and the head-swap map, so a
 // silent edit here breaks loading UX and the visibility toggle at once — pin it.
-import { describe, expect, it } from 'vitest';
-import { CHARACTERS, characterById, progressPct } from './characters';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  CHARACTERS,
+  characterById,
+  loadCharacter,
+  onCharacterProgress,
+  progressPct,
+} from './characters';
 
 describe('character registry', () => {
   it('ships exactly the two closed models under the versioned path', () => {
@@ -41,5 +47,90 @@ describe('progressPct', () => {
 
   it('floors instead of rounding so 100 means actually done', () => {
     expect(progressPct(999, 1000)).toBe(99);
+  });
+});
+
+// A body the test hand-feeds: every chunk lands exactly when it says so, which
+// is what makes "a subscriber joins mid-stream" a fact instead of a race.
+function scriptedBody() {
+  type Chunk = { done: boolean; value?: Uint8Array };
+  // Two queues, because the test pushes before the loader has asked: a chunk
+  // waits for the next read(), and a read() with nothing queued waits for the
+  // next push. Neither side may drop a chunk on the floor.
+  const queued: Chunk[] = [];
+  const waiting: ((chunk: Chunk) => void)[] = [];
+  const emit = (chunk: Chunk) => {
+    const reader = waiting.shift();
+    if (reader) reader(chunk);
+    else queued.push(chunk);
+  };
+  const read = () => {
+    const chunk = queued.shift();
+    return chunk ? Promise.resolve(chunk) : new Promise<Chunk>((resolve) => waiting.push(resolve));
+  };
+  return {
+    response: { ok: true, body: { getReader: () => ({ read }) } },
+    push: (bytes: number) => emit({ done: false, value: new Uint8Array(bytes) }),
+    end: () => emit({ done: true }),
+  };
+}
+
+/** One macrotask: drains every microtask the reader loop queued. */
+const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('progress fan-out', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('feeds every subscriber, replays the last chunk to a late one, and stops on unsubscribe', async () => {
+    const stream = scriptedBody();
+    vi.stubGlobal('fetch', vi.fn(async () => stream.response));
+    const quarter = characterById('m').bytes / 4;
+
+    const starter: number[] = [];
+    // The bytes are zeros, so the parse at the end rejects — irrelevant here,
+    // this test is about what the stream says on its way through.
+    const load = loadCharacter('m', (pct) => starter.push(pct));
+    stream.push(quarter);
+    await tick();
+
+    const late: number[] = [];
+    const off = onCharacterProgress('m', (pct) => late.push(pct));
+    expect(late).toEqual([25]);
+
+    stream.push(quarter);
+    await tick();
+    expect(starter).toEqual([25, 50]);
+    expect(late).toEqual([25, 50]);
+
+    off();
+    stream.push(quarter);
+    await tick();
+    expect(starter).toEqual([25, 50, 75]);
+    expect(late).toEqual([25, 50]);
+
+    stream.end();
+    await expect(load).rejects.toThrow();
+    // Settled: nothing to replay, so a subscriber arriving now hears silence.
+    const after: number[] = [];
+    onCharacterProgress('m', (pct) => after.push(pct));
+    expect(after).toEqual([]);
+  });
+
+  it('clears the reporters and drops the cache entry when a load fails', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: false, status: 503 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const seen: number[] = [];
+    await expect(loadCharacter('f', (pct) => seen.push(pct))).rejects.toThrow(/HTTP 503/);
+    expect(seen).toEqual([]);
+
+    const after: number[] = [];
+    onCharacterProgress('f', (pct) => after.push(pct));
+    expect(after).toEqual([]);
+
+    // The failed entry is gone, so the next visit re-fetches instead of
+    // inheriting the rejection forever.
+    await expect(loadCharacter('f')).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

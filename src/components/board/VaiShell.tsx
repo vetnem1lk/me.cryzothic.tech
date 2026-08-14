@@ -10,6 +10,7 @@ import { useLang, useT } from '../../i18n/I18nContext';
 import { mirrorTarget, pathForLang } from '../../i18n/locale';
 import CommandRow from './CommandRow';
 import { runCommand } from './commands';
+import { preload3d, warmViewer } from './views/ThreeDView';
 import TextType from './TextType';
 import { apiTransport } from './apiTransport';
 import { EMPTY, push, take, type DrainState } from './drain';
@@ -382,6 +383,9 @@ export default function VaiShell({
     // Resolved here, once: /joke and /lore advance a counter, so the queue must
     // not run them a second time. Only the rendering waits for the queue.
     const cmd = runCommand(text);
+    // The typed /3d command is a door too: warm the viewer chunk while the
+    // queue types the answer, so the navigation that follows lands warm.
+    if (cmd?.navigateTo === '/3d') warmViewer();
     const askId = crypto.randomUUID();
     const replyId = crypto.randomUUID();
     // A command and its answer are shell-local — shown, never replayed to the
@@ -542,6 +546,7 @@ export default function VaiShell({
                     <Link
                       key={a.label}
                       href={a.to}
+                      {...(a.to === '/3d' ? preload3d : undefined)}
                       // The route watcher above closes the sheet on a change, and a
                       // chip is a chosen destination whether or not the address
                       // changes: tapping the story chip while already on /nda would

@@ -3,6 +3,7 @@
 // panel next to a chat box teaches nobody where to click first.
 import { Link } from 'wouter';
 import { useT } from '../../../i18n/I18nContext';
+import { preload3d } from './ThreeDView';
 
 // Each card is named by the sector it opens, so the label and the view's own
 // heading are the same string in both languages. The engine bay and the source
@@ -54,6 +55,7 @@ export default function Briefing() {
             key={a.href}
             href={a.href}
             className={`${CARD} ${a.href === '/contact' ? 'xl:col-span-2' : ''}`}
+            {...(a.href === '/3d' ? preload3d : undefined)}
           >
             {t(a.key)}
           </Link>

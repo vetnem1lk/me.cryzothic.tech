@@ -5,7 +5,24 @@
 import { Suspense, lazy, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 
-const ThreeDViewer = lazy(() => import('./ThreeDViewer'));
+const loadViewer = () => import('./ThreeDViewer');
+const ThreeDViewer = lazy(loadViewer);
+
+// The /3d doors (nav tab, VAI chip, briefing card, command row) warm the chunk
+// on intent: fetching + evaluating three.js on hover/focus/pointerdown moves
+// its main-thread cost off the click path — the measured freeze was module
+// eval + viewer init landing right after navigation, not a suppressed
+// fallback. The GLB stays untouched: only real navigation starts the stream.
+// eslint-disable-next-line react/only-export-components
+export const warmViewer = () => {
+  void loadViewer();
+};
+// eslint-disable-next-line react/only-export-components
+export const preload3d = {
+  onPointerEnter: warmViewer,
+  onFocus: warmViewer,
+  onPointerDown: warmViewer,
+};
 
 // Hand-rolled WebGL2 probe on a throwaway canvas: synchronous, no library.
 // r185 renders exclusively through WebGL2, so webgl2 is the only context that
@@ -26,30 +43,35 @@ export default function ThreeDView() {
 
   return (
     <section className="flex h-full flex-col gap-3 p-4 md:p-6">
-      <div className="relative h-[65dvh] min-h-[320px] overflow-hidden border border-dashed border-accent/50 md:h-auto md:min-h-0 md:flex-1">
-        {/* Pre-rendered still of the real scene. The live canvas mounts on top
-            and simply covers it — poster-under-boot needs no state at all. */}
-        <img
-          src="/posters/3d-m-idle-v1.avif"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        {supported ? (
-          <Suspense
-            fallback={
-              <p className="absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
-                {t('threed.boot')}
-              </p>
-            }
-          >
-            <ThreeDViewer />
-          </Suspense>
-        ) : (
-          <p className="absolute inset-0 grid place-items-center p-6 text-center text-base text-neutral-400">
-            {t('threed.note')}
-          </p>
-        )}
-        <p className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-3 py-1.5 text-center font-mono text-[11px] leading-snug text-neutral-500">
+      {/* The frame is a column, not a canvas with things floating on it: the
+          credit is a flow strip that owns its own band at the bottom edge.
+          Overlaid, it landed on the character's shoes at 375px. */}
+      <div className="flex h-[65dvh] min-h-[320px] flex-col overflow-hidden border border-dashed border-accent/50 md:h-auto md:min-h-0 md:flex-1">
+        <div className="relative min-h-0 flex-1">
+          {/* Pre-rendered still of the real scene. The live canvas mounts on top
+              and simply covers it — poster-under-boot needs no state at all. */}
+          <img
+            src="/posters/3d-m-idle-v1.avif"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {supported ? (
+            <Suspense
+              fallback={
+                <p className="absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
+                  {t('threed.boot')}
+                </p>
+              }
+            >
+              <ThreeDViewer />
+            </Suspense>
+          ) : (
+            <p className="absolute inset-0 grid place-items-center p-6 text-center text-base text-neutral-400">
+              {t('threed.note')}
+            </p>
+          )}
+        </div>
+        <p className="border-t border-dashed border-neutral-800 px-3 py-1.5 text-center font-mono text-[11px] leading-snug text-neutral-500">
           {t('threed.credit')}
         </p>
       </div>

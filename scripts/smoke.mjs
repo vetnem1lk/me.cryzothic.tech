@@ -41,7 +41,14 @@ const TARGETS = [
   // learn nothing the headers don't already say. Byte sizes are pinned elsewhere.
   ['/g2/v1/scene_mb_final.glb', ['model/gltf-binary'], undefined, 'head'],
   ['/g2/v1/scene_fb_final.glb', ['model/gltf-binary'], undefined, 'head'],
+  // All six tint masks: the HUD fetches them on the first tint interaction, so a
+  // missing one is a live feature break, not a spare asset.
   ['/g2/v1/masks/Shirts_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
+  ['/g2/v1/masks/MShirts_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
+  ['/g2/v1/masks/Pants_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
+  ['/g2/v1/masks/Gloves_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
+  ['/g2/v1/masks/Shoes_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
+  ['/g2/v1/masks/Mask_M@1024.ktx2', ['image/ktx2'], undefined, 'head'],
 ];
 
 const [base, ...flags] = process.argv.slice(2);

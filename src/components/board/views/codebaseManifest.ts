@@ -33,6 +33,8 @@ import i18nContextSrc from '../../../i18n/I18nContext.ts?raw';
 import localeSrc from '../../../i18n/locale.ts?raw';
 import stripSrc from '../../../i18n/strip.ts?raw';
 import preloadRecoverySrc from '../../../preloadRecovery.ts?raw';
+import gridSrc from '../../../three/grid.ts?raw';
+import tintSrc from '../../../three/tint.ts?raw';
 import emitRuHtmlSrc from '../../../../scripts/emit-ru-html.mjs?raw';
 
 export interface CodeFile {
@@ -83,6 +85,10 @@ export const PROJECTS: CodeProject[] = [
       { path: 'src/i18n/locale.ts', content: localeSrc },
       { path: 'src/i18n/strip.ts', content: stripSrc },
       { path: 'src/preloadRecovery.ts', content: preloadRecoverySrc },
+      // The 3D bay's two shader pieces: the blueprint-grid material and the
+      // zone-mask tint engine — the parts of /3d worth reading as text.
+      { path: 'src/three/grid.ts', content: gridSrc },
+      { path: 'src/three/tint.ts', content: tintSrc },
       // files[0] is the exhibit's landing file, so src/ leads and scripts/ trails ASCII.
       { path: 'scripts/emit-ru-html.mjs', content: emitRuHtmlSrc },
     ],
