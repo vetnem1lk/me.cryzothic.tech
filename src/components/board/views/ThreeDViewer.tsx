@@ -2,10 +2,12 @@
 // this side of the dynamic import. Owns the canvas mount, the StrictMode
 // double-mount guard and the full teardown; the parsed-GLTF cache survives at
 // module scope in src/three, so leaving and returning re-enters for free.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 import { createViewer, type ViewerHandle } from '../../../three/createViewer';
 import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
+import HudShell from './viewer-hud/HudShell';
+import { HUD_DEFAULTS, hudReducer } from './viewer-hud/hudState';
 
 type Phase = 'loading' | 'ready' | 'error';
 
@@ -15,6 +17,9 @@ export default function ThreeDViewer() {
   const viewerRef = useRef<ViewerHandle | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [pct, setPct] = useState(0);
+  // The HUD's state lives here, not in the shell: every cluster reads one atom
+  // and the viewer handle is mirrored from a single place.
+  const [hud, dispatch] = useReducer(hudReducer, HUD_DEFAULTS);
 
   const readStats = useCallback(
     (): ViewerStats => viewerRef.current?.info() ?? { fps: 0, calls: 0, tris: 0 },
@@ -54,7 +59,14 @@ export default function ThreeDViewer() {
   return (
     <div className="absolute inset-0">
       <div ref={hostRef} className="h-full w-full" aria-label={t('threed.mode')} role="img" />
-      {phase === 'ready' && <FpsOverlay read={readStats} />}
+      {phase === 'ready' && (
+        <>
+          <FpsOverlay read={readStats} />
+          <HudShell open={hud.sheetOpen} onToggle={() => dispatch({ type: 'toggleSheet' })}>
+            <>{/* clusters arrive in V3.2–V3.5 */}</>
+          </HudShell>
+        </>
+      )}
       {phase === 'loading' && (
         <p className="pointer-events-none absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
           {/* Numbers as sibling DOM nodes: the copy stays static, the ${var}
