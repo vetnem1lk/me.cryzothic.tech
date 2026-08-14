@@ -27,8 +27,9 @@ import {
   characterById,
   detectSupport,
   loadCharacter,
+  setHeadSlots,
   type CharacterId,
-  type HeadSlot,
+  type HeadFlags,
 } from './characters';
 import { createFloor } from './grid';
 import { createPost } from './post';
@@ -45,7 +46,7 @@ export interface ViewerHandle {
   setMorph(name: string, v: number): void;
   setAutoBlink(on: boolean): void;
   setCharacter(id: CharacterId): Promise<void>;
-  setHead(slot: HeadSlot): void;
+  setHead(flags: HeadFlags): void;
   tint?: {
     applyPreset(id: string): void;
     setZoneColor(module: string, zone: number, hex: string): void;
@@ -382,14 +383,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       if (!existing) bootClip(runtime);
       frame(runtime.root);
     },
-    setHead(slot) {
+    setHead(flags) {
       const runtime = runtimes.get(active);
-      if (!runtime) return;
-      const character = characterById(active);
-      for (const [key, nodeName] of Object.entries(character.heads)) {
-        const node = runtime.root.getObjectByName(nodeName);
-        if (node) node.visible = key === slot;
-      }
+      if (runtime) setHeadSlots(runtime.root, characterById(active), flags);
     },
     // Module-scope in tint.ts, like the parsed scenes it patches — the handle
     // is just the HUD's door to it.

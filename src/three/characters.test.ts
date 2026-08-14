@@ -9,6 +9,7 @@ import {
   loadCharacter,
   onCharacterProgress,
   progressPct,
+  setHeadSlots,
   trimLoopSeam,
 } from './characters';
 
@@ -81,7 +82,7 @@ describe('adoptScene', () => {
     expect([...face.morphTargetInfluences!]).toEqual([0, 0]);
   });
 
-  it('brings every arrival back on the hair head', () => {
+  it('brings every arrival back on hair-on/mask-off, whatever it was left as', () => {
     const { gltf, hair, mask } = fakeGltf();
     hair.visible = false;
     mask.visible = true;
@@ -89,6 +90,24 @@ describe('adoptScene', () => {
     adoptScene(gltf, characterById('m'));
     expect(hair.visible).toBe(true);
     expect(mask.visible).toBe(false);
+  });
+});
+
+// Two flags, not a two-way switch: a mask over hair is the look the rig was
+// authored for, and both off is a bald head the panel is allowed to ask for.
+describe('setHeadSlots', () => {
+  it('applies each flag independently, bald included', () => {
+    const { gltf, hair, mask } = fakeGltf();
+    const m = characterById('m');
+
+    setHeadSlots(gltf.scene, m, { hair: true, mask: true });
+    expect([hair.visible, mask.visible]).toEqual([true, true]);
+
+    setHeadSlots(gltf.scene, m, { hair: false, mask: false });
+    expect([hair.visible, mask.visible]).toEqual([false, false]);
+
+    setHeadSlots(gltf.scene, m, { hair: false, mask: true });
+    expect([hair.visible, mask.visible]).toEqual([false, true]);
   });
 });
 

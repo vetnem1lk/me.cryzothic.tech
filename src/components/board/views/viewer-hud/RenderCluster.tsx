@@ -8,7 +8,7 @@ import type { Dispatch } from 'react';
 import { useT } from '../../../../i18n/I18nContext';
 import type { ToneMode, ViewerHandle } from '../../../../three/createViewer';
 import type { HudAction, HudState } from './hudState';
-import { segClass } from './seg';
+import { chipClass, segClass } from './seg';
 
 const TONES: ToneMode[] = ['neutral', 'aces', 'agx'];
 
@@ -81,11 +81,7 @@ export default function RenderCluster({
             viewer.render.setBloom(!hud.bloom);
             dispatch({ type: 'setBloom', value: !hud.bloom });
           }}
-          className={`cursor-target rounded border border-dashed px-2 py-0.5 ${
-            hud.bloom
-              ? 'border-accent/60 text-accent'
-              : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-          }`}
+          className={chipClass(hud.bloom)}
         >
           {t('threed.bloom')}
         </button>
@@ -97,11 +93,7 @@ export default function RenderCluster({
             viewer.render.setAutoRotate(!hud.autoRotate);
             dispatch({ type: 'setAutoRotate', value: !hud.autoRotate });
           }}
-          className={`cursor-target rounded border border-dashed px-2 py-0.5 disabled:opacity-40 ${
-            rotating
-              ? 'border-accent/60 text-accent'
-              : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-          }`}
+          className={`${chipClass(rotating)} disabled:opacity-40`}
         >
           {t('threed.rotate')}
         </button>

@@ -7,6 +7,7 @@ import { useT } from '../../../../i18n/I18nContext';
 import type { ViewerHandle } from '../../../../three/createViewer';
 import { MODULE_IDS, PRESETS, type ModuleId } from '../../../../three/tint';
 import type { HudAction, HudState } from './hudState';
+import { chipClass } from './seg';
 
 const PRESET_IDS = Object.keys(PRESETS);
 const ZONES = [0, 1, 2] as const;
@@ -36,11 +37,7 @@ export default function TintCluster({
               viewer.tint?.applyPreset(id);
               dispatch({ type: 'setTintPreset', value: id });
             }}
-            className={`cursor-target rounded border border-dashed px-2 py-0.5 ${
-              hud.tintPreset === id
-                ? 'border-accent/60 text-accent'
-                : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-            }`}
+            className={chipClass(hud.tintPreset === id)}
           >
             {t(`threed.preset.${id}`)}
           </button>

@@ -4,7 +4,14 @@
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { NoColorSpace, type AnimationClip, type Mesh, type Texture, type WebGLRenderer } from 'three';
+import {
+  NoColorSpace,
+  type AnimationClip,
+  type Mesh,
+  type Object3D,
+  type Texture,
+  type WebGLRenderer,
+} from 'three';
 
 export interface Character {
   id: 'm' | 'f';
@@ -17,6 +24,12 @@ export interface Character {
 
 export type CharacterId = Character['id'];
 export type HeadSlot = keyof Character['heads'];
+/**
+ * The two head variants are INDEPENDENT visibility flags, not a two-way switch:
+ * a mask over hair is the look the rig was built for, and both off is a legal
+ * bald head rather than a state to guard against.
+ */
+export type HeadFlags = Record<HeadSlot, boolean>;
 
 export const CHARACTERS: readonly Character[] = [
   {
@@ -230,14 +243,15 @@ export function adoptScene(gltf: GLTF, character: Character): Mesh[] {
   });
   for (const mesh of morphMeshes) mesh.morphTargetInfluences?.fill(0);
   gltf.scene.visible = true;
-  setHeadSlot(gltf, character, 'hair');
+  // The boot head, mirrored by HUD_DEFAULTS: hair on, mask off.
+  setHeadSlots(gltf.scene, character, { hair: true, mask: false });
   return morphMeshes;
 }
 
-/** Show one head variant, hide the other. Node names come from the registry. */
-export function setHeadSlot(gltf: GLTF, character: Character, slot: HeadSlot): void {
+/** Apply both head-variant flags. Node names come from the registry. */
+export function setHeadSlots(root: Object3D, character: Character, flags: HeadFlags): void {
   for (const [key, nodeName] of Object.entries(character.heads)) {
-    const node = gltf.scene.getObjectByName(nodeName);
-    if (node) node.visible = key === slot;
+    const node = root.getObjectByName(nodeName);
+    if (node) node.visible = flags[key as HeadSlot];
   }
 }

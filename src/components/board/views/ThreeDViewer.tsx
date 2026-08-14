@@ -5,12 +5,13 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 import { createViewer, type ViewerHandle } from '../../../three/createViewer';
+import CharacterCluster from './viewer-hud/CharacterCluster';
 import ClipCluster from './viewer-hud/ClipCluster';
 import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
+import HeadCluster from './viewer-hud/HeadCluster';
 import HudShell from './viewer-hud/HudShell';
 import MorphCluster from './viewer-hud/MorphCluster';
 import RenderCluster from './viewer-hud/RenderCluster';
-import SwitchCluster from './viewer-hud/SwitchCluster';
 import TintCluster from './viewer-hud/TintCluster';
 import { HUD_DEFAULTS, hudReducer } from './viewer-hud/hudState';
 
@@ -86,9 +87,12 @@ export default function ThreeDViewer() {
         <>
           <FpsOverlay read={readStats} />
           <HudShell open={hud.sheetOpen} onToggle={() => dispatch({ type: 'toggleSheet' })}>
+            {/* Top-down by scope: who is on the pad, what they do, then the
+                head, the face, the outfit and finally how the frame is graded. */}
+            <CharacterCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <ClipCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
+            <HeadCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <MorphCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
-            <SwitchCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <TintCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <RenderCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
           </HudShell>
