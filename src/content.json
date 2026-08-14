@@ -250,6 +250,7 @@
       "note": "This bay runs on WebGL2, and your browser sat that one out. The still above is the real scene — rendered by the same pipeline.",
       "boot": "booting viewer",
       "loading": "streaming unit",
+      "error": "Unit stream failed — reload the page to retry.",
       "credit": "Model by Quang Phan; viewer pipeline (FBX→glTF optimization, three.js runtime, tint shader) built by me."
     },
     "vai": {
@@ -560,6 +561,7 @@
       "note": "Этот отсек работает на WebGL2, а ваш браузер решил отсидеться. Кадр выше — настоящая сцена, отрендеренная тем же пайплайном.",
       "boot": "загрузка вьювера",
       "loading": "стриминг юнита",
+      "error": "Стрим юнита оборвался — перезагрузите страницу.",
       "credit": "Модель — Quang Phan; пайплайн вьювера (оптимизация FBX→glTF, рантайм three.js, шейдер тинта) — мой."
     },
     "vai": {
