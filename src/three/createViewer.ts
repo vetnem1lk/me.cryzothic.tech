@@ -18,6 +18,7 @@ import {
   WebGLRenderer,
   type AnimationAction,
   type Group,
+  type Mesh,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -71,12 +72,39 @@ interface CharacterRuntime {
   mixer: AnimationMixer;
   actions: Partial<Record<ClipName, AnimationAction>>;
   current: ClipName;
+  /** Morph-carrying meshes, collected once at load: the blink timer writes every
+      frame, and a scene traversal per write is a cost nobody asked for. */
+  morphMeshes: Mesh[];
 }
 
 const DEFAULT_SPEED = 0.7;
 const CROSSFADE = 0.3;
 // Mid-idle time for the reduced-motion freeze: a settled pose, never the bind pose.
 const FREEZE_AT = 1.0;
+// One blink, eyes shut and open again. Seconds, like everything on the loop clock.
+const BLINK_SECONDS = 0.18;
+
+/** Triangle 0→1→0 across one blink; anything outside the window is eyes open. */
+export function blinkValue(tSinceStart: number): number {
+  if (tSinceStart <= 0 || tSinceStart >= BLINK_SECONDS) return 0;
+  const half = BLINK_SECONDS / 2;
+  return tSinceStart < half ? tSinceStart / half : (BLINK_SECONDS - tSinceStart) / half;
+}
+
+/** Maps a `Math.random()` draw onto the spec's 2–6 s idle period between blinks. */
+export function nextBlinkDelay(rand: number): number {
+  return 2 + rand * 4;
+}
+
+// Both the sliders and the blink timer write through here — the meshes are
+// cached on the runtime, so neither walks the graph.
+function writeMorph(runtime: CharacterRuntime, name: string, v: number): void {
+  for (const mesh of runtime.morphMeshes) {
+    const index = mesh.morphTargetDictionary?.[name];
+    const influences = mesh.morphTargetInfluences;
+    if (index !== undefined && influences) influences[index] = v;
+  }
+}
 
 export function createViewer(container: HTMLElement, opts: ViewerOptions): ViewerHandle {
   const canvas = document.createElement('canvas');
@@ -153,6 +181,14 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   let speed = DEFAULT_SPEED;
   let disposed = false;
 
+  // Auto-blink rides the render loop's own clock instead of an interval: a
+  // backgrounded tab freezes rAF, so no blinks pile up behind an unwatched
+  // deadline. Closure state, so nothing leaks between mounts.
+  let autoBlink = !opts.reducedMotion;
+  let blinkClock = 0;
+  let blinkAt = nextBlinkDelay(Math.random());
+  let blinkFrom = -1; // < 0 = eyes open
+
   // Frame the character and make this pose the one `controls.reset()` returns
   // to — captured after EVERY auto-frame, else reset restores a pre-frame void.
   const frame = (root: Group) => {
@@ -188,7 +224,18 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
         actions[clip.name] = mixer.clipAction(clip);
       }
     }
-    const runtime: CharacterRuntime = { root: gltf.scene, mixer, actions, current: 'Idle' };
+    const morphMeshes: Mesh[] = [];
+    gltf.scene.traverse((object) => {
+      const mesh = object as Mesh;
+      if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) morphMeshes.push(mesh);
+    });
+    const runtime: CharacterRuntime = {
+      root: gltf.scene,
+      mixer,
+      actions,
+      current: 'Idle',
+      morphMeshes,
+    };
     setHeadSlot(gltf, characterById(id), 'hair');
     runtimes.set(id, runtime);
     scene.add(gltf.scene);
@@ -233,7 +280,21 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     timer.update();
     const delta = timer.getDelta();
     const runtime = runtimes.get(active);
-    if (runtime) runtime.mixer.update(delta);
+    if (runtime) {
+      runtime.mixer.update(delta);
+      blinkClock += delta;
+      if (blinkFrom >= 0) {
+        // Always ride the ramp to its end: a toggle flipped mid-blink must not
+        // leave the lids frozen half-closed.
+        const t = blinkClock - blinkFrom;
+        writeMorph(runtime, 'Blink', blinkValue(t));
+        if (t >= BLINK_SECONDS) blinkFrom = -1;
+      } else if (blinkClock >= blinkAt) {
+        // Rescheduled even while off, so re-enabling never fires a stale blink.
+        blinkAt = blinkClock + nextBlinkDelay(Math.random());
+        if (autoBlink) blinkFrom = blinkClock;
+      }
+    }
     controls.update();
     renderer.info.reset();
     post.render();
@@ -265,20 +326,11 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     },
     setMorph(name, v) {
       const runtime = runtimes.get(active);
-      runtime?.root.traverse((object) => {
-        const mesh = object as unknown as {
-          morphTargetDictionary?: Record<string, number>;
-          morphTargetInfluences?: number[];
-        };
-        const index = mesh.morphTargetDictionary?.[name];
-        if (index !== undefined && mesh.morphTargetInfluences) {
-          mesh.morphTargetInfluences[index] = v;
-        }
-      });
+      if (runtime) writeMorph(runtime, name, v);
     },
-    setAutoBlink() {
-      // ponytail: the blink timer ships with the HUD pack; the toggle exists so
-      // the handle contract is complete from day one.
+    setAutoBlink(on) {
+      // Reduced motion wins: the toggle can switch blinking off, never back on.
+      autoBlink = on && !opts.reducedMotion;
     },
     async setCharacter(id) {
       if (id === active) return;
@@ -286,7 +338,12 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       const runtime = existing ?? addRuntime(id, await loadCharacter(id));
       if (disposed) return;
       const previous = runtimes.get(active);
-      if (previous) previous.root.visible = false;
+      if (previous) {
+        previous.root.visible = false;
+        // A switch mid-blink would strand the old character's lids half-closed
+        // until it is next active AND next blinks — open them on the way out.
+        writeMorph(previous, 'Blink', 0);
+      }
       runtime.root.visible = true;
       active = id;
       if (!existing) bootClip(runtime);

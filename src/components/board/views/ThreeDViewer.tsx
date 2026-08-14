@@ -5,8 +5,10 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 import { createViewer, type ViewerHandle } from '../../../three/createViewer';
+import ClipCluster from './viewer-hud/ClipCluster';
 import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
 import HudShell from './viewer-hud/HudShell';
+import MorphCluster from './viewer-hud/MorphCluster';
 import { HUD_DEFAULTS, hudReducer } from './viewer-hud/hudState';
 
 type Phase = 'loading' | 'ready' | 'error';
@@ -32,8 +34,12 @@ export default function ThreeDViewer() {
     // StrictMode runs setup/cleanup/setup: the flag stops the first mount's
     // async ready path from touching state after its viewer is disposed.
     let cancelled = false;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // The viewer boots with auto-blink suppressed under reduced motion; the
+    // panel has to say so, or it advertises a toggle that is already off.
+    if (reducedMotion) dispatch({ type: 'setAutoBlink', value: false });
     const viewer = createViewer(host, {
-      reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+      reducedMotion,
       onProgress: (value) => {
         if (!cancelled) setPct(value);
       },
@@ -59,11 +65,14 @@ export default function ThreeDViewer() {
   return (
     <div className="absolute inset-0">
       <div ref={hostRef} className="h-full w-full" aria-label={t('threed.mode')} role="img" />
-      {phase === 'ready' && (
+      {/* The ref is set before the ready phase ever flips, and the phase change
+          is what re-renders — so the clusters take a live handle, not a `!`. */}
+      {phase === 'ready' && viewerRef.current && (
         <>
           <FpsOverlay read={readStats} />
           <HudShell open={hud.sheetOpen} onToggle={() => dispatch({ type: 'toggleSheet' })}>
-            <>{/* clusters arrive in V3.2–V3.5 */}</>
+            <ClipCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
+            <MorphCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
           </HudShell>
         </>
       )}

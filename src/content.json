@@ -252,7 +252,14 @@
       "loading": "streaming unit",
       "error": "Unit stream failed — reload the page to retry.",
       "credit": "Model by Quang Phan; viewer pipeline (FBX→glTF optimization, three.js runtime, tint shader) built by me.",
-      "hud": "HUD"
+      "hud": "HUD",
+      "clips": "animation",
+      "speed": "speed",
+      "morphs": "morphs",
+      "blink": "auto-blink",
+      "morphSmile": "smile",
+      "morphAngry": "angry",
+      "morphEars": "elf ears"
     },
     "vai": {
       "greeting": "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.",
@@ -564,7 +571,14 @@
       "loading": "стриминг юнита",
       "error": "Стрим юнита оборвался — перезагрузите страницу.",
       "credit": "Модель — Quang Phan; пайплайн вьювера (оптимизация FBX→glTF, рантайм three.js, шейдер тинта) — мой.",
-      "hud": "HUD"
+      "hud": "HUD",
+      "clips": "анимация",
+      "speed": "скорость",
+      "morphs": "морфы",
+      "blink": "автоморгание",
+      "morphSmile": "улыбка",
+      "morphAngry": "злость",
+      "morphEars": "эльфийские уши"
     },
     "vai": {
       "greeting": "Обнаружен игрок 1. Добро пожаловать в билд. Я VAI — спрашивайте про Влада или наберите /help для команд шелла.",
