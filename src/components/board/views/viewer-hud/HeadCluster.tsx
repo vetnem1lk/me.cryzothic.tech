@@ -31,7 +31,7 @@ export default function HeadCluster({
   return (
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       {/* Header rides the same row as its chips — see CharacterCluster. */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="sticky top-[41px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
         <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
           {t('threed.head')}
         </h3>
@@ -64,7 +64,7 @@ export default function HeadCluster({
             viewer.tint?.setZoneColor('hair', 0, hex);
             dispatch({ type: 'setHairColor', value: hex });
           }}
-          className="cursor-target h-5 w-10 border border-dashed border-neutral-700 bg-transparent disabled:opacity-40"
+          className="cursor-target h-8 w-12 border border-dashed border-neutral-700 bg-transparent disabled:opacity-40 md:h-5 md:w-10"
         />
       </label>
     </section>

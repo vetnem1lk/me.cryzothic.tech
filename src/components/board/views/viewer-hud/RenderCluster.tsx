@@ -30,7 +30,7 @@ export default function RenderCluster({
 
   return (
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
+      <h3 className="sticky top-[41px] z-10 bg-neutral-950/95 text-[10px] tracking-widest text-neutral-500 uppercase md:static md:bg-transparent">
         {t('threed.render')}
       </h3>
       {/* The trio's own labels are engine tokens: nothing on the row says what
@@ -74,7 +74,7 @@ export default function RenderCluster({
             viewer.render.setExposure(value);
             dispatch({ type: 'setExposure', value });
           }}
-          className="cursor-target min-w-0 flex-1 accent-accent"
+          className="cursor-target h-8 min-w-0 flex-1 accent-accent md:h-4"
         />
         <span className="w-10 shrink-0 text-right tabular-nums">{hud.exposure.toFixed(2)}</span>
       </label>

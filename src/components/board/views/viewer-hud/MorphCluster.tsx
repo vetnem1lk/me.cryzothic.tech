@@ -32,7 +32,7 @@ export default function MorphCluster({
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       {/* The header row carries the blink chip: it is the fourth face control
           and a line of its own bought nothing but height. */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="sticky top-[41px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
         <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
           {t('threed.morphs')}
         </h3>
@@ -64,7 +64,7 @@ export default function MorphCluster({
               viewer.setMorph(name, value);
               dispatch({ type: 'setMorph', name, value });
             }}
-            className="cursor-target min-w-0 flex-1 accent-accent"
+            className="cursor-target h-8 min-w-0 flex-1 accent-accent md:h-4"
           />
         </label>
       ))}

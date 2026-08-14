@@ -26,7 +26,7 @@ export default function TintCluster({
 
   return (
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">{t('threed.tint')}</h3>
+      <h3 className="sticky top-[41px] z-10 bg-neutral-950/95 text-[10px] tracking-widest text-neutral-500 uppercase md:static md:bg-transparent">{t('threed.tint')}</h3>
       {/* One scrolling row, not a wrapping block: five chips wrapped to three
           lines and the panel paid for every one — CommandRow's scroller. */}
       <div
@@ -83,7 +83,7 @@ export default function TintCluster({
               viewer.tint?.setZoneColor(hud.tintModule, zone, hex);
               dispatch({ type: 'setTintZone', module: hud.tintModule, zone, hex });
             }}
-            className="cursor-target h-5 w-10 border border-dashed border-neutral-700 bg-transparent"
+            className="cursor-target h-8 w-12 border border-dashed border-neutral-700 bg-transparent md:h-5 md:w-10"
           />
         ))}
       </div>
