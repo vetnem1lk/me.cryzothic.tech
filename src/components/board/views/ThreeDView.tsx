@@ -1,74 +1,54 @@
-// The engine bay: a wireframe cube that tilts under the pointer. Hand-drawn
-// SVG instead of a 3D library on purpose: the whole view costs the board
-// chunk almost nothing — which is the point.
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { useRef } from 'react';
+// The engine bay gate: a flat telemetry frame that boots the real G2 viewer.
+// The three.js island loads on demand behind the lazy() below; this gate must
+// stay three-free — one value import from 'three' here would hoist the whole
+// runtime into the Board chunk every visitor pays for.
+import { Suspense, lazy, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 
-// No infinite loops here, and not a .cursor-target: it performs no action.
+const ThreeDViewer = lazy(() => import('./ThreeDViewer'));
+
+// Hand-rolled WebGL2 probe on a throwaway canvas: synchronous, no library.
+// r185 renders exclusively through WebGL2, so webgl2 is the only context that
+// answers the question.
+function webgl2Available(): boolean {
+  try {
+    return !!document.createElement('canvas').getContext('webgl2');
+  } catch {
+    return false;
+  }
+}
+
+// Not a .cursor-target itself: the interactive surface is the canvas inside.
 export default function ThreeDView() {
   const t = useT();
-  const scope = useRef<HTMLElement>(null);
-  const cubeRef = useRef<SVGSVGElement>(null);
-  const qx = useRef<((v: number) => void) | null>(null);
-  const qy = useRef<((v: number) => void) | null>(null);
-
-  useGSAP(
-    () => {
-      if (!cubeRef.current) return;
-      if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
-      gsap.set(cubeRef.current, { transformPerspective: 600 });
-      qx.current = gsap.quickTo(cubeRef.current, 'rotationX', {
-        duration: 0.4,
-        ease: 'power2.out',
-      });
-      qy.current = gsap.quickTo(cubeRef.current, 'rotationY', {
-        duration: 0.4,
-        ease: 'power2.out',
-      });
-    },
-    { scope },
-  );
-
-  function tilt(e: React.MouseEvent<HTMLDivElement>) {
-    const r = e.currentTarget.getBoundingClientRect();
-    qy.current?.(((e.clientX - r.left) / r.width - 0.5) * 12);
-    qx.current?.((0.5 - (e.clientY - r.top) / r.height) * 12);
-  }
-
-  function reset() {
-    qx.current?.(0);
-    qy.current?.(0);
-  }
+  // Probed once per mount, not per render — context creation is not free.
+  const [supported] = useState(webgl2Available);
 
   return (
-    <section ref={scope} className="flex flex-col items-center gap-4 p-8">
-      <div onMouseMove={tilt} onMouseLeave={reset} className="p-6">
-        <svg ref={cubeRef} width="180" height="200" viewBox="0 0 180 200" aria-hidden="true">
-          <g stroke="var(--color-accent)" strokeWidth="1.5" strokeDasharray="6 4" fill="none">
-            <path d="M90 10 L170 55 L170 145 L90 190 L10 145 L10 55 Z" />
-            <path d="M90 10 L90 100 M10 55 L90 100 L170 55 M90 100 L90 190" />
-          </g>
-          <g fill="var(--color-accent)">
-            {[
-              [90, 10],
-              [170, 55],
-              [170, 145],
-              [90, 190],
-              [10, 145],
-              [10, 55],
-              [90, 100],
-            ].map(([x, y]) => (
-              <circle key={`${x}-${y}`} cx={x} cy={y} r="3" />
-            ))}
-          </g>
-        </svg>
+    <section className="flex h-full flex-col gap-3 p-4 md:p-6">
+      <div className="relative h-[65dvh] min-h-[320px] overflow-hidden border border-dashed border-accent/50 md:h-auto md:min-h-0 md:flex-1">
+        {supported ? (
+          <Suspense
+            fallback={
+              <p className="absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
+                {t('threed.boot')}
+              </p>
+            }
+          >
+            <ThreeDViewer />
+          </Suspense>
+        ) : (
+          <p className="absolute inset-0 grid place-items-center p-6 text-center text-base text-neutral-400">
+            {t('threed.note')}
+          </p>
+        )}
+        <p className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-3 py-1.5 text-center font-mono text-[11px] leading-snug text-neutral-500">
+          {t('threed.credit')}
+        </p>
       </div>
-      <p className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
+      <p className="text-center font-mono text-sm tracking-widest text-neutral-400 uppercase">
         {t('threed.mode')}
       </p>
-      <p className="max-w-md text-center text-base text-neutral-400">{t('threed.note')}</p>
     </section>
   );
 }

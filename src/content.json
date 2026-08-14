@@ -246,8 +246,11 @@
       "newTab": "opens in a new tab"
     },
     "threed": {
-      "mode": "engine bay — wireframe mode",
-      "note": "A hand-drawn SVG wireframe — no 3D library on board."
+      "mode": "engine bay — G2 unit live",
+      "note": "This bay runs on WebGL2, and your browser sat that one out. The still above is the real scene — rendered by the same pipeline.",
+      "boot": "booting viewer",
+      "loading": "streaming unit",
+      "credit": "Model by Quang Phan; viewer pipeline (FBX→glTF optimization, three.js runtime, tint shader) built by me."
     },
     "vai": {
       "greeting": "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.",
@@ -553,8 +556,11 @@
       "newTab": "откроется в новой вкладке"
     },
     "threed": {
-      "mode": "отсек движка — каркасный режим",
-      "note": "Каркас нарисован руками в SVG — 3D-библиотек на борту нет."
+      "mode": "отсек движка — юнит G2 в эфире",
+      "note": "Этот отсек работает на WebGL2, а ваш браузер решил отсидеться. Кадр выше — настоящая сцена, отрендеренная тем же пайплайном.",
+      "boot": "загрузка вьювера",
+      "loading": "стриминг юнита",
+      "credit": "Модель — Quang Phan; пайплайн вьювера (оптимизация FBX→glTF, рантайм three.js, шейдер тинта) — мой."
     },
     "vai": {
       "greeting": "Обнаружен игрок 1. Добро пожаловать в билд. Я VAI — спрашивайте про Влада или наберите /help для команд шелла.",
