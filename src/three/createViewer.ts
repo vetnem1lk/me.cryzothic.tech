@@ -23,10 +23,10 @@ import {
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import {
+  adoptScene,
   characterById,
   detectSupport,
   loadCharacter,
-  setHeadSlot,
   type CharacterId,
   type HeadSlot,
 } from './characters';
@@ -229,14 +229,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
         actions[clip.name] = mixer.clipAction(clip);
       }
     }
-    const morphMeshes: Mesh[] = [];
-    gltf.scene.traverse((object) => {
-      const mesh = object as Mesh;
-      if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) morphMeshes.push(mesh);
-    });
-    // Cached scenes keep their last visit's morph influences; the HUD boots at
-    // zero, so the face must too (the head slot resets the same way below).
-    for (const mesh of morphMeshes) mesh.morphTargetInfluences?.fill(0);
+    // Visibility, morphs and head slot all come back from the cache as the last
+    // viewer left them — adoptScene is where that is undone, for every arrival.
+    const morphMeshes = adoptScene(gltf, characterById(id));
     const runtime: CharacterRuntime = {
       root: gltf.scene,
       mixer,
@@ -244,7 +239,6 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       current: 'Idle',
       morphMeshes,
     };
-    setHeadSlot(gltf, characterById(id), 'hair');
     // Idempotent by design: the cached scene brings back materials that may
     // already own their tint uniforms from an earlier visit.
     wireCharacter(gltf.scene);

@@ -4,7 +4,7 @@
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { NoColorSpace, type AnimationClip, type Texture, type WebGLRenderer } from 'three';
+import { NoColorSpace, type AnimationClip, type Mesh, type Texture, type WebGLRenderer } from 'three';
 
 export interface Character {
   id: 'm' | 'f';
@@ -213,6 +213,25 @@ export function loadCharacter(id: CharacterId, onProgress?: (pct: number) => voi
   });
   cache.set(id, loading);
   return loading;
+}
+
+/**
+ * Hand a parsed scene to a viewer. The scenes are module-cached and re-entered
+ * on every visit to /3d, so one arrives carrying whatever the last viewer left
+ * on it — hidden by a character switch (the empty-stage bug), a morph slider
+ * mid-travel, the other head slot. Reset it here, at the one door every runtime
+ * comes through, and collect the morph-carrying meshes on the same traversal.
+ */
+export function adoptScene(gltf: GLTF, character: Character): Mesh[] {
+  const morphMeshes: Mesh[] = [];
+  gltf.scene.traverse((object) => {
+    const mesh = object as Mesh;
+    if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) morphMeshes.push(mesh);
+  });
+  for (const mesh of morphMeshes) mesh.morphTargetInfluences?.fill(0);
+  gltf.scene.visible = true;
+  setHeadSlot(gltf, character, 'hair');
+  return morphMeshes;
 }
 
 /** Show one head variant, hide the other. Node names come from the registry. */

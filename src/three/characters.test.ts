@@ -1,9 +1,10 @@
 // The registry doubles as the progress denominator and the head-swap map, so a
 // silent edit here breaks loading UX and the visibility toggle at once — pin it.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { AnimationClip, NumberKeyframeTrack } from 'three';
+import { AnimationClip, Group, Mesh, NumberKeyframeTrack, Object3D } from 'three';
 import {
   CHARACTERS,
+  adoptScene,
   characterById,
   loadCharacter,
   onCharacterProgress,
@@ -49,6 +50,45 @@ describe('progressPct', () => {
 
   it('floors instead of rounding so 100 means actually done', () => {
     expect(progressPct(999, 1000)).toBe(99);
+  });
+});
+
+// A scene shaped like what the loader hands back: one morph-carrying mesh and
+// the two head nodes the registry names for M.
+function fakeGltf() {
+  const scene = new Group();
+  const face = new Mesh();
+  face.morphTargetDictionary = { Smile: 0, Blink: 1 };
+  face.morphTargetInfluences = [0.6, 1];
+  const hair = new Object3D();
+  hair.name = 'MHair';
+  const mask = new Object3D();
+  mask.name = 'MMask';
+  scene.add(face, hair, mask);
+  return { gltf: { scene } as unknown as Parameters<typeof adoptScene>[0], face, hair, mask };
+}
+
+// The scenes are module-cached: what a viewer leaves on one is what the next
+// viewer gets. A scene hidden by a character switch and never re-shown is an
+// empty stage on the way back into /3d.
+describe('adoptScene', () => {
+  it('un-hides the scene, blanks the face and returns the morph meshes', () => {
+    const { gltf, face } = fakeGltf();
+    gltf.scene.visible = false;
+
+    expect(adoptScene(gltf, characterById('m'))).toEqual([face]);
+    expect(gltf.scene.visible).toBe(true);
+    expect([...face.morphTargetInfluences!]).toEqual([0, 0]);
+  });
+
+  it('brings every arrival back on the hair head', () => {
+    const { gltf, hair, mask } = fakeGltf();
+    hair.visible = false;
+    mask.visible = true;
+
+    adoptScene(gltf, characterById('m'));
+    expect(hair.visible).toBe(true);
+    expect(mask.visible).toBe(false);
   });
 });
 
