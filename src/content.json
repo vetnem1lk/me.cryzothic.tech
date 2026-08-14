@@ -264,6 +264,11 @@
       "head": "head",
       "tint": "tint",
       "zone": "zone",
+      "render": "render",
+      "tone": "tone mapping",
+      "exposure": "exposure",
+      "bloom": "bloom",
+      "rotate": "auto-rotate",
       "mod": {
         "shirts": "shirts",
         "pants": "pants",
@@ -601,6 +606,11 @@
       "head": "голова",
       "tint": "тинт",
       "zone": "зона",
+      "render": "рендер",
+      "tone": "тонмаппинг",
+      "exposure": "экспозиция",
+      "bloom": "блум",
+      "rotate": "автоповорот",
       "mod": {
         "shirts": "рубашка",
         "pants": "штаны",

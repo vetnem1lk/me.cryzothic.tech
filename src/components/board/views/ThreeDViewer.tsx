@@ -9,6 +9,7 @@ import ClipCluster from './viewer-hud/ClipCluster';
 import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
 import HudShell from './viewer-hud/HudShell';
 import MorphCluster from './viewer-hud/MorphCluster';
+import RenderCluster from './viewer-hud/RenderCluster';
 import SwitchCluster from './viewer-hud/SwitchCluster';
 import TintCluster from './viewer-hud/TintCluster';
 import { HUD_DEFAULTS, hudReducer } from './viewer-hud/hudState';
@@ -77,6 +78,7 @@ export default function ThreeDViewer() {
             <MorphCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <SwitchCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <TintCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
+            <RenderCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
           </HudShell>
         </>
       )}
