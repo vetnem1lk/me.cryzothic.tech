@@ -2,17 +2,24 @@
 // this side of the dynamic import. Owns the canvas mount, the StrictMode
 // double-mount guard and the full teardown; the parsed-GLTF cache survives at
 // module scope in src/three, so leaving and returning re-enters for free.
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
-import { createViewer } from '../../../three/createViewer';
+import { createViewer, type ViewerHandle } from '../../../three/createViewer';
+import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
 
 type Phase = 'loading' | 'ready' | 'error';
 
 export default function ThreeDViewer() {
   const t = useT();
   const hostRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<ViewerHandle | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [pct, setPct] = useState(0);
+
+  const readStats = useCallback(
+    (): ViewerStats => viewerRef.current?.info() ?? { fps: 0, calls: 0, tris: 0 },
+    [],
+  );
 
   useEffect(() => {
     const host = hostRef.current;
@@ -32,8 +39,10 @@ export default function ThreeDViewer() {
         if (!cancelled) setPhase('error');
       },
     });
+    viewerRef.current = viewer;
     return () => {
       cancelled = true;
+      viewerRef.current = null;
       viewer.dispose();
     };
   }, []);
@@ -41,6 +50,7 @@ export default function ThreeDViewer() {
   return (
     <div className="absolute inset-0">
       <div ref={hostRef} className="h-full w-full" aria-label={t('threed.mode')} role="img" />
+      {phase === 'ready' && <FpsOverlay read={readStats} />}
       {phase === 'loading' && (
         <p className="pointer-events-none absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
           {/* Numbers as sibling DOM nodes: the copy stays static, the ${var}

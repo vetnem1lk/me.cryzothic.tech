@@ -29,6 +29,8 @@ import {
   type CharacterId,
   type HeadSlot,
 } from './characters';
+import { createFloor } from './grid';
+import { createPost } from './post';
 
 export type ClipName = 'Idle' | 'Walk';
 export type ToneMode = 'neutral' | 'aces' | 'agx';
@@ -94,21 +96,49 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   pmrem.dispose();
 
-  // V1 base light rig; the spec trio (hemisphere fill + neutral key + lilac rim)
-  // lands with the scene pack.
-  scene.add(new HemisphereLight(0xbfc7ff, 0x30281e, 1.2));
-  const key = new DirectionalLight(0xffffff, 2.0);
-  key.position.set(2, 4, 3);
+  // The spec light trio: cool hemisphere fill, neutral key from front-top,
+  // lilac rim from behind so the silhouette reads against the dark bay.
+  scene.add(new HemisphereLight(0x8890b0, 0x1a1620, 0.9));
+  const key = new DirectionalLight(0xffffff, 1.8);
+  key.position.set(1.5, 3, 2.5);
   scene.add(key);
+  const rim = new DirectionalLight(0xb497cf, 2.4);
+  rim.position.set(-1.5, 2.2, -2.5);
+  scene.add(rim);
+
+  scene.add(createFloor());
 
   const camera = new PerspectiveCamera(45, 1, 0.1, 100);
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
+  // The character must always stay framed: no pan drift, no diving under the
+  // floor, no zooming inside the mesh. Distances calibrate to a ~1.8 m model.
+  controls.enablePan = false;
+  controls.minDistance = 1.0;
+  controls.maxDistance = 5.0;
+  controls.minPolarAngle = 0.15;
+  controls.maxPolarAngle = 1.55;
+
+  // r185 OrbitControls has no double-click handling — hand-rolled reset, with a
+  // manual double-tap window for coarse pointers.
+  let lastTap = 0;
+  const onDblClick = () => controls.reset();
+  const onPointerUp = (event: PointerEvent) => {
+    if (event.pointerType !== 'touch') return;
+    const now = performance.now();
+    if (now - lastTap < 300) controls.reset();
+    lastTap = now;
+  };
+  canvas.addEventListener('dblclick', onDblClick);
+  canvas.addEventListener('pointerup', onPointerUp);
+
+  const post = createPost(renderer, scene, camera);
 
   const resize = () => {
     const { clientWidth, clientHeight } = container;
     if (!clientWidth || !clientHeight) return;
     renderer.setSize(clientWidth, clientHeight, false);
+    post.setSize(clientWidth, clientHeight);
     camera.aspect = clientWidth / clientHeight;
     camera.updateProjectionMatrix();
   };
@@ -129,7 +159,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     const center = box.getCenter(new Vector3());
     const d = Math.max(size.x, size.y, size.z);
     camera.position.set(center.x + d * 0.9, center.y + d * 0.25, center.z + d * 1.1);
-    controls.target.copy(center);
+    // Target the chest, not the bbox center: heads read better slightly high.
+    controls.target.set(center.x, center.y + size.y * 0.1, center.z);
     controls.update();
     controls.saveState();
   };
@@ -196,7 +227,7 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     const runtime = runtimes.get(active);
     if (runtime) runtime.mixer.update(delta);
     controls.update();
-    renderer.render(scene, camera);
+    post.render();
     frames += 1;
     const now = performance.now();
     if (now - windowStart >= 500) {
@@ -262,8 +293,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       }
     },
     render: {
-      setBloom() {
-        // Composer lands with the scene pack; the flag is wired there.
+      setBloom(on) {
+        post.setBloom(on);
       },
       setToneMapping(mode) {
         renderer.toneMapping =
@@ -292,7 +323,10 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       disposed = true;
       observer.disconnect();
       renderer.setAnimationLoop(null);
+      canvas.removeEventListener('dblclick', onDblClick);
+      canvas.removeEventListener('pointerup', onPointerUp);
       controls.dispose();
+      post.dispose();
       // Renderer-owned GL resources die with the context; parsed scenes and
       // their texture data survive in the module cache for free re-entry.
       renderer.dispose();

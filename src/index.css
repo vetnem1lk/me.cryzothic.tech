@@ -36,6 +36,15 @@ body.custom-cursor * {
   cursor: none;
 }
 
+/* The 3D canvas is the one surface where hiding the cursor hides the physics:
+   orbit needs its grab affordance back. 0,2,1 beats the 0,1,1 above. */
+body.custom-cursor canvas.viewer-canvas {
+  cursor: grab;
+}
+body.custom-cursor canvas.viewer-canvas:active {
+  cursor: grabbing;
+}
+
 /* UNLOCKED ticker — duplicated-track seamless loop; the gap term is load-bearing */
 @keyframes marquee-scroll {
   to {
