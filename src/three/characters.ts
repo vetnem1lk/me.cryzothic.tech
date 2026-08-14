@@ -92,24 +92,73 @@ async function fetchWithProgress(
   return merged.buffer;
 }
 
+// Progress fan-out. Whoever reaches a GLB first starts its load — boot, the idle
+// prefetch, or the HUD switcher — but everyone who cares has to see the same
+// bytes, so the subscribers live beside the cache instead of being captured by
+// that first caller. `lastPct` doubles as the in-flight marker: an entry means a
+// stream is open, so a late joiner can be replayed instead of sitting at 0.
+const reporters = new Map<CharacterId, Set<(pct: number) => void>>();
+const lastPct = new Map<CharacterId, number>();
+
+function subscribe(id: CharacterId, cb: (pct: number) => void): () => void {
+  let set = reporters.get(id);
+  if (!set) {
+    set = new Set();
+    reporters.set(id, set);
+  }
+  set.add(cb);
+  return () => {
+    reporters.get(id)?.delete(cb);
+  };
+}
+
+/**
+ * Watch a load that somebody ELSE may have started — the HUD subscribes, the
+ * viewer's setCharacter() is what opens the stream. Replays the last known
+ * percentage on subscribe, so a late joiner is never stuck at 0 until the next
+ * chunk lands, and reports nothing at all when no load is in flight. Returns
+ * the unsubscribe.
+ */
+export function onCharacterProgress(id: CharacterId, cb: (pct: number) => void): () => void {
+  const off = subscribe(id, cb);
+  const seen = lastPct.get(id);
+  if (seen !== undefined) cb(seen);
+  return off;
+}
+
 /**
  * Load (or re-use) a character's parsed glTF. Progress reports real received
- * bytes against the registry denominator.
- * ponytail: only the first caller of an in-flight load sees progress; the B2
- * switcher can thread a shared reporter through if the inline bar needs it.
+ * bytes against the registry denominator, fanned out to every subscriber for
+ * that id; a callback passed here is one of them and lives until the load
+ * settles. Anyone arriving after the start subscribes via onCharacterProgress().
  */
 export function loadCharacter(id: CharacterId, onProgress?: (pct: number) => void): Promise<GLTF> {
   const cached = cache.get(id);
   if (cached) {
-    onProgress?.(100);
+    // Still streaming: join the fan-out. Already parsed: there is nothing left
+    // to stream, and 100 is what done has always looked like to a caller.
+    if (onProgress) {
+      if (lastPct.has(id)) onCharacterProgress(id, onProgress);
+      else onProgress(100);
+    }
     return cached;
   }
   const character = characterById(id);
-  const loading = fetchWithProgress(character.glb, character.bytes, onProgress ?? (() => {})).then(
-    (buffer) => gltfLoader.parseAsync(buffer, '/g2/v1/'),
-  );
-  // A failed fetch must not poison re-entry: drop it so the next visit retries.
-  loading.catch(() => cache.delete(id));
+  lastPct.set(id, 0);
+  if (onProgress) subscribe(id, onProgress);
+  const loading = fetchWithProgress(character.glb, character.bytes, (pct) => {
+    lastPct.set(id, pct);
+    for (const cb of reporters.get(id) ?? []) cb(pct);
+  }).then((buffer) => gltfLoader.parseAsync(buffer, '/g2/v1/'));
+  const settle = () => {
+    reporters.delete(id);
+    lastPct.delete(id);
+  };
+  loading.then(settle, () => {
+    settle();
+    // A failed fetch must not poison re-entry: drop it so the next visit retries.
+    cache.delete(id);
+  });
   cache.set(id, loading);
   return loading;
 }

@@ -9,6 +9,7 @@ import ClipCluster from './viewer-hud/ClipCluster';
 import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
 import HudShell from './viewer-hud/HudShell';
 import MorphCluster from './viewer-hud/MorphCluster';
+import SwitchCluster from './viewer-hud/SwitchCluster';
 import { HUD_DEFAULTS, hudReducer } from './viewer-hud/hudState';
 
 type Phase = 'loading' | 'ready' | 'error';
@@ -73,6 +74,7 @@ export default function ThreeDViewer() {
           <HudShell open={hud.sheetOpen} onToggle={() => dispatch({ type: 'toggleSheet' })}>
             <ClipCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
             <MorphCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
+            <SwitchCluster hud={hud} dispatch={dispatch} viewer={viewerRef.current} />
           </HudShell>
         </>
       )}

@@ -6,15 +6,9 @@ import type { Dispatch } from 'react';
 import { useT } from '../../../../i18n/I18nContext';
 import type { ClipName, ViewerHandle } from '../../../../three/createViewer';
 import type { HudAction, HudState } from './hudState';
+import { segClass } from './seg';
 
 const CLIPS: ClipName[] = ['Idle', 'Walk'];
-
-const segClass = (active: boolean, side: 'l' | 'r') =>
-  `cursor-target border border-dashed px-2 py-0.5 ${side === 'l' ? 'rounded-l border-r-0' : 'rounded-r'} ${
-    active
-      ? 'border-accent/60 text-accent'
-      : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-  }`;
 
 export default function ClipCluster({
   hud,

@@ -259,7 +259,9 @@
       "blink": "auto-blink",
       "morphSmile": "smile",
       "morphAngry": "angry",
-      "morphEars": "elf ears"
+      "morphEars": "elf ears",
+      "character": "character",
+      "head": "head"
     },
     "vai": {
       "greeting": "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.",
@@ -578,7 +580,9 @@
       "blink": "автоморгание",
       "morphSmile": "улыбка",
       "morphAngry": "злость",
-      "morphEars": "эльфийские уши"
+      "morphEars": "эльфийские уши",
+      "character": "персонаж",
+      "head": "голова"
     },
     "vai": {
       "greeting": "Обнаружен игрок 1. Добро пожаловать в билд. Я VAI — спрашивайте про Влада или наберите /help для команд шелла.",
