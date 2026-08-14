@@ -4,7 +4,7 @@
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import type { WebGLRenderer } from 'three';
+import { NoColorSpace, type Texture, type WebGLRenderer } from 'three';
 
 export interface Character {
   id: 'm' | 'f';
@@ -57,6 +57,21 @@ const gltfLoader = new GLTFLoader().setKTX2Loader(ktx2).setMeshoptDecoder(Meshop
 /** Must run before any load, and again for every new renderer (new GL context). */
 export function detectSupport(renderer: WebGLRenderer): void {
   ktx2.detectSupport(renderer);
+}
+
+/**
+ * A KTX2 sidecar that is not part of a GLB — today the tint zone masks. Rides
+ * the same transcoder pool as the models, so it costs no extra worker. The
+ * masks are DATA (three zone weights per texel), never colour: an sRGB decode
+ * would bend those weights, so the colour space is forced off. flipY stays as
+ * the loader sets it — the masks share the baseColor UV layout, and that is
+ * what `vMapUv` samples.
+ */
+export function loadSideTexture(url: string): Promise<Texture> {
+  return ktx2.loadAsync(url).then((texture) => {
+    texture.colorSpace = NoColorSpace;
+    return texture;
+  });
 }
 
 const cache = new Map<CharacterId, Promise<GLTF>>();

@@ -2,7 +2,10 @@
 // dispatches blind — a reducer that touched a neighbouring slice would desync
 // the HUD from the scene with nothing on screen to say so.
 import { describe, expect, it } from 'vitest';
+import { PRESETS } from '../../../../three/tint';
 import { HUD_DEFAULTS, hudReducer, type HudAction, type HudState } from './hudState';
+
+const UNTINTED: [string, string, string] = ['#ffffff', '#ffffff', '#ffffff'];
 
 describe('HUD defaults', () => {
   it('boots the panel on the same state the viewer boots on', () => {
@@ -18,8 +21,21 @@ describe('HUD defaults', () => {
       exposure: 1,
       bloom: true,
       autoRotate: false,
+      tintPreset: 'factory',
+      tintModule: 'shirts',
+      tintZones: {
+        shirts: UNTINTED,
+        pants: UNTINTED,
+        gloves: UNTINTED,
+        shoes: UNTINTED,
+        mask: UNTINTED,
+      },
       sheetOpen: false,
     });
+  });
+
+  it('copies the factory table instead of aliasing it', () => {
+    expect(HUD_DEFAULTS.tintZones).not.toBe(PRESETS.factory);
   });
 });
 
@@ -35,6 +51,7 @@ describe('hudReducer', () => {
     [{ type: 'setExposure', value: 1.4 }, { exposure: 1.4 }],
     [{ type: 'setBloom', value: false }, { bloom: false }],
     [{ type: 'setAutoRotate', value: true }, { autoRotate: true }],
+    [{ type: 'setTintModule', value: 'shoes' }, { tintModule: 'shoes' }],
     [{ type: 'toggleSheet' }, { sheetOpen: true }],
   ];
 
@@ -48,6 +65,35 @@ describe('hudReducer', () => {
     const next = hudReducer(HUD_DEFAULTS, { type: 'setMorph', name: 'Smile', value: 0.6 });
     expect(next.morphs).toEqual({ Smile: 0.6, Angry: 0, ElfEars_02: 0 });
     expect(HUD_DEFAULTS.morphs.Smile).toBe(0);
+  });
+
+  // Custom editing has to start from the outfit on screen, not from white:
+  // picking "stealth" then nudging one zone must nudge a stealth colour.
+  it('loads the preset table into the pickers, and falls back to factory', () => {
+    const next = hudReducer(HUD_DEFAULTS, { type: 'setTintPreset', value: 'violet' });
+    expect(next.tintPreset).toBe('violet');
+    expect(next.tintZones).toEqual(PRESETS.violet);
+    expect(next.tintZones).not.toBe(PRESETS.violet);
+    const unknown = hudReducer(next, { type: 'setTintPreset', value: 'nope' });
+    expect(unknown.tintZones.shirts).toEqual(UNTINTED);
+  });
+
+  it('drops to custom on a hand-picked zone, moving that zone only', () => {
+    const violet = hudReducer(HUD_DEFAULTS, { type: 'setTintPreset', value: 'violet' });
+    const next = hudReducer(violet, {
+      type: 'setTintZone',
+      module: 'gloves',
+      zone: 2,
+      hex: '#123456',
+    });
+    expect(next.tintPreset).toBe('custom');
+    expect(next.tintZones.gloves).toEqual([
+      PRESETS.violet.gloves[0],
+      PRESETS.violet.gloves[1],
+      '#123456',
+    ]);
+    expect(next.tintZones.shirts).toBe(violet.tintZones.shirts);
+    expect(violet.tintZones.gloves).toEqual(PRESETS.violet.gloves);
   });
 
   it('toggles the mobile sheet both ways', () => {

@@ -261,7 +261,23 @@
       "morphAngry": "angry",
       "morphEars": "elf ears",
       "character": "character",
-      "head": "head"
+      "head": "head",
+      "tint": "tint",
+      "zone": "zone",
+      "mod": {
+        "shirts": "shirts",
+        "pants": "pants",
+        "gloves": "gloves",
+        "shoes": "shoes",
+        "mask": "mask"
+      },
+      "preset": {
+        "factory": "factory",
+        "stealth": "stealth",
+        "ops": "black ops",
+        "arctic": "arctic",
+        "violet": "amethyst"
+      }
     },
     "vai": {
       "greeting": "Player 1 detected. Welcome to the build. I'm VAI — ask about Vlad, or try /help for shell commands.",
@@ -582,7 +598,23 @@
       "morphAngry": "злость",
       "morphEars": "эльфийские уши",
       "character": "персонаж",
-      "head": "голова"
+      "head": "голова",
+      "tint": "тинт",
+      "zone": "зона",
+      "mod": {
+        "shirts": "рубашка",
+        "pants": "штаны",
+        "gloves": "перчатки",
+        "shoes": "обувь",
+        "mask": "маска"
+      },
+      "preset": {
+        "factory": "заводской",
+        "stealth": "стелс",
+        "ops": "спецоп",
+        "arctic": "арктика",
+        "violet": "аметист"
+      }
     },
     "vai": {
       "greeting": "Обнаружен игрок 1. Добро пожаловать в билд. Я VAI — спрашивайте про Влада или наберите /help для команд шелла.",

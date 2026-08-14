@@ -32,12 +32,13 @@ import {
 } from './characters';
 import { createFloor } from './grid';
 import { createPost } from './post';
+import { applyPreset, resetTint, setZoneColor, wireCharacter } from './tint';
 
 export type ClipName = 'Idle' | 'Walk';
 export type ToneMode = 'neutral' | 'aces' | 'agx';
 
 // The contract pack V3 (HUD) builds against — one source of truth for both
-// build sessions. `tint` stays absent until tint.ts ships and fills it.
+// build sessions.
 export interface ViewerHandle {
   setClip(name: ClipName, fade?: number): void;
   setClipSpeed(v: number): void;
@@ -181,6 +182,10 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   let speed = DEFAULT_SPEED;
   let disposed = false;
 
+  // Tint state outlives the viewer with the material cache; the HUD does not.
+  // A fresh mount boots at factory, so the outfit resets to match it.
+  resetTint();
+
   // Auto-blink rides the render loop's own clock instead of an interval: a
   // backgrounded tab freezes rAF, so no blinks pile up behind an unwatched
   // deadline. Closure state, so nothing leaks between mounts.
@@ -229,6 +234,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       const mesh = object as Mesh;
       if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) morphMeshes.push(mesh);
     });
+    // Cached scenes keep their last visit's morph influences; the HUD boots at
+    // zero, so the face must too (the head slot resets the same way below).
+    for (const mesh of morphMeshes) mesh.morphTargetInfluences?.fill(0);
     const runtime: CharacterRuntime = {
       root: gltf.scene,
       mixer,
@@ -237,6 +245,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       morphMeshes,
     };
     setHeadSlot(gltf, characterById(id), 'hair');
+    // Idempotent by design: the cached scene brings back materials that may
+    // already own their tint uniforms from an earlier visit.
+    wireCharacter(gltf.scene);
     runtimes.set(id, runtime);
     scene.add(gltf.scene);
     return runtime;
@@ -358,6 +369,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
         if (node) node.visible = key === slot;
       }
     },
+    // Module-scope in tint.ts, like the parsed scenes it patches — the handle
+    // is just the HUD's door to it.
+    tint: { applyPreset, setZoneColor },
     render: {
       setBloom(on) {
         post.setBloom(on);

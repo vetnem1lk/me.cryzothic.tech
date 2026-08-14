@@ -3,6 +3,7 @@
 // mirrors each change onto ViewerHandle, the clusters only dispatch.
 import type { CharacterId, HeadSlot } from '../../../../three/characters';
 import type { ClipName, ToneMode } from '../../../../three/createViewer';
+import { PRESETS, type ModuleId, type Zones } from '../../../../three/tint';
 
 /** Blink is driven by the auto-blink timer, so it is not a slider. */
 export type MorphName = 'Smile' | 'Angry' | 'ElfEars_02';
@@ -20,6 +21,11 @@ export interface HudState {
   exposure: number;
   bloom: boolean;
   autoRotate: boolean;
+  /** A preset id, or 'custom' once a single zone has been touched by hand. */
+  tintPreset: string;
+  /** Which module the three zone pickers below are editing. */
+  tintModule: ModuleId;
+  tintZones: Record<ModuleId, Zones>;
   sheetOpen: boolean;
 }
 
@@ -38,6 +44,11 @@ export const HUD_DEFAULTS: HudState = {
   exposure: 1,
   bloom: true,
   autoRotate: false,
+  tintPreset: 'factory',
+  tintModule: 'shirts',
+  // Copied, not aliased: the reducer replaces this record, but a shared
+  // reference to the preset table is one careless spread away from a bug.
+  tintZones: { ...PRESETS.factory },
   sheetOpen: false,
 };
 
@@ -53,6 +64,9 @@ export type HudAction =
   | { type: 'setExposure'; value: number }
   | { type: 'setBloom'; value: boolean }
   | { type: 'setAutoRotate'; value: boolean }
+  | { type: 'setTintPreset'; value: string }
+  | { type: 'setTintModule'; value: ModuleId }
+  | { type: 'setTintZone'; module: ModuleId; zone: 0 | 1 | 2; hex: string }
   | { type: 'toggleSheet' };
 
 export function hudReducer(state: HudState, action: HudAction): HudState {
@@ -79,6 +93,25 @@ export function hudReducer(state: HudState, action: HudAction): HudState {
       return { ...state, bloom: action.value };
     case 'setAutoRotate':
       return { ...state, autoRotate: action.value };
+    case 'setTintPreset':
+      // Custom editing starts from what is on screen, so the preset's own table
+      // becomes the pickers' state — not a reset to white.
+      return {
+        ...state,
+        tintPreset: action.value,
+        tintZones: { ...(PRESETS[action.value] ?? PRESETS.factory) },
+      };
+    case 'setTintModule':
+      return { ...state, tintModule: action.value };
+    case 'setTintZone': {
+      const next: [string, string, string] = [...state.tintZones[action.module]];
+      next[action.zone] = action.hex;
+      return {
+        ...state,
+        tintPreset: 'custom',
+        tintZones: { ...state.tintZones, [action.module]: next },
+      };
+    }
     case 'toggleSheet':
       return { ...state, sheetOpen: !state.sheetOpen };
     default:
