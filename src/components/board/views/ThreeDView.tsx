@@ -27,6 +27,13 @@ export default function ThreeDView() {
   return (
     <section className="flex h-full flex-col gap-3 p-4 md:p-6">
       <div className="relative h-[65dvh] min-h-[320px] overflow-hidden border border-dashed border-accent/50 md:h-auto md:min-h-0 md:flex-1">
+        {/* Pre-rendered still of the real scene. The live canvas mounts on top
+            and simply covers it — poster-under-boot needs no state at all. */}
+        <img
+          src="/posters/3d-m-idle-v1.avif"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         {supported ? (
           <Suspense
             fallback={
