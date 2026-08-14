@@ -104,7 +104,7 @@ export default function TargetCursor({
       const yTo = gsap.quickTo(cursor, 'y', { duration: 0.1, ease: 'power3.out' })
 
       let activeTarget: Element | null = null
-      let currentLeave: ((force?: boolean) => void) | null = null
+      let currentLeave: (() => void) | null = null
       let ibeamMode = false
       const strength = { value: 0 }
 
@@ -169,10 +169,10 @@ export default function TargetCursor({
       const tick = () => {
         if (!activeTarget || strength.value === 0) return
         const ct = measure(activeTarget)
-        // Scrolled out of sight while the pointer is still on it: the leave path
-        // holds the lock for exactly that case, so this one has to override it.
+        // Scrolled out of sight while the pointer is still on it — nothing left
+        // to frame, and no mouseleave is coming.
         if (!ct) {
-          currentLeave?.(true)
+          currentLeave?.()
           return
         }
         const cx = gsap.getProperty(cursor, 'x') as number
@@ -206,10 +206,9 @@ export default function TargetCursor({
         // is not worth dropping the current lock for.
         const ct = measure(target)
         if (!ct) return
-        // Forced: whenever the incoming target sits inside the outgoing one, the
-        // outgoing one is still hovered, and an unforced leave holds the lock there —
-        // stranding one armed mouseleave listener on it per hop back in.
-        currentLeave?.(true)
+        // Hopping into a target nested inside the current one fires no mouseleave
+        // on the outer, so the lock has to be handed over by hand.
+        currentLeave?.()
         setIbeam(target.matches(TEXT_ENTRY))
 
         activeTarget = target
@@ -232,14 +231,18 @@ export default function TargetCursor({
           })
         })
 
-        // Doubles as the mouseleave listener, which is why `force` is only believed
-        // when it is exactly true — as a listener it arrives holding the event.
-        const leave = contextSafe((force?: boolean | Event) => {
-          // Hover is the only hold-channel — a clicked button keeps focus and
-          // must not pin the lock; typing feedback is the input's own accent
-          // caret, not a cursor lock (rev 2026-08-06). Forcing is the one
-          // way past it: a target hidden under the pointer is still hovered.
-          if (force !== true && target.isConnected && target.matches(':hover')) return
+        // Doubles as the mouseleave listener, and releases whoever calls it. It
+        // used to re-check `:hover` first, from when focus was a second hold-
+        // channel and a leave on one channel had to ask the other; once focus
+        // was dropped (rev 2026-08-06) that check was asking the channel whose
+        // end it was being told about. Chrome refreshes `:hover` on pointer
+        // movement only — when a target moves out from under a parked pointer
+        // instead (any HUD reflow does it) the leave arrives with the flag still
+        // true, and re-reading it swallowed the one event that ends the lock:
+        // the frame stayed welded to the control, I-beam and all, until some
+        // other target was hovered. mouseleave fires once per visit, so it has
+        // to be believed.
+        const leave = contextSafe(() => {
           target.removeEventListener('mouseleave', leave)
           if (activeTarget !== target) return
           activeTarget = null
@@ -263,10 +266,6 @@ export default function TargetCursor({
 
       const enter = contextSafe((e: MouseEvent) => {
         const el = e.target as Element
-
-        // Locked target left the DOM (route change) — force the leave path.
-        if (activeTarget && !activeTarget.isConnected) currentLeave?.()
-
         const target = el.closest?.(targetSelector) ?? el.closest?.(TEXT_ENTRY)
         if (!target) return
         lockTo(target)
