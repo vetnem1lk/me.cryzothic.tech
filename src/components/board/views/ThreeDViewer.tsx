@@ -37,31 +37,43 @@ export default function ThreeDViewer() {
     // StrictMode runs setup/cleanup/setup: the flag stops the first mount's
     // async ready path from touching state after its viewer is disposed.
     let cancelled = false;
+    let viewer: ViewerHandle | null = null;
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
     // The viewer boots with auto-blink suppressed under reduced motion; the
     // panel has to say so, or it advertises a toggle that is already off.
     if (reducedMotion) dispatch({ type: 'setAutoBlink', value: false });
-    const viewer = createViewer(host, {
-      reducedMotion,
-      onProgress: (value) => {
-        if (!cancelled) setPct(value);
-      },
-      onReady: () => {
-        if (!cancelled) setPhase('ready');
-      },
-      onError: () => {
-        if (!cancelled) setPhase('error');
-      },
-    });
-    viewerRef.current = viewer;
-    // The same debug surface the pipeline's smoke viewer exposed: drives the
-    // e2e sweeps (draw-call pinning per state) and costs one property.
-    (window as Window & { __g2?: ViewerHandle }).__g2 = viewer;
+    // React flushes this effect inside the click's own task, so building the
+    // renderer straight from here kept the route commit off screen: a re-entry
+    // — chunk evaluated, GLB parsed, both from the module cache — still spent
+    // ~70 ms on the GL context and the PMREM bake before the loading frame
+    // painted. rAF runs before that paint and the timeout after it, so the boot
+    // lands on the first task the visitor has already seen a frame from.
+    requestAnimationFrame(() =>
+      setTimeout(() => {
+        if (cancelled) return;
+        viewer = createViewer(host, {
+          reducedMotion,
+          onProgress: (value) => {
+            if (!cancelled) setPct(value);
+          },
+          onReady: () => {
+            if (!cancelled) setPhase('ready');
+          },
+          onError: () => {
+            if (!cancelled) setPhase('error');
+          },
+        });
+        viewerRef.current = viewer;
+        // The same debug surface the pipeline's smoke viewer exposed: drives the
+        // e2e sweeps (draw-call pinning per state) and costs one property.
+        (window as Window & { __g2?: ViewerHandle }).__g2 = viewer;
+      }),
+    );
     return () => {
       cancelled = true;
       viewerRef.current = null;
       delete (window as Window & { __g2?: ViewerHandle }).__g2;
-      viewer.dispose();
+      viewer?.dispose();
     };
   }, []);
 

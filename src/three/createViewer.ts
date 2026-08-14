@@ -97,6 +97,18 @@ export function nextBlinkDelay(rand: number): number {
   return 2 + rand * 4;
 }
 
+/**
+ * Run `teardown` once `pending` settles, or right now when nothing is pending.
+ * compileAsync polls renderer properties that `dispose()` wipes, so tearing the
+ * GL down mid-compile throws out of three's own timer — and that promise then
+ * never settles. Both outcomes have to lead to teardown: a rejected compile
+ * still owns a context.
+ */
+export function afterPending(pending: Promise<unknown> | null, teardown: () => void): void {
+  if (pending) void pending.then(teardown, teardown);
+  else teardown();
+}
+
 // Both the sliders and the blink timer write through here — the meshes are
 // cached on the runtime, so neither walks the graph.
 function writeMorph(runtime: CharacterRuntime, name: string, v: number): void {
@@ -181,6 +193,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   let active: CharacterId = 'm';
   let speed = DEFAULT_SPEED;
   let disposed = false;
+  // The compile in flight, if any — dispose() has to wait for it.
+  let compiling: Promise<unknown> | null = null;
 
   // Tint state outlives the viewer with the material cache; the HUD does not.
   // A fresh mount boots at factory, so the outfit resets to match it.
@@ -220,7 +234,13 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     }
   };
 
-  const addRuntime = (id: CharacterId, gltf: Awaited<ReturnType<typeof loadCharacter>>) => {
+  // Returns the runtime hidden: the caller reveals it once it has framed the
+  // camera on it. The first frame that sees a new character compiles every
+  // program that character needs and then blocks on the link — ~0.5 s on a cold
+  // context, which is the whole re-entry hang. compileAsync starts the same
+  // compiles and waits on KHR_parallel_shader_compile instead, off the main
+  // thread, so the render loop keeps its frames and the cursor keeps moving.
+  const addRuntime = async (id: CharacterId, gltf: Awaited<ReturnType<typeof loadCharacter>>) => {
     const mixer = new AnimationMixer(gltf.scene);
     mixer.timeScale = speed;
     const actions: CharacterRuntime['actions'] = {};
@@ -243,14 +263,22 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     // already own their tint uniforms from an earlier visit.
     wireCharacter(gltf.scene);
     runtimes.set(id, runtime);
+    gltf.scene.visible = false;
     scene.add(gltf.scene);
+    const compile = renderer.compileAsync(gltf.scene, camera, scene);
+    compiling = compile;
+    await compile;
+    // Only clear our own: a switch started while this one ran owns the slot now.
+    if (compiling === compile) compiling = null;
     return runtime;
   };
 
   loadCharacter(active, opts.onProgress)
-    .then((gltf) => {
+    .then(async (gltf) => {
       if (disposed) return;
-      const runtime = addRuntime(active, gltf);
+      const runtime = await addRuntime(active, gltf);
+      if (disposed) return;
+      runtime.root.visible = true;
       frame(runtime.root);
       bootClip(runtime);
       opts.onReady();
@@ -340,7 +368,7 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     async setCharacter(id) {
       if (id === active) return;
       const existing = runtimes.get(id);
-      const runtime = existing ?? addRuntime(id, await loadCharacter(id));
+      const runtime = existing ?? (await addRuntime(id, await loadCharacter(id)));
       if (disposed) return;
       const previous = runtimes.get(active);
       if (previous) {
@@ -401,12 +429,16 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       canvas.removeEventListener('pointerup', onPointerUp);
       controls.dispose();
       post.dispose();
-      // Renderer-owned GL resources die with the context; parsed scenes and
-      // their texture data survive in the module cache for free re-entry.
-      renderer.dispose();
-      renderer.forceContextLoss();
       canvas.remove();
       for (const runtime of runtimes.values()) scene.remove(runtime.root);
+      // Renderer-owned GL resources die with the context; parsed scenes and
+      // their texture data survive in the module cache for free re-entry. The
+      // context outlives an unmount only for as long as a compile is still in
+      // flight — see afterPending; everything above has already stopped.
+      afterPending(compiling, () => {
+        renderer.dispose();
+        renderer.forceContextLoss();
+      });
     },
   };
 }
