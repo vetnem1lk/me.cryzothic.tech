@@ -5,7 +5,24 @@
 import { Suspense, lazy, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 
-const ThreeDViewer = lazy(() => import('./ThreeDViewer'));
+const loadViewer = () => import('./ThreeDViewer');
+const ThreeDViewer = lazy(loadViewer);
+
+// The /3d doors (nav tab, VAI chip, briefing card, command row) warm the chunk
+// on intent: fetching + evaluating three.js on hover/focus/pointerdown moves
+// its main-thread cost off the click path — the measured freeze was module
+// eval + viewer init landing right after navigation, not a suppressed
+// fallback. The GLB stays untouched: only real navigation starts the stream.
+// eslint-disable-next-line react/only-export-components
+export const warmViewer = () => {
+  void loadViewer();
+};
+// eslint-disable-next-line react/only-export-components
+export const preload3d = {
+  onPointerEnter: warmViewer,
+  onFocus: warmViewer,
+  onPointerDown: warmViewer,
+};
 
 // Hand-rolled WebGL2 probe on a throwaway canvas: synchronous, no library.
 // r185 renders exclusively through WebGL2, so webgl2 is the only context that

@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { Fragment, useEffect, useRef } from 'react';
 import { COMMAND_ROW } from './commands';
+import { preload3d } from './views/ThreeDView';
 import { wheelPx, wheelStep } from './wheelMath';
 
 const DRIFT_SPEED = 14; // px/s — slow marquee-style drift
@@ -134,6 +135,7 @@ export default function CommandRow({ onRun }: { onRun: (cmd: string) => void }) 
             tabIndex={hidden ? -1 : undefined}
             onClick={() => onRun(c)}
             className="cursor-target shrink-0 px-1 font-mono text-xs text-neutral-400 hover:text-accent"
+            {...(c === '/3d' ? preload3d : undefined)}
           >
             {c}
           </button>

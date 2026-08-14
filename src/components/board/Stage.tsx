@@ -13,7 +13,7 @@ import Contact from './views/Contact';
 import Loot from './views/Loot';
 import Nda from './views/Nda';
 import Skills from './views/Skills';
-import ThreeDView from './views/ThreeDView';
+import ThreeDView, { preload3d } from './views/ThreeDView';
 
 const CodeBase = lazy(() => import('./views/CodeBase'));
 
@@ -40,6 +40,10 @@ export default function Stage() {
   useGSAP(
     () => {
       if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
+      // /3d is exempt: the viewer's boot blocks the main thread (module eval,
+      // shader compile), and a fade frozen at low opacity reads as a hang —
+      // the boot frame must be visible from its first painted frame.
+      if (location === '/3d') return;
       gsap.from(viewRef.current, { autoAlpha: 0, y: 8, duration: 0.2, ease: 'power1.out' });
     },
     // revertOnUpdate is load-bearing, not tidiness. `from` renders immediately and
@@ -98,6 +102,7 @@ export default function Stage() {
             href={p}
             className={navClass}
             aria-current={location === p ? 'page' : undefined}
+            {...(p === '/3d' ? preload3d : undefined)}
           >
             {t(NAV_KEY[p])}
           </Link>
