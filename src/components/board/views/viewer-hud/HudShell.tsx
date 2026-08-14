@@ -25,7 +25,7 @@ export default function HudShell({
           bottom-right corner, and without the reserve the last control in the
           scroller ends up underneath it. */}
       <div
-        className={`pointer-events-auto absolute inset-x-0 bottom-0 max-h-[45%] space-y-3 overflow-y-auto border border-dashed border-accent/40 bg-neutral-950/85 p-3 pb-16 font-mono text-xs text-neutral-300 md:inset-x-auto md:top-2 md:right-2 md:bottom-auto md:block md:max-h-[calc(100%-1rem)] md:w-52 md:pb-3 ${
+        className={`pointer-events-auto absolute inset-x-0 bottom-0 max-h-[45%] space-y-1.5 overflow-y-auto border border-dashed border-accent/40 bg-neutral-950/85 p-2 pb-16 font-mono text-xs text-neutral-300 md:inset-x-auto md:top-2 md:right-2 md:bottom-auto md:block md:max-h-[calc(100%-1rem)] md:w-60 md:pb-2 ${
           open ? '' : 'hidden'
         }`}
       >

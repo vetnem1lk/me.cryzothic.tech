@@ -43,22 +43,26 @@ export default function CharacterCluster({
   };
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
-        {t('threed.character')}
-      </h3>
-      <div role="group" aria-label={t('threed.character')} className="flex">
-        {CHARACTERS.map((character, i) => (
-          <button
-            key={character.id}
-            type="button"
-            aria-pressed={hud.character === character.id}
-            onClick={() => void switchTo(character.id)}
-            className={segClass(hud.character === character.id, i === 0 ? 'l' : 'r')}
-          >
-            {character.label}
-          </button>
-        ))}
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
+      {/* Header and control share one row: a two-segment pill leaves half the
+          panel width empty beside it, and the label is what fills it. */}
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
+          {t('threed.character')}
+        </h3>
+        <div role="group" aria-label={t('threed.character')} className="flex">
+          {CHARACTERS.map((character, i) => (
+            <button
+              key={character.id}
+              type="button"
+              aria-pressed={hud.character === character.id}
+              onClick={() => void switchTo(character.id)}
+              className={segClass(hud.character === character.id, i === 0 ? 'l' : 'r')}
+            >
+              {character.label}
+            </button>
+          ))}
+        </div>
       </div>
       {hud.charProgress !== null && (
         // Numbers as sibling DOM nodes: the caption stays static and the

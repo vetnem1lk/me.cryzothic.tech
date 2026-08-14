@@ -25,9 +25,15 @@ export default function TintCluster({
   const zones = hud.tintZones[hud.tintModule];
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">{t('threed.tint')}</h3>
-      <div role="group" aria-label={t('threed.tint')} className="flex flex-wrap gap-1">
+      {/* One scrolling row, not a wrapping block: five chips wrapped to three
+          lines and the panel paid for every one — CommandRow's scroller. */}
+      <div
+        role="group"
+        aria-label={t('threed.tint')}
+        className="scroll-hide flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap"
+      >
         {PRESET_IDS.map((id) => (
           <button
             key={id}
@@ -60,15 +66,18 @@ export default function TintCluster({
           </option>
         ))}
       </select>
-      {ZONES.map((zone) => (
-        <label key={zone} className="flex items-center justify-between gap-2">
-          {/* The number is a sibling DOM node: the caption stays a static key. */}
-          <span className="text-neutral-400">
-            {t('threed.zone')} {zone + 1}
-          </span>
+      {/* Three swatches, one row, one caption. Each picker carries the zone
+          index in its own accessible name — a <label> can only name one
+          control, so the caption is a plain span and the numbering lives in
+          aria-label, joined here and never as interpolation in content.json. */}
+      <div className="flex items-center gap-2">
+        <span className="text-neutral-400">{t('threed.zone')}</span>
+        {ZONES.map((zone) => (
           <input
+            key={zone}
             type="color"
             value={zones[zone]}
+            aria-label={`${t('threed.zone')} ${zone + 1}`}
             onChange={(event) => {
               const hex = event.target.value;
               viewer.tint?.setZoneColor(hud.tintModule, zone, hex);
@@ -76,8 +85,8 @@ export default function TintCluster({
             }}
             className="cursor-target h-5 w-10 border border-dashed border-neutral-700 bg-transparent"
           />
-        </label>
-      ))}
+        ))}
+      </div>
     </section>
   );
 }

@@ -42,42 +42,42 @@ export default function ThreeDView() {
   const [supported] = useState(webgl2Available);
 
   return (
-    <section className="flex h-full flex-col gap-3 p-4 md:p-6">
-      {/* The frame is a column, not a canvas with things floating on it: the
-          credit is a flow strip that owns its own band at the bottom edge.
-          Overlaid, it landed on the character's shoes at 375px. */}
-      <div className="flex h-[65dvh] min-h-[320px] flex-col overflow-hidden border border-dashed border-accent/50 md:h-auto md:min-h-0 md:flex-1">
-        <div className="relative min-h-0 flex-1">
-          {/* Pre-rendered still of the real scene. The live canvas mounts on top
-              and simply covers it — poster-under-boot needs no state at all. */}
-          <img
-            src="/posters/3d-m-idle-v1.avif"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          {supported ? (
-            <Suspense
-              fallback={
-                <p className="absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
-                  {t('threed.boot')}
-                </p>
-              }
-            >
-              <ThreeDViewer />
-            </Suspense>
-          ) : (
-            <p className="absolute inset-0 grid place-items-center p-6 text-center text-base text-neutral-400">
-              {t('threed.note')}
-            </p>
-          )}
-        </div>
-        <p className="border-t border-dashed border-neutral-800 px-3 py-1.5 text-center font-mono text-[11px] leading-snug text-neutral-500">
+    <section className="flex h-full flex-col gap-2 p-3 md:p-4">
+      {/* Heading block, not chrome: mode line then credit, both above the bezel.
+          Strapped to the frame's bottom edge the credit ate a band of canvas at
+          every width; up here the canvas runs edge to edge inside the border. */}
+      <div className="text-center">
+        <h2 className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
+          {t('threed.mode')}
+        </h2>
+        <p className="mx-auto max-w-prose font-mono text-[11px] leading-snug text-neutral-500">
           {t('threed.credit')}
         </p>
       </div>
-      <p className="text-center font-mono text-sm tracking-widest text-neutral-400 uppercase">
-        {t('threed.mode')}
-      </p>
+      <div className="relative h-[65dvh] min-h-[320px] overflow-hidden border border-dashed border-accent/50 md:h-auto md:min-h-0 md:flex-1">
+        {/* Pre-rendered still of the real scene. The live canvas mounts on top
+            and simply covers it — poster-under-boot needs no state at all. */}
+        <img
+          src="/posters/3d-m-idle-v1.avif"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {supported ? (
+          <Suspense
+            fallback={
+              <p className="absolute inset-0 grid place-items-center font-mono text-sm tracking-widest text-neutral-500 uppercase">
+                {t('threed.boot')}
+              </p>
+            }
+          >
+            <ThreeDViewer />
+          </Suspense>
+        ) : (
+          <p className="absolute inset-0 grid place-items-center p-6 text-center text-base text-neutral-400">
+            {t('threed.note')}
+          </p>
+        )}
+      </div>
     </section>
   );
 }

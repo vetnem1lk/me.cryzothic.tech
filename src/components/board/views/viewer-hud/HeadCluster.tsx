@@ -29,24 +29,29 @@ export default function HeadCluster({
   const t = useT();
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">{t('threed.head')}</h3>
-      <div role="group" aria-label={t('threed.head')} className="flex gap-1">
-        {SLOTS.map(([slot, key]) => (
-          <button
-            key={slot}
-            type="button"
-            aria-pressed={hud.head[slot]}
-            onClick={() => {
-              const value = !hud.head[slot];
-              viewer.setHead({ ...hud.head, [slot]: value });
-              dispatch({ type: 'setHead', slot, value });
-            }}
-            className={chipClass(hud.head[slot])}
-          >
-            {t(key)}
-          </button>
-        ))}
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
+      {/* Header rides the same row as its chips — see CharacterCluster. */}
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
+          {t('threed.head')}
+        </h3>
+        <div role="group" aria-label={t('threed.head')} className="flex gap-1">
+          {SLOTS.map(([slot, key]) => (
+            <button
+              key={slot}
+              type="button"
+              aria-pressed={hud.head[slot]}
+              onClick={() => {
+                const value = !hud.head[slot];
+                viewer.setHead({ ...hud.head, [slot]: value });
+                dispatch({ type: 'setHead', slot, value });
+              }}
+              className={chipClass(hud.head[slot])}
+            >
+              {t(key)}
+            </button>
+          ))}
+        </div>
       </div>
       <label className="flex items-center justify-between gap-2">
         <span className="text-neutral-400">{t('threed.hairColor')}</span>

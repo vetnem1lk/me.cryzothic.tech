@@ -29,35 +29,39 @@ export default function RenderCluster({
   const rotating = hud.autoRotate && !reduced;
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
         {t('threed.render')}
       </h3>
-      <div role="group" aria-label={t('threed.tone')} className="flex">
-        {TONES.map((mode, i) => (
-          <button
-            key={mode}
-            type="button"
-            aria-pressed={hud.tone === mode}
-            onClick={() => {
-              viewer.render.setToneMapping(mode);
-              dispatch({ type: 'setTone', value: mode });
-            }}
-            className={segClass(
-              hud.tone === mode,
-              i === 0 ? 'l' : i === TONES.length - 1 ? 'r' : 'm',
-            )}
-          >
-            {mode}
-          </button>
-        ))}
+      {/* The trio's own labels are engine tokens: nothing on the row says what
+          they grade, so it gets a visible caption. The group keeps its
+          aria-label — that is what a screen reader announces. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] text-neutral-400">{t('threed.tone')}</span>
+        <div role="group" aria-label={t('threed.tone')} className="flex">
+          {TONES.map((mode, i) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={hud.tone === mode}
+              onClick={() => {
+                viewer.render.setToneMapping(mode);
+                dispatch({ type: 'setTone', value: mode });
+              }}
+              className={`${segClass(
+                hud.tone === mode,
+                i === 0 ? 'l' : i === TONES.length - 1 ? 'r' : 'm',
+              )} uppercase`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
       </div>
       {/* aria-label, not the wrapped text: the caption carries a live number and
           an accessible name that changes on every drag is no name at all. */}
-      <label className="block">
-        <span className="flex justify-between text-neutral-400">
-          {t('threed.exposure')} <span>{hud.exposure.toFixed(2)}</span>
-        </span>
+      <label className="flex items-center gap-2">
+        <span className="w-16 shrink-0 text-neutral-400">{t('threed.exposure')}</span>
         <input
           type="range"
           min="0.5"
@@ -70,8 +74,9 @@ export default function RenderCluster({
             viewer.render.setExposure(value);
             dispatch({ type: 'setExposure', value });
           }}
-          className="cursor-target w-full accent-accent"
+          className="cursor-target min-w-0 flex-1 accent-accent"
         />
+        <span className="w-10 shrink-0 text-right tabular-nums">{hud.exposure.toFixed(2)}</span>
       </label>
       <div className="flex gap-1">
         <button

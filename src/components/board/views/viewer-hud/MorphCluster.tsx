@@ -4,6 +4,7 @@ import type { Dispatch } from 'react';
 import { useT } from '../../../../i18n/I18nContext';
 import type { ViewerHandle } from '../../../../three/createViewer';
 import type { HudAction, HudState, MorphName } from './hudState';
+import { chipClass } from './seg';
 
 // Order is pinned: the rig's morph names paired with their captions.
 const MORPHS: [MorphName, string][] = [
@@ -28,13 +29,29 @@ export default function MorphCluster({
   const blinking = hud.autoBlink && !reduced;
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
-        {t('threed.morphs')}
-      </h3>
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
+      {/* The header row carries the blink chip: it is the fourth face control
+          and a line of its own bought nothing but height. */}
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
+          {t('threed.morphs')}
+        </h3>
+        <button
+          type="button"
+          aria-pressed={blinking}
+          disabled={reduced}
+          onClick={() => {
+            viewer.setAutoBlink(!hud.autoBlink);
+            dispatch({ type: 'setAutoBlink', value: !hud.autoBlink });
+          }}
+          className={`${chipClass(blinking)} disabled:opacity-40`}
+        >
+          {t('threed.blink')}
+        </button>
+      </div>
       {MORPHS.map(([name, key]) => (
-        <label key={name} className="block">
-          <span className="text-neutral-400">{t(key)}</span>
+        <label key={name} className="flex items-center gap-2">
+          <span className="w-16 shrink-0 text-neutral-400">{t(key)}</span>
           <input
             type="range"
             min="0"
@@ -47,26 +64,10 @@ export default function MorphCluster({
               viewer.setMorph(name, value);
               dispatch({ type: 'setMorph', name, value });
             }}
-            className="cursor-target w-full accent-accent"
+            className="cursor-target min-w-0 flex-1 accent-accent"
           />
         </label>
       ))}
-      <button
-        type="button"
-        aria-pressed={blinking}
-        disabled={reduced}
-        onClick={() => {
-          viewer.setAutoBlink(!hud.autoBlink);
-          dispatch({ type: 'setAutoBlink', value: !hud.autoBlink });
-        }}
-        className={`cursor-target rounded border border-dashed px-2 py-0.5 disabled:opacity-40 ${
-          blinking
-            ? 'border-accent/60 text-accent'
-            : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-        }`}
-      >
-        {t('threed.blink')}
-      </button>
     </section>
   );
 }
