@@ -13,7 +13,7 @@ import {
   type HeadSlot,
 } from '../../../../three/characters';
 import type { ViewerHandle } from '../../../../three/createViewer';
-import type { HudAction, HudState } from './hudState';
+import { applyHudToViewer, type HudAction, type HudState } from './hudState';
 import { segClass } from './seg';
 
 const HEADS: [HeadSlot, string][] = [
@@ -40,9 +40,9 @@ export default function SwitchCluster({
     try {
       await viewer.setCharacter(id);
       dispatch({ type: 'setCharacter', value: id });
-      // A character loaded earlier kept whatever head it wore last; the panel is
-      // the truth, so the current slot is re-applied on every arrival.
-      viewer.setHead(hud.head);
+      // The panel is the truth and it did not move: the character who just
+      // walked on gets the clip, the face and the head it already describes.
+      applyHudToViewer(viewer, hud);
     } catch {
       // A failed stream leaves the pad on whoever is already standing on it: the
       // segment simply never moves, which is the whole report we can give

@@ -2,7 +2,7 @@
 // surface is testable without a GL context: ThreeDViewer owns the reducer and
 // mirrors each change onto ViewerHandle, the clusters only dispatch.
 import type { CharacterId, HeadSlot } from '../../../../three/characters';
-import type { ClipName, ToneMode } from '../../../../three/createViewer';
+import type { ClipName, ToneMode, ViewerHandle } from '../../../../three/createViewer';
 import { PRESETS, type ModuleId, type Zones } from '../../../../three/tint';
 
 /** Blink is driven by the auto-blink timer, so it is not a slider. */
@@ -51,6 +51,22 @@ export const HUD_DEFAULTS: HudState = {
   tintZones: { ...PRESETS.factory },
   sheetOpen: false,
 };
+
+/**
+ * One panel drives both characters, so an arrival has to inherit it: a runtime
+ * that just came up stands in Idle with a blank face and the hair head, and the
+ * HUD would be describing the character that left. Only the per-character state
+ * belongs here — speed is pushed to every mixer by setClipSpeed, auto-blink is
+ * one viewer-wide flag, and tone/exposure/bloom/auto-rotate live on the renderer.
+ */
+export function applyHudToViewer(viewer: ViewerHandle, hud: HudState): void {
+  // Nothing of this rig was on screen a frame ago, so there is nothing to blend
+  // from. Idle-on-Idle is a no-op inside the viewer, which is what keeps the
+  // reduced-motion freeze frozen: that pose is only left when the user asks.
+  viewer.setClip(hud.clip, 0);
+  for (const [name, value] of Object.entries(hud.morphs)) viewer.setMorph(name, value);
+  viewer.setHead(hud.head);
+}
 
 export type HudAction =
   | { type: 'setClip'; value: ClipName }

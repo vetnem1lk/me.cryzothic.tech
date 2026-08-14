@@ -2,8 +2,15 @@
 // dispatches blind — a reducer that touched a neighbouring slice would desync
 // the HUD from the scene with nothing on screen to say so.
 import { describe, expect, it } from 'vitest';
+import type { ViewerHandle } from '../../../../three/createViewer';
 import { PRESETS } from '../../../../three/tint';
-import { HUD_DEFAULTS, hudReducer, type HudAction, type HudState } from './hudState';
+import {
+  HUD_DEFAULTS,
+  applyHudToViewer,
+  hudReducer,
+  type HudAction,
+  type HudState,
+} from './hudState';
 
 const UNTINTED: [string, string, string] = ['#ffffff', '#ffffff', '#ffffff'];
 
@@ -36,6 +43,64 @@ describe('HUD defaults', () => {
 
   it('copies the factory table instead of aliasing it', () => {
     expect(HUD_DEFAULTS.tintZones).not.toBe(PRESETS.factory);
+  });
+});
+
+// Every entry point the handle offers, logged: the assertions then read as the
+// WHOLE conversation with the viewer, so a stray call is a failure and not a
+// detail nobody checked.
+function mockViewer() {
+  const calls: string[] = [];
+  const log =
+    (label: string) =>
+    (...args: unknown[]) =>
+      calls.push([label, ...args].join(':'));
+  const viewer = {
+    setClip: log('clip'),
+    setClipSpeed: log('speed'),
+    setMorph: log('morph'),
+    setAutoBlink: log('blink'),
+    setCharacter: log('character'),
+    setHead: log('head'),
+    render: {
+      setBloom: log('bloom'),
+      setToneMapping: log('tone'),
+      setExposure: log('exposure'),
+      setAutoRotate: log('autoRotate'),
+    },
+  } as unknown as ViewerHandle;
+  return { viewer, calls };
+}
+
+describe('applyHudToViewer', () => {
+  // The panel does not move when the pad does, so the arriving character has to.
+  it('hands the arriving character the clip, the face and the head on the panel', () => {
+    const { viewer, calls } = mockViewer();
+    const hud: HudState = {
+      ...HUD_DEFAULTS,
+      clip: 'Walk',
+      morphs: { Smile: 0.6, Angry: 0, ElfEars_02: 1 },
+      head: 'mask',
+    };
+
+    applyHudToViewer(viewer, hud);
+
+    expect(calls).toEqual([
+      // Fade 0: nothing of this rig was on screen to blend from.
+      'clip:Walk:0',
+      'morph:Smile:0.6',
+      'morph:Angry:0',
+      'morph:ElfEars_02:1',
+      'head:mask',
+    ]);
+  });
+
+  // Speed rides every mixer, auto-blink is one viewer-wide flag and the render
+  // controls live on the renderer — all four outlive a switch untouched.
+  it('leaves the viewer-wide and renderer state alone', () => {
+    const { viewer, calls } = mockViewer();
+    applyHudToViewer(viewer, { ...HUD_DEFAULTS, speed: 1.5, autoBlink: false, bloom: false });
+    expect(calls.filter((c) => !/^(clip|morph|head)/.test(c))).toEqual([]);
   });
 });
 
