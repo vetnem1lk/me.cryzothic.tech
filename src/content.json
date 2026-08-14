@@ -273,6 +273,7 @@
       "exposure": "exposure",
       "bloom": "bloom",
       "rotate": "auto-rotate",
+      "motionOff": "disabled by your reduced-motion setting",
       "mod": {
         "shirts": "shirts",
         "pants": "pants",
@@ -619,6 +620,7 @@
       "exposure": "экспозиция",
       "bloom": "блум",
       "rotate": "автоповорот",
+      "motionOff": "выключено настройкой уменьшенного движения",
       "mod": {
         "shirts": "рубашка",
         "pants": "штаны",

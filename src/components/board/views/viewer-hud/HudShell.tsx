@@ -34,7 +34,10 @@ export default function HudShell({
           keeps a flick at the end of the scroller off the page behind it. */}
       <div
         id={PANEL_ID}
-        className={`pointer-events-auto touch-manipulation space-y-1.5 overflow-y-auto overscroll-contain border border-dashed border-accent/40 bg-neutral-950/70 p-2 font-mono text-xs text-neutral-300 backdrop-blur-sm max-md:fixed max-md:inset-x-2 max-md:bottom-16 max-md:z-50 max-md:max-h-[70dvh] max-md:rounded-lg max-md:border-accent/50 max-md:bg-neutral-950/95 max-md:backdrop-blur md:absolute md:top-2 md:right-2 md:block md:max-h-[calc(100%-1rem)] md:w-60 ${
+        // select-none on the root, not per caption: every label here is chrome, and a
+        // drag that starts on one is an orbit gesture the browser turned into a text
+        // selection.
+        className={`pointer-events-auto touch-manipulation space-y-1.5 overflow-y-auto select-none overscroll-contain border border-dashed border-accent/40 bg-neutral-950/70 p-2 font-mono text-xs text-neutral-300 backdrop-blur-sm max-md:fixed max-md:inset-x-2 max-md:bottom-16 max-md:z-50 max-md:max-h-[70dvh] max-md:rounded-lg max-md:border-accent/50 max-md:bg-neutral-950/95 max-md:backdrop-blur md:absolute md:top-2 md:right-2 md:block md:max-h-[calc(100%-1rem)] md:w-60 ${
           open ? '' : 'hidden'
         }`}
       >

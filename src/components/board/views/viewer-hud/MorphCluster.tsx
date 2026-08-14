@@ -40,6 +40,10 @@ export default function MorphCluster({
           type="button"
           aria-pressed={blinking}
           disabled={reduced}
+          // A dimmed chip with no explanation reads as a bug. One string covers both
+          // the tooltip and the AT description, and only while it is actually off.
+          title={reduced ? t('threed.motionOff') : undefined}
+          aria-description={reduced ? t('threed.motionOff') : undefined}
           onClick={() => {
             viewer.setAutoBlink(!hud.autoBlink);
             dispatch({ type: 'setAutoBlink', value: !hud.autoBlink });
@@ -64,7 +68,7 @@ export default function MorphCluster({
               viewer.setMorph(name, value);
               dispatch({ type: 'setMorph', name, value });
             }}
-            className="cursor-target h-8 min-w-0 flex-1 accent-accent md:h-4"
+            className="cursor-target h-8 min-w-0 flex-1 cursor-pointer accent-accent md:h-4"
           />
         </label>
       ))}

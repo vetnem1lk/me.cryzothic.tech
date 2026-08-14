@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   // Dev only: the chat service runs as its own process, so /api/chat reaches it
   // same-origin here exactly as it does behind the reverse proxy in production.
-  // /g2 = the 3D viewer's versioned assets, hosted on the box outside this repo;
+  // /g2 = the 3D viewer's versioned assets, served by the production host outside this repo;
   // dev and preview borrow the production copies so the viewer works locally.
   server: {
     proxy: {

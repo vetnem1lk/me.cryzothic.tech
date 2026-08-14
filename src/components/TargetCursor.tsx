@@ -25,10 +25,14 @@ const IDLE_POS = [
   { x: -CORNER * 1.5, y: CORNER * 0.5 },
 ]
 
-// ponytail: naive selector — also matches button-type inputs; refine when a form
-// control other than the V-Agent chat field appears. Text-entry elements are lock
-// targets too: corners frame the field, the dot morphs into a custom I-beam.
-const TEXT_ENTRY = 'input, textarea, [contenteditable="true"]'
+// The prediction in the old naive selector came true: the HUD brought sliders and
+// colour swatches, and a bare `input` morphed the reticle into an I-beam over every
+// one of them. The selector now names text entry explicitly — the V-Agent chat field
+// carries no type attribute, hence the `:not([type])` arm. Text-entry elements are
+// lock targets too: corners frame the field, the dot morphs into a custom I-beam;
+// everything else keeps the dot.
+const TEXT_ENTRY =
+  'input:not([type]), input[type="text"], input[type="search"], textarea, [contenteditable="true"]'
 
 // Mount only for precise pointers whose user accepts motion; anywhere else the
 // component renders nothing and the system cursor is untouched.

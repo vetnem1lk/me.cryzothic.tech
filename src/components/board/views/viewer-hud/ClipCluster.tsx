@@ -61,7 +61,7 @@ export default function ClipCluster({
             viewer.setClipSpeed(value);
             dispatch({ type: 'setSpeed', value });
           }}
-          className="cursor-target h-8 min-w-0 flex-1 accent-accent md:h-4"
+          className="cursor-target h-8 min-w-0 flex-1 cursor-pointer accent-accent md:h-4"
         />
         <span className="w-10 shrink-0 text-right tabular-nums">{hud.speed.toFixed(2)}×</span>
       </label>

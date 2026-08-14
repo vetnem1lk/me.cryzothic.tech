@@ -67,7 +67,7 @@ export default function CharacterCluster({
       {hud.charProgress !== null && (
         // Numbers as sibling DOM nodes: the caption stays static and the
         // ${var} interpolation whitelist stays untouched.
-        <p className="text-neutral-500">
+        <p aria-live="polite" className="text-neutral-500">
           {t('threed.loading')} {hud.charProgress}%
         </p>
       )}
