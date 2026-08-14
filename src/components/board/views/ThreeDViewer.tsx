@@ -40,9 +40,13 @@ export default function ThreeDViewer() {
       },
     });
     viewerRef.current = viewer;
+    // The same debug surface the pipeline's smoke viewer exposed: drives the
+    // e2e sweeps (draw-call pinning per state) and costs one property.
+    (window as Window & { __g2?: ViewerHandle }).__g2 = viewer;
     return () => {
       cancelled = true;
       viewerRef.current = null;
+      delete (window as Window & { __g2?: ViewerHandle }).__g2;
       viewer.dispose();
     };
   }, []);

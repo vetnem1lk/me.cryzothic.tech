@@ -6,7 +6,6 @@ import {
   AgXToneMapping,
   AnimationMixer,
   Box3,
-  Clock,
   Color,
   DirectionalLight,
   HemisphereLight,
@@ -14,6 +13,7 @@ import {
   PMREMGenerator,
   PerspectiveCamera,
   Scene,
+  Timer,
   Vector3,
   WebGLRenderer,
   type AnimationAction,
@@ -137,6 +137,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   const resize = () => {
     const { clientWidth, clientHeight } = container;
     if (!clientWidth || !clientHeight) return;
+    // Re-read the ratio: it changes when the window crosses monitors.
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(clientWidth, clientHeight, false);
     post.setSize(clientWidth, clientHeight);
     camera.aspect = clientWidth / clientHeight;
@@ -218,15 +220,22 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     });
   };
 
-  const clock = new Clock();
+  // r185 deprecated Clock; Timer is the console-clean replacement.
+  const timer = new Timer();
+  // With a composer, autoReset makes renderer.info reflect only the LAST pass
+  // (the output quad: 1 call, 2 tris). Manual reset per frame accumulates the
+  // real numbers — what the GPU actually does, every pass included.
+  renderer.info.autoReset = false;
   let fps = 0;
   let frames = 0;
   let windowStart = performance.now();
   renderer.setAnimationLoop(() => {
-    const delta = clock.getDelta();
+    timer.update();
+    const delta = timer.getDelta();
     const runtime = runtimes.get(active);
     if (runtime) runtime.mixer.update(delta);
     controls.update();
+    renderer.info.reset();
     post.render();
     frames += 1;
     const now = performance.now();
