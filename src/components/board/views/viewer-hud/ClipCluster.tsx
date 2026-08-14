@@ -24,7 +24,7 @@ export default function ClipCluster({
   return (
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       {/* Header rides the same row as its pill — see CharacterCluster. */}
-      <div className="sticky top-[41px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
+      <div className="sticky top-[51px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
         <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
           {t('threed.clips')}
         </h3>
@@ -48,7 +48,7 @@ export default function ClipCluster({
       {/* aria-label, not the wrapped text: the caption carries a live number and
           an accessible name that changes on every drag is no name at all. */}
       <label className="flex items-center gap-2">
-        <span className="w-16 shrink-0 text-neutral-400">{t('threed.speed')}</span>
+        <span className="w-20 shrink-0 text-neutral-400">{t('threed.speed')}</span>
         <input
           type="range"
           min="0.25"

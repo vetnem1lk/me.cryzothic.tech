@@ -32,7 +32,7 @@ export default function MorphCluster({
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       {/* The header row carries the blink chip: it is the fourth face control
           and a line of its own bought nothing but height. */}
-      <div className="sticky top-[41px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
+      <div className="sticky top-[51px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
         <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
           {t('threed.morphs')}
         </h3>
@@ -55,7 +55,11 @@ export default function MorphCluster({
       </div>
       {MORPHS.map(([name, key]) => (
         <label key={name} className="flex items-center gap-2">
-          <span className="w-16 shrink-0 text-neutral-400">{t(key)}</span>
+          {/* A 5rem caption column, not 4rem: «экспозиция» alone measures 72px
+              and the narrower box pushed it into the slider it labels. «эльфийские
+              уши» still takes two lines — no width this panel can spare fits it —
+              but it now breaks inside its own column. */}
+          <span className="w-20 shrink-0 text-neutral-400">{t(key)}</span>
           <input
             type="range"
             min="0"

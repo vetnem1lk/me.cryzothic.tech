@@ -3,7 +3,7 @@
 // off is a legal bald head rather than a state to defend against. The swatch
 // below them is the one hair zone the mask actually carries — its G and B
 // channels decode to zero, so a second and third picker would be dead controls.
-import type { Dispatch } from 'react';
+import { useEffect, type Dispatch } from 'react';
 import { useT } from '../../../../i18n/I18nContext';
 import type { HeadSlot } from '../../../../three/characters';
 import type { ViewerHandle } from '../../../../three/createViewer';
@@ -27,11 +27,20 @@ export default function HeadCluster({
   viewer: ViewerHandle;
 }) {
   const t = useT();
+  // The rig is mirrored from the reduced flags, never from the click: two chips
+  // tapped inside one tick each built `{...hud.head, [slot]: value}` from the
+  // same stale props, so the second setHead un-did the first while the reducer
+  // kept both. Mirroring the pair the reducer settled on makes the panel and the
+  // head agree by construction — and stays quiet on a character switch, where the
+  // flags do not move and applyHudToViewer is what re-dresses the arrival.
+  useEffect(() => {
+    viewer.setHead(hud.head);
+  }, [viewer, hud.head]);
 
   return (
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
       {/* Header rides the same row as its chips — see CharacterCluster. */}
-      <div className="sticky top-[41px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
+      <div className="sticky top-[51px] z-10 bg-neutral-950/95 md:static md:bg-transparent flex items-center justify-between gap-2">
         <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
           {t('threed.head')}
         </h3>
@@ -41,11 +50,7 @@ export default function HeadCluster({
               key={slot}
               type="button"
               aria-pressed={hud.head[slot]}
-              onClick={() => {
-                const value = !hud.head[slot];
-                viewer.setHead({ ...hud.head, [slot]: value });
-                dispatch({ type: 'setHead', slot, value });
-              }}
+              onClick={() => dispatch({ type: 'setHead', slot, value: !hud.head[slot] })}
               className={chipClass(hud.head[slot])}
             >
               {t(key)}
@@ -53,6 +58,8 @@ export default function HeadCluster({
           ))}
         </div>
       </div>
+      {/* One control, one dispatch per event: the swatch has no sibling to race,
+          so it mirrors inline like the rest of the panel. */}
       <label className="flex items-center justify-between gap-2">
         <span className="text-neutral-400">{t('threed.hairColor')}</span>
         <input

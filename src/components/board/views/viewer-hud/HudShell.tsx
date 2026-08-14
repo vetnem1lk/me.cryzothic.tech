@@ -12,8 +12,10 @@ const PANEL_ID = 'viewer-hud-panel';
 
 // One skin, two seats: the floating toggle and the drawer's close button are
 // the same control at opposite ends of the same state, so they wear one string.
+// min-h-11 rides the skin, not one seat: both are thumb targets, and the 44px
+// floor belongs wherever this class lands rather than to whoever remembers it.
 const TOGGLE =
-  'cursor-target pointer-events-auto rounded-md border border-dashed border-accent/60 bg-neutral-950/90 px-3 py-2 font-mono text-xs text-accent hover:border-accent';
+  'cursor-target pointer-events-auto min-h-11 rounded-md border border-dashed border-accent/60 bg-neutral-950/90 px-3 py-2 font-mono text-xs text-accent hover:border-accent';
 
 export default function HudShell({
   children,
@@ -65,7 +67,7 @@ export default function HudShell({
           // bottom-16, the drawer's own seat: the VAI button is fixed over the
           // bottom-right of every route and was eating the upper two thirds of
           // this one's 44px target.
-          className={`${TOGGLE} absolute right-2 bottom-16 grid min-h-11 min-w-11 touch-manipulation place-items-center md:hidden`}
+          className={`${TOGGLE} absolute right-2 bottom-16 grid min-w-11 touch-manipulation place-items-center md:hidden`}
         >
           {t('threed.hud')}
         </button>

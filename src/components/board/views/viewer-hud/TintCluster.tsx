@@ -26,7 +26,7 @@ export default function TintCluster({
 
   return (
     <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
-      <h3 className="sticky top-[41px] z-10 bg-neutral-950/95 text-[10px] tracking-widest text-neutral-500 uppercase md:static md:bg-transparent">{t('threed.tint')}</h3>
+      <h3 className="sticky top-[51px] z-10 bg-neutral-950/95 text-[10px] tracking-widest text-neutral-500 uppercase md:static md:bg-transparent">{t('threed.tint')}</h3>
       {/* One scrolling row, not a wrapping block: five chips wrapped to three
           lines and the panel paid for every one — CommandRow's scroller. */}
       <div
