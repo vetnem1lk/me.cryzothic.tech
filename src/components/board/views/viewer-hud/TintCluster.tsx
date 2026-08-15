@@ -7,6 +7,7 @@ import { useT } from '../../../../i18n/I18nContext';
 import type { ViewerHandle } from '../../../../three/createViewer';
 import { MODULE_IDS, PRESETS, type ModuleId } from '../../../../three/tint';
 import type { HudAction, HudState } from './hudState';
+import { chipClass } from './seg';
 
 const PRESET_IDS = Object.keys(PRESETS);
 const ZONES = [0, 1, 2] as const;
@@ -24,9 +25,16 @@ export default function TintCluster({
   const zones = hud.tintZones[hud.tintModule];
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">{t('threed.tint')}</h3>
-      <div role="group" aria-label={t('threed.tint')} className="flex flex-wrap gap-1">
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
+      <h3 className="sticky top-[51px] z-10 bg-neutral-950/95 text-[10px] tracking-widest text-neutral-500 uppercase md:static md:bg-transparent">{t('threed.tint')}</h3>
+      {/* Touch scrolls the row; a mouse wheel scrolls the panel and never finds
+          the hidden overflow — so the desktop panel wraps instead (w-60 fits
+          five chips on two lines), phones keep CommandRow's scroller. */}
+      <div
+        role="group"
+        aria-label={t('threed.tint')}
+        className="scroll-hide flex flex-nowrap gap-1 overflow-x-auto whitespace-nowrap md:flex-wrap"
+      >
         {PRESET_IDS.map((id) => (
           <button
             key={id}
@@ -36,11 +44,7 @@ export default function TintCluster({
               viewer.tint?.applyPreset(id);
               dispatch({ type: 'setTintPreset', value: id });
             }}
-            className={`cursor-target rounded border border-dashed px-2 py-0.5 ${
-              hud.tintPreset === id
-                ? 'border-accent/60 text-accent'
-                : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-            }`}
+            className={chipClass(hud.tintPreset === id)}
           >
             {t(`threed.preset.${id}`)}
           </button>
@@ -63,24 +67,27 @@ export default function TintCluster({
           </option>
         ))}
       </select>
-      {ZONES.map((zone) => (
-        <label key={zone} className="flex items-center justify-between gap-2">
-          {/* The number is a sibling DOM node: the caption stays a static key. */}
-          <span className="text-neutral-400">
-            {t('threed.zone')} {zone + 1}
-          </span>
+      {/* Three swatches, one row, one caption. Each picker carries the zone
+          index in its own accessible name — a <label> can only name one
+          control, so the caption is a plain span and the numbering lives in
+          aria-label, joined here and never as interpolation in content.json. */}
+      <div className="flex items-center gap-2">
+        <span className="text-neutral-400">{t('threed.zone')}</span>
+        {ZONES.map((zone) => (
           <input
+            key={zone}
             type="color"
             value={zones[zone]}
+            aria-label={`${t('threed.zone')} ${zone + 1}`}
             onChange={(event) => {
               const hex = event.target.value;
               viewer.tint?.setZoneColor(hud.tintModule, zone, hex);
               dispatch({ type: 'setTintZone', module: hud.tintModule, zone, hex });
             }}
-            className="cursor-target h-5 w-10 border border-dashed border-neutral-700 bg-transparent"
+            className="cursor-target h-8 w-12 border border-dashed border-neutral-700 bg-transparent md:h-5 md:w-10"
           />
-        </label>
-      ))}
+        ))}
+      </div>
     </section>
   );
 }

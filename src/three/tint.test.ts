@@ -6,7 +6,7 @@
 import { BufferGeometry, Color, Group, Mesh, MeshStandardMaterial } from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadSideTexture } from './characters';
-import { MODULE_IDS, PRESETS, applyPreset, setZoneColor, wireCharacter } from './tint';
+import { MODULE_IDS, PRESETS, applyPreset, resetTint, setZoneColor, wireCharacter } from './tint';
 
 // No network in tests. A fresh object per URL, so "both characters got the SAME
 // texture" is a real assertion about the mask cache rather than a tautology.
@@ -135,6 +135,58 @@ describe('colour writes', () => {
     expect(material.userData.tint?.uZoneA.value.getHexString()).toBe(
       PRESETS.violet.shirts[0].slice(1),
     );
+  });
+});
+
+// Hair is tintable but is NOT an outfit module. Two founder rules ride on that
+// and neither is visible on screen until it is already wrong: a preset that
+// repaints the hair, and a module picker that offers it as a sixth garment.
+describe('hair', () => {
+  beforeEach(() => resetTint());
+
+  it('stays out of the module list, so the picker cannot offer it', () => {
+    expect(MODULE_IDS).not.toContain('hair');
+  });
+
+  it('wires MI_Hair to its own sidecar — one material name for both characters', async () => {
+    const { material, root } = tintable('MI_Hair');
+    wireCharacter(root);
+    expect(material.userData.tint).toBeDefined();
+
+    setZoneColor('hair', 0, '#b497cf');
+    await tick();
+    expect(material.userData.tint?.uTintMask.value).toEqual({
+      url: '/g2/v1/masks/Hair_M@1024.ktx2',
+    });
+    expect(material.userData.tint?.uZoneA.value.getHexString()).toBe('b497cf');
+  });
+
+  it('is left alone by an outfit preset, and leaves the outfit alone in return', () => {
+    const hair = tintable('MI_Hair');
+    const shirts = tintable('MI_Shirts');
+    wireCharacter(hair.root);
+    wireCharacter(shirts.root);
+
+    setZoneColor('hair', 0, '#b497cf');
+    applyPreset('ops');
+    expect(hair.material.userData.tint?.uZoneA.value.getHexString()).toBe('b497cf');
+    expect(shirts.material.userData.tint?.uZoneA.value.getHexString()).toBe(
+      PRESETS.ops.shirts[0].slice(1),
+    );
+
+    setZoneColor('hair', 0, '#123456');
+    expect(shirts.material.userData.tint?.uZoneA.value.getHexString()).toBe(
+      PRESETS.ops.shirts[0].slice(1),
+    );
+  });
+
+  // A fresh mount boots the HUD at white hair; the materials outlive it.
+  it('goes back to white on the viewer reset that outfits already honour', () => {
+    const { material, root } = tintable('MI_Hair');
+    wireCharacter(root);
+    setZoneColor('hair', 0, '#b497cf');
+    resetTint();
+    expect(material.userData.tint?.uZoneA.value.getHexString()).toBe('ffffff');
   });
 });
 

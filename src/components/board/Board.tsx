@@ -100,7 +100,13 @@ export default function Board() {
       if (!matchMedia('(prefers-reduced-motion: no-preference)').matches) return;
       gsap
         .timeline({ defaults: { ease: 'power2.out', duration: 0.45 } })
-        .from('[data-dock]', { autoAlpha: 0, y: 18, stagger: 0.1 });
+        // clearProps is load-bearing, not tidiness: the tween lands on
+        // translate(0,0) and GSAP leaves that inline, so every dock carries an
+        // identity transform for the rest of the session — and an identity
+        // transform is still a containing block for `position: fixed`. The
+        // viewer's mobile drawer is fixed and sits inside the Stage dock, so
+        // without this it anchors to the frame instead of the viewport.
+        .from('[data-dock]', { autoAlpha: 0, y: 18, stagger: 0.1, clearProps: 'transform' });
     },
     { scope },
   );

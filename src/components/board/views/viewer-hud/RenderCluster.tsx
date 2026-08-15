@@ -8,7 +8,7 @@ import type { Dispatch } from 'react';
 import { useT } from '../../../../i18n/I18nContext';
 import type { ToneMode, ViewerHandle } from '../../../../three/createViewer';
 import type { HudAction, HudState } from './hudState';
-import { segClass } from './seg';
+import { chipClass, segClass } from './seg';
 
 const TONES: ToneMode[] = ['neutral', 'aces', 'agx'];
 
@@ -29,35 +29,39 @@ export default function RenderCluster({
   const rotating = hud.autoRotate && !reduced;
 
   return (
-    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-3 first:border-0 first:pt-0">
-      <h3 className="text-[10px] tracking-widest text-neutral-500 uppercase">
+    <section className="space-y-2 border-t border-dashed border-neutral-800 pt-2 first:border-0 first:pt-0">
+      <h3 className="sticky top-[51px] z-10 bg-neutral-950/95 text-[10px] tracking-widest text-neutral-500 uppercase md:static md:bg-transparent">
         {t('threed.render')}
       </h3>
-      <div role="group" aria-label={t('threed.tone')} className="flex">
-        {TONES.map((mode, i) => (
-          <button
-            key={mode}
-            type="button"
-            aria-pressed={hud.tone === mode}
-            onClick={() => {
-              viewer.render.setToneMapping(mode);
-              dispatch({ type: 'setTone', value: mode });
-            }}
-            className={segClass(
-              hud.tone === mode,
-              i === 0 ? 'l' : i === TONES.length - 1 ? 'r' : 'm',
-            )}
-          >
-            {mode}
-          </button>
-        ))}
+      {/* The trio's own labels are engine tokens: nothing on the row says what
+          they grade, so it gets a visible caption. The group keeps its
+          aria-label — that is what a screen reader announces. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] text-neutral-400">{t('threed.tone')}</span>
+        <div role="group" aria-label={t('threed.tone')} className="flex">
+          {TONES.map((mode, i) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={hud.tone === mode}
+              onClick={() => {
+                viewer.render.setToneMapping(mode);
+                dispatch({ type: 'setTone', value: mode });
+              }}
+              className={`${segClass(
+                hud.tone === mode,
+                i === 0 ? 'l' : i === TONES.length - 1 ? 'r' : 'm',
+              )} uppercase`}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
       </div>
       {/* aria-label, not the wrapped text: the caption carries a live number and
           an accessible name that changes on every drag is no name at all. */}
-      <label className="block">
-        <span className="flex justify-between text-neutral-400">
-          {t('threed.exposure')} <span>{hud.exposure.toFixed(2)}</span>
-        </span>
+      <label className="flex items-center gap-2">
+        <span className="w-20 shrink-0 text-neutral-400">{t('threed.exposure')}</span>
         <input
           type="range"
           min="0.5"
@@ -70,8 +74,9 @@ export default function RenderCluster({
             viewer.render.setExposure(value);
             dispatch({ type: 'setExposure', value });
           }}
-          className="cursor-target w-full accent-accent"
+          className="cursor-target h-8 min-w-0 flex-1 cursor-pointer accent-accent md:h-4"
         />
+        <span className="w-10 shrink-0 text-right tabular-nums">{hud.exposure.toFixed(2)}</span>
       </label>
       <div className="flex gap-1">
         <button
@@ -81,11 +86,7 @@ export default function RenderCluster({
             viewer.render.setBloom(!hud.bloom);
             dispatch({ type: 'setBloom', value: !hud.bloom });
           }}
-          className={`cursor-target rounded border border-dashed px-2 py-0.5 ${
-            hud.bloom
-              ? 'border-accent/60 text-accent'
-              : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-          }`}
+          className={chipClass(hud.bloom)}
         >
           {t('threed.bloom')}
         </button>
@@ -93,15 +94,14 @@ export default function RenderCluster({
           type="button"
           aria-pressed={rotating}
           disabled={reduced}
+          // Same as the blink chip: say why it is dim instead of leaving it dim.
+          title={reduced ? t('threed.motionOff') : undefined}
+          aria-description={reduced ? t('threed.motionOff') : undefined}
           onClick={() => {
             viewer.render.setAutoRotate(!hud.autoRotate);
             dispatch({ type: 'setAutoRotate', value: !hud.autoRotate });
           }}
-          className={`cursor-target rounded border border-dashed px-2 py-0.5 disabled:opacity-40 ${
-            rotating
-              ? 'border-accent/60 text-accent'
-              : 'border-neutral-700 text-neutral-500 hover:text-neutral-300'
-          }`}
+          className={`${chipClass(rotating)} disabled:opacity-40`}
         >
           {t('threed.rotate')}
         </button>

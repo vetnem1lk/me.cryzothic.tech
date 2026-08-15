@@ -10,7 +10,11 @@
 //     because the objects are never recreated.
 //  2. ONE PROGRAM. The injected GLSL is byte-identical for every module (they
 //     differ by uniform VALUES only) and `customProgramCacheKey` is a single
-//     constant, so all tinted materials share one compiled program.
+//     constant, so all tinted materials share one compiled program — with one
+//     expected exception: MI_Hair is alphaMode MASK doubleSided, and three's own
+//     ALPHATEST define is part of the key our constant is APPENDED to. Hair
+//     therefore compiles its own variant. That is three splitting on a real
+//     feature difference, not the tint splitting on a module.
 //
 // State is module-scope on purpose: the parsed-GLTF cache keeps the materials
 // alive across /3d unmounts, so tint state has to outlive the viewer the same
@@ -20,6 +24,13 @@ import { loadSideTexture } from './characters';
 
 export const MODULE_IDS = ['shirts', 'pants', 'gloves', 'shoes', 'mask'] as const;
 export type ModuleId = (typeof MODULE_IDS)[number];
+/**
+ * Hair is tintable but is NOT an outfit module: it is head state, driven from
+ * the head cluster's own swatch. Keeping it out of `ModuleId` is what makes
+ * both founder rules hold by construction — an outfit preset cannot reach it,
+ * and the module picker (which renders MODULE_IDS) cannot list it.
+ */
+export type TintId = ModuleId | 'hair';
 /** One module's three zone colours, in R/G/B mask-channel order. */
 export type Zones = readonly [string, string, string];
 
@@ -28,14 +39,20 @@ export type Zones = readonly [string, string, string];
 // `MI_Pants_Cloth` are real material names in those files, carry no mask, and
 // therefore stay untinted. Shirts differ per character (M/F have their own
 // material AND their own mask); the other four share a mask across both.
+// Hair is the odd one out: one material name serves BOTH characters (no per-char
+// variant), and only the mask's R channel carries weight — G and B decode to 0,
+// so zones B and C are dead there and the HUD exposes a single swatch. R peaks at
+// 253, not 255: it is a lerp weight, never a flag to compare against 1.0, which
+// is exactly how the PATCH below already reads it.
 const MASKS = '/g2/v1/masks/';
-const MATERIALS: Record<string, { module: ModuleId; mask: string }> = {
+const MATERIALS: Record<string, { module: TintId; mask: string }> = {
   MI_MShirts: { module: 'shirts', mask: 'MShirts_M@1024.ktx2' },
   MI_Shirts: { module: 'shirts', mask: 'Shirts_M@1024.ktx2' },
   MI_Pants: { module: 'pants', mask: 'Pants_M@1024.ktx2' },
   MI_Gloves: { module: 'gloves', mask: 'Gloves_M@1024.ktx2' },
   MI_Shoes: { module: 'shoes', mask: 'Shoes_M@1024.ktx2' },
   MI_Mask: { module: 'mask', mask: 'Mask_M@1024.ktx2' },
+  MI_Hair: { module: 'hair', mask: 'Hair_M@1024.ktx2' },
 };
 
 // Zone triples, named once and re-used across modules: an outfit preset is one
@@ -98,12 +115,12 @@ PLACEHOLDER.needsUpdate = true;
 
 interface Entry {
   uniforms: TintUniforms;
-  module: ModuleId;
+  module: TintId;
   mask: string;
 }
 
 const wired: Entry[] = [];
-const zones: Record<ModuleId, Zones> = { ...PRESETS.factory };
+const zones: Record<TintId, Zones> = { ...PRESETS.factory, hair: WHITE };
 const masks = new Map<string, Promise<Texture>>();
 // Network-lazy: masks are fetched on the FIRST real tint interaction, never on
 // boot. Once engaged, a character wired later fetches its own masks on arrival.
@@ -196,10 +213,15 @@ export function wireCharacter(root: Object3D): void {
  */
 export function resetTint(): void {
   for (const module of MODULE_IDS) zones[module] = PRESETS.factory[module];
+  zones.hair = WHITE;
   for (const entry of wired) writeZones(entry);
 }
 
-/** Dress every module from a preset. Unknown id falls back to factory. */
+/**
+ * Dress every OUTFIT module from a preset. Unknown id falls back to factory.
+ * Hair is deliberately absent: it is head state with its own swatch, and a
+ * preset that repainted it would fight the head cluster for the same pixels.
+ */
 export function applyPreset(id: string): void {
   const preset = PRESETS[id] ?? PRESETS.factory;
   for (const module of MODULE_IDS) zones[module] = preset[module];
@@ -207,8 +229,8 @@ export function applyPreset(id: string): void {
   for (const entry of wired) writeZones(entry);
 }
 
-/** One zone of one module, from a colour input. Live: no recompile, no reload. */
-export function setZoneColor(module: ModuleId, zone: 0 | 1 | 2, hex: string): void {
+/** One zone of one tintable, from a colour input. Live: no recompile, no reload. */
+export function setZoneColor(module: TintId, zone: 0 | 1 | 2, hex: string): void {
   const next: [string, string, string] = [...zones[module]];
   next[zone] = hex;
   zones[module] = next;

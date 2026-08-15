@@ -23,12 +23,13 @@ import {
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import {
+  adoptScene,
   characterById,
   detectSupport,
   loadCharacter,
-  setHeadSlot,
+  setHeadSlots,
   type CharacterId,
-  type HeadSlot,
+  type HeadFlags,
 } from './characters';
 import { createFloor } from './grid';
 import { createPost } from './post';
@@ -45,7 +46,7 @@ export interface ViewerHandle {
   setMorph(name: string, v: number): void;
   setAutoBlink(on: boolean): void;
   setCharacter(id: CharacterId): Promise<void>;
-  setHead(slot: HeadSlot): void;
+  setHead(flags: HeadFlags): void;
   tint?: {
     applyPreset(id: string): void;
     setZoneColor(module: string, zone: number, hex: string): void;
@@ -95,6 +96,18 @@ export function blinkValue(tSinceStart: number): number {
 /** Maps a `Math.random()` draw onto the spec's 2–6 s idle period between blinks. */
 export function nextBlinkDelay(rand: number): number {
   return 2 + rand * 4;
+}
+
+/**
+ * Run `teardown` once `pending` settles, or right now when nothing is pending.
+ * compileAsync polls renderer properties that `dispose()` wipes, so tearing the
+ * GL down mid-compile throws out of three's own timer — and that promise then
+ * never settles. Both outcomes have to lead to teardown: a rejected compile
+ * still owns a context.
+ */
+export function afterPending(pending: Promise<unknown> | null, teardown: () => void): void {
+  if (pending) void pending.then(teardown, teardown);
+  else teardown();
 }
 
 // Both the sliders and the blink timer write through here — the meshes are
@@ -181,6 +194,8 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
   let active: CharacterId = 'm';
   let speed = DEFAULT_SPEED;
   let disposed = false;
+  // The compile in flight, if any — dispose() has to wait for it.
+  let compiling: Promise<unknown> | null = null;
 
   // Tint state outlives the viewer with the material cache; the HUD does not.
   // A fresh mount boots at factory, so the outfit resets to match it.
@@ -220,7 +235,13 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     }
   };
 
-  const addRuntime = (id: CharacterId, gltf: Awaited<ReturnType<typeof loadCharacter>>) => {
+  // Returns the runtime hidden: the caller reveals it once it has framed the
+  // camera on it. The first frame that sees a new character compiles every
+  // program that character needs and then blocks on the link — ~0.5 s on a cold
+  // context, which is the whole re-entry hang. compileAsync starts the same
+  // compiles and waits on KHR_parallel_shader_compile instead, off the main
+  // thread, so the render loop keeps its frames and the cursor keeps moving.
+  const addRuntime = async (id: CharacterId, gltf: Awaited<ReturnType<typeof loadCharacter>>) => {
     const mixer = new AnimationMixer(gltf.scene);
     mixer.timeScale = speed;
     const actions: CharacterRuntime['actions'] = {};
@@ -229,14 +250,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
         actions[clip.name] = mixer.clipAction(clip);
       }
     }
-    const morphMeshes: Mesh[] = [];
-    gltf.scene.traverse((object) => {
-      const mesh = object as Mesh;
-      if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) morphMeshes.push(mesh);
-    });
-    // Cached scenes keep their last visit's morph influences; the HUD boots at
-    // zero, so the face must too (the head slot resets the same way below).
-    for (const mesh of morphMeshes) mesh.morphTargetInfluences?.fill(0);
+    // Visibility, morphs and head slot all come back from the cache as the last
+    // viewer left them — adoptScene is where that is undone, for every arrival.
+    const morphMeshes = adoptScene(gltf, characterById(id));
     const runtime: CharacterRuntime = {
       root: gltf.scene,
       mixer,
@@ -244,19 +260,26 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       current: 'Idle',
       morphMeshes,
     };
-    setHeadSlot(gltf, characterById(id), 'hair');
     // Idempotent by design: the cached scene brings back materials that may
     // already own their tint uniforms from an earlier visit.
     wireCharacter(gltf.scene);
     runtimes.set(id, runtime);
+    gltf.scene.visible = false;
     scene.add(gltf.scene);
+    const compile = renderer.compileAsync(gltf.scene, camera, scene);
+    compiling = compile;
+    await compile;
+    // Only clear our own: a switch started while this one ran owns the slot now.
+    if (compiling === compile) compiling = null;
     return runtime;
   };
 
   loadCharacter(active, opts.onProgress)
-    .then((gltf) => {
+    .then(async (gltf) => {
       if (disposed) return;
-      const runtime = addRuntime(active, gltf);
+      const runtime = await addRuntime(active, gltf);
+      if (disposed) return;
+      runtime.root.visible = true;
       frame(runtime.root);
       bootClip(runtime);
       opts.onReady();
@@ -346,7 +369,7 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
     async setCharacter(id) {
       if (id === active) return;
       const existing = runtimes.get(id);
-      const runtime = existing ?? addRuntime(id, await loadCharacter(id));
+      const runtime = existing ?? (await addRuntime(id, await loadCharacter(id)));
       if (disposed) return;
       const previous = runtimes.get(active);
       if (previous) {
@@ -360,14 +383,9 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       if (!existing) bootClip(runtime);
       frame(runtime.root);
     },
-    setHead(slot) {
+    setHead(flags) {
       const runtime = runtimes.get(active);
-      if (!runtime) return;
-      const character = characterById(active);
-      for (const [key, nodeName] of Object.entries(character.heads)) {
-        const node = runtime.root.getObjectByName(nodeName);
-        if (node) node.visible = key === slot;
-      }
+      if (runtime) setHeadSlots(runtime.root, characterById(active), flags);
     },
     // Module-scope in tint.ts, like the parsed scenes it patches — the handle
     // is just the HUD's door to it.
@@ -407,12 +425,16 @@ export function createViewer(container: HTMLElement, opts: ViewerOptions): Viewe
       canvas.removeEventListener('pointerup', onPointerUp);
       controls.dispose();
       post.dispose();
-      // Renderer-owned GL resources die with the context; parsed scenes and
-      // their texture data survive in the module cache for free re-entry.
-      renderer.dispose();
-      renderer.forceContextLoss();
       canvas.remove();
       for (const runtime of runtimes.values()) scene.remove(runtime.root);
+      // Renderer-owned GL resources die with the context; parsed scenes and
+      // their texture data survive in the module cache for free re-entry. The
+      // context outlives an unmount only for as long as a compile is still in
+      // flight — see afterPending; everything above has already stopped.
+      afterPending(compiling, () => {
+        renderer.dispose();
+        renderer.forceContextLoss();
+      });
     },
   };
 }

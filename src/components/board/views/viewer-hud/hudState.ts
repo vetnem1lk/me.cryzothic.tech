@@ -1,8 +1,8 @@
 // The HUD's single state atom. Kept pure and React-free so the whole control
 // surface is testable without a GL context: ThreeDViewer owns the reducer and
 // mirrors each change onto ViewerHandle, the clusters only dispatch.
-import type { CharacterId, HeadSlot } from '../../../../three/characters';
-import type { ClipName, ToneMode } from '../../../../three/createViewer';
+import type { CharacterId, HeadFlags, HeadSlot } from '../../../../three/characters';
+import type { ClipName, ToneMode, ViewerHandle } from '../../../../three/createViewer';
 import { PRESETS, type ModuleId, type Zones } from '../../../../three/tint';
 
 /** Blink is driven by the auto-blink timer, so it is not a slider. */
@@ -16,7 +16,10 @@ export interface HudState {
   character: CharacterId;
   /** Non-null only while the other character's GLB streams. */
   charProgress: number | null;
-  head: HeadSlot;
+  /** Two independent flags — a mask over hair is a look, both off is bald. */
+  head: HeadFlags;
+  /** Hair tint, zone A only: the hair mask's G/B channels decode to zero. */
+  hairColor: string;
   tone: ToneMode;
   exposure: number;
   bloom: boolean;
@@ -29,9 +32,10 @@ export interface HudState {
   sheetOpen: boolean;
 }
 
-// Mirrors the viewer's own boot state (M in Idle at timeScale 0.7, hair head,
-// Neutral tone mapping): the HUD must read as the truth on first paint, before
-// a single control has been touched.
+// Mirrors the viewer's own boot state (M in Idle at timeScale 0.7, hair on and
+// mask off — the same pair adoptScene forces — untinted hair, Neutral tone
+// mapping): the HUD must read as the truth on first paint, before a single
+// control has been touched.
 export const HUD_DEFAULTS: HudState = {
   clip: 'Idle',
   speed: 0.7,
@@ -39,7 +43,8 @@ export const HUD_DEFAULTS: HudState = {
   autoBlink: true,
   character: 'm',
   charProgress: null,
-  head: 'hair',
+  head: { hair: true, mask: false },
+  hairColor: '#ffffff',
   tone: 'neutral',
   exposure: 1,
   bloom: true,
@@ -52,6 +57,27 @@ export const HUD_DEFAULTS: HudState = {
   sheetOpen: false,
 };
 
+/**
+ * One panel drives both characters, so an arrival has to inherit it: a runtime
+ * that just came up stands in Idle with a blank face and the hair head, and the
+ * HUD would be describing the character that left. Only the per-character state
+ * belongs here — speed is pushed to every mixer by setClipSpeed, auto-blink is
+ * one viewer-wide flag, and tone/exposure/bloom/auto-rotate live on the renderer.
+ */
+export function applyHudToViewer(viewer: ViewerHandle, hud: HudState): void {
+  // Nothing of this rig was on screen a frame ago, so there is nothing to blend
+  // from. Idle-on-Idle is a no-op inside the viewer, which is what keeps the
+  // reduced-motion freeze frozen: that pose is only left when the user asks.
+  viewer.setClip(hud.clip, 0);
+  for (const [name, value] of Object.entries(hud.morphs)) viewer.setMorph(name, value);
+  viewer.setHead(hud.head);
+  // Hair zones are module-scope in tint.ts, so the arriving MI_Hair is already
+  // dressed by wireCharacter — this re-write is the cheap way to keep that a
+  // property of the panel rather than a property of where the state happens to
+  // live today. Zone A only: the hair mask's other two channels are zero.
+  viewer.tint?.setZoneColor('hair', 0, hud.hairColor);
+}
+
 export type HudAction =
   | { type: 'setClip'; value: ClipName }
   | { type: 'setSpeed'; value: number }
@@ -59,7 +85,8 @@ export type HudAction =
   | { type: 'setAutoBlink'; value: boolean }
   | { type: 'setCharacter'; value: CharacterId }
   | { type: 'setCharProgress'; value: number | null }
-  | { type: 'setHead'; value: HeadSlot }
+  | { type: 'setHead'; slot: HeadSlot; value: boolean }
+  | { type: 'setHairColor'; value: string }
   | { type: 'setTone'; value: ToneMode }
   | { type: 'setExposure'; value: number }
   | { type: 'setBloom'; value: boolean }
@@ -84,7 +111,9 @@ export function hudReducer(state: HudState, action: HudAction): HudState {
     case 'setCharProgress':
       return { ...state, charProgress: action.value };
     case 'setHead':
-      return { ...state, head: action.value };
+      return { ...state, head: { ...state.head, [action.slot]: action.value } };
+    case 'setHairColor':
+      return { ...state, hairColor: action.value };
     case 'setTone':
       return { ...state, tone: action.value };
     case 'setExposure':

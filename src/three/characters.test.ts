@@ -1,12 +1,16 @@
 // The registry doubles as the progress denominator and the head-swap map, so a
 // silent edit here breaks loading UX and the visibility toggle at once — pin it.
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AnimationClip, Group, Mesh, NumberKeyframeTrack, Object3D } from 'three';
 import {
   CHARACTERS,
+  adoptScene,
   characterById,
   loadCharacter,
   onCharacterProgress,
   progressPct,
+  setHeadSlots,
+  trimLoopSeam,
 } from './characters';
 
 describe('character registry', () => {
@@ -47,6 +51,99 @@ describe('progressPct', () => {
 
   it('floors instead of rounding so 100 means actually done', () => {
     expect(progressPct(999, 1000)).toBe(99);
+  });
+});
+
+// A scene shaped like what the loader hands back: one morph-carrying mesh and
+// the two head nodes the registry names for M.
+function fakeGltf() {
+  const scene = new Group();
+  const face = new Mesh();
+  face.morphTargetDictionary = { Smile: 0, Blink: 1 };
+  face.morphTargetInfluences = [0.6, 1];
+  const hair = new Object3D();
+  hair.name = 'MHair';
+  const mask = new Object3D();
+  mask.name = 'MMask';
+  scene.add(face, hair, mask);
+  return { gltf: { scene } as unknown as Parameters<typeof adoptScene>[0], face, hair, mask };
+}
+
+// The scenes are module-cached: what a viewer leaves on one is what the next
+// viewer gets. A scene hidden by a character switch and never re-shown is an
+// empty stage on the way back into /3d.
+describe('adoptScene', () => {
+  it('un-hides the scene, blanks the face and returns the morph meshes', () => {
+    const { gltf, face } = fakeGltf();
+    gltf.scene.visible = false;
+
+    expect(adoptScene(gltf, characterById('m'))).toEqual([face]);
+    expect(gltf.scene.visible).toBe(true);
+    expect([...face.morphTargetInfluences!]).toEqual([0, 0]);
+  });
+
+  it('brings every arrival back on hair-on/mask-off, whatever it was left as', () => {
+    const { gltf, hair, mask } = fakeGltf();
+    hair.visible = false;
+    mask.visible = true;
+
+    adoptScene(gltf, characterById('m'));
+    expect(hair.visible).toBe(true);
+    expect(mask.visible).toBe(false);
+  });
+});
+
+// Two flags, not a two-way switch: a mask over hair is the look the rig was
+// authored for, and both off is a bald head the panel is allowed to ask for.
+describe('setHeadSlots', () => {
+  it('applies each flag independently, bald included', () => {
+    const { gltf, hair, mask } = fakeGltf();
+    const m = characterById('m');
+
+    setHeadSlots(gltf.scene, m, { hair: true, mask: true });
+    expect([hair.visible, mask.visible]).toEqual([true, true]);
+
+    setHeadSlots(gltf.scene, m, { hair: false, mask: false });
+    expect([hair.visible, mask.visible]).toEqual([false, false]);
+
+    setHeadSlots(gltf.scene, m, { hair: false, mask: true });
+    expect([hair.visible, mask.visible]).toEqual([false, true]);
+  });
+});
+
+// Shaped like the shipped clips: keys start at frame 1, the key that closes the
+// cycle repeats frame 0's value, and one more key repeats it again as padding.
+const seamClip = (frames: number[], name = 'Walk') =>
+  new AnimationClip(name, -1, [
+    new NumberKeyframeTrack(
+      '.x',
+      frames.map((_, i) => (i + 1) / 30),
+      frames,
+    ),
+  ]);
+
+describe('trimLoopSeam', () => {
+  it('drops the repeated tail key and lands the duration on the real cycle', () => {
+    // 5 keys, 4 of them the cycle (0,1,2 then back to 0) plus one padding repeat.
+    const clip = trimLoopSeam(seamClip([0, 1, 2, 0, 0]));
+    expect(clip.tracks[0].times.length).toBe(4);
+    expect(clip.tracks[0].times[0]).toBe(0);
+    expect(clip.duration).toBeCloseTo(3 / 30, 6);
+    // The pose at the wrap is frame 0's again — that is what makes it seamless.
+    expect([...clip.tracks[0].values]).toEqual([0, 1, 2, 0]);
+  });
+
+  it('is idempotent, so a re-parsed or re-used clip is not trimmed twice', () => {
+    const once = trimLoopSeam(seamClip([0, 1, 2, 0, 0]));
+    const twice = trimLoopSeam(once);
+    expect(twice.duration).toBeCloseTo(3 / 30, 6);
+    expect([...twice.tracks[0].values]).toEqual([0, 1, 2, 0]);
+  });
+
+  it('leaves a clip with no padding alone apart from the frame-1 offset', () => {
+    const clip = trimLoopSeam(seamClip([0, 1, 2, 0]));
+    expect(clip.tracks[0].times.length).toBe(4);
+    expect(clip.duration).toBeCloseTo(3 / 30, 6);
   });
 });
 
