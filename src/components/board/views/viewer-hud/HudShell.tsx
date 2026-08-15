@@ -48,7 +48,7 @@ export default function HudShell({
         {/* z-20, not z-10: the cluster headings stick too, and a heading being
             pushed out by its own section has to slide UNDER this row, not over
             it — same layer plus later DOM order would put it on top. */}
-        <div className="sticky top-0 z-20 -mx-2 mb-1.5 flex items-center justify-between border-b border-dashed border-neutral-800 bg-neutral-950/95 px-2 pb-1.5 md:hidden">
+        <div className="sticky top-0 z-20 -mx-2 mb-1.5 flex items-center justify-between border-b border-dashed border-neutral-800 bg-neutral-950 px-2 pb-1.5 md:hidden">
           <span className="tracking-widest text-neutral-500 uppercase">{t('threed.hud')}</span>
           <button type="button" onClick={onToggle} className={TOGGLE}>
             {t('threed.close')}
