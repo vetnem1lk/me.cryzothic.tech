@@ -18,18 +18,19 @@ export type ChapterId =
   | 'FILE-06'
   | 'FILE-07';
 
-export type Quest = 'knock' | 'guess' | 'cv' | 'declassify' | 'sprint' | 'dialog' | 'laser';
+export type Quest = 'viewers' | 'guess' | 'cv' | 'declassify' | 'sprint' | 'dialog' | 'laser';
 
 // Which quest guards which chapter — content, not architecture: every quest is the
-// joke its own photo already tells. Knock and the cats come out; beside a medal
-// stamped "2" any number is the right number; the diploma is the thank-you for
-// taking the CV; the conference hall is the file VAI can be talked into opening;
-// the mass start is caught by pedalling, the badge is talked past, and the rocket
-// is lit by a beam bounced into it. Insertion order is the display order.
+// joke its own photo already tells. The cats open for whoever has looked in on
+// both units in the engine bay; beside a medal stamped "2" any number is the
+// right number; the diploma is the thank-you for taking the CV; the conference
+// hall is the file VAI can be talked into opening; the mass start is caught by
+// pedalling, the badge is talked past, and the rocket is lit by a beam bounced
+// into it. Insertion order is the display order.
 export const QUESTS: Record<ChapterId, Quest> = {
   'FILE-01': 'cv',
   'FILE-02': 'declassify',
-  'FILE-03': 'knock',
+  'FILE-03': 'viewers',
   'FILE-04': 'sprint',
   'FILE-05': 'dialog',
   'FILE-06': 'guess',
@@ -70,8 +71,7 @@ export const DIMS: Record<ChapterId, [number, number]> = {
 // Derived, never written twice: the table above is the only place the mapping lives.
 export const DECLASSIFY_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'declassify') as ChapterId;
 const CV_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'cv') as ChapterId;
-
-const KNOCKS_TO_OPEN = 5;
+const VIEWERS_CHAPTER = CHAPTERS.find((c) => QUESTS[c] === 'viewers') as ChapterId;
 
 /**
  * The badges. Two are the covers themselves — the first one off and the whole set —
@@ -80,7 +80,8 @@ const KNOCKS_TO_OPEN = 5;
 export type Achievement = 'first-file' | 'all-seven' | 'konami' | 'first-contact' | 'blueprints';
 
 const unlocked = new Set<ChapterId>();
-const knocks = new Map<ChapterId, number>();
+/** Which of the two engine-bay pads have actually been seen lit. */
+const viewed = new Set<'m' | 'f'>();
 const sprints = new Map<ChapterId, SprintState>();
 /** Presence is the whole state: a chapter in here has been answered, once. */
 const dialogs = new Map<ChapterId, number>();
@@ -126,15 +127,16 @@ function unlock(id: ChapterId): boolean {
 /** A quest may only touch the chapter it guards: no tile opens by the wrong door. */
 const owns = (id: ChapterId, quest: Quest) => QUESTS[id] === quest;
 
-export function knock(id: ChapterId): boolean {
-  if (!owns(id, 'knock') || unlocked.has(id)) return false;
-  const n = (knocks.get(id) ?? 0) + 1;
-  knocks.set(id, n);
-  if (n < KNOCKS_TO_OPEN) {
-    bump(); // the tile shows the count, so a knock that opens nothing still changed something
-    return false;
-  }
-  return unlock(id);
+/**
+ * The engine bay reporting who actually stood on the pad: boot marks the first
+ * character, a completed switch marks the second, and seeing both lifts FILE-03.
+ * The same pad twice is still one pad, and nothing on the board shows a
+ * half-done pair — so only the unlock itself bumps. The idle prefetch never
+ * calls this: downloading F is not seeing F.
+ */
+export function viewCharacter(id: 'm' | 'f'): boolean {
+  viewed.add(id);
+  return viewed.size === 2 ? unlock(VIEWERS_CHAPTER) : false;
 }
 
 /** Any number is correct, so the number never gets this far — the reward line is the joke. */
@@ -225,8 +227,6 @@ export const syncCvQuest = (): ChapterId | null =>
 
 export const isUnlocked = (id: ChapterId): boolean => unlocked.has(id);
 
-export const knockCount = (id: ChapterId): number => knocks.get(id) ?? 0;
-
 export function takeLoreChapter(): ChapterId | null {
   const id = fresh.shift();
   if (id) bump();
@@ -262,7 +262,7 @@ export const getVersion = (): number => version;
 /** Test-only: one module instance serves a whole test file, and it remembers. */
 export function resetStory(): void {
   unlocked.clear();
-  knocks.clear();
+  viewed.clear();
   sprints.clear();
   dialogs.clear();
   mirrors.clear();
