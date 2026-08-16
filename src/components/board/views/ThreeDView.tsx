@@ -50,7 +50,10 @@ export default function ThreeDView() {
         <h2 className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
           {t('threed.mode')}
         </h2>
-        <p className="mx-auto max-w-prose font-mono text-[11px] leading-snug text-neutral-500">
+        {/* No measure cap: max-w-prose resolved to 429px at this size and wrapped the
+            RU credit to two lines at every desktop width. Uncapped it takes one line
+            wherever the stage is wide enough and wraps naturally where it is not. */}
+        <p className="font-mono text-[11px] leading-snug text-neutral-500">
           {t('threed.credit')}
         </p>
       </div>
