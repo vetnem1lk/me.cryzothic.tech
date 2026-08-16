@@ -638,7 +638,7 @@ export default function Nda() {
       case 'viewers':
         // Nothing to press on the cover itself: the answer is a walk to the engine
         // bay, and the link is the door. The question is the whole delivery — no
-        // counter, no denominator, no progress mark (founder call, T8+ triage).
+        // counter, no denominator, no progress mark — deliberate.
         return (
           <div className={`${COVER} justify-center-safe`}>
             {stamp(code, labels.classified, id)}

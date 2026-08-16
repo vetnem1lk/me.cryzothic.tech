@@ -109,7 +109,7 @@ export function trimLoopSeam(clip: AnimationClip): AnimationClip {
     const size = track.getValueSize();
     // A repeated tail key is value-neutral: the track already holds that value
     // to its end, so dropping it only pulls clip.duration off the padding.
-    // Measured (T8+ C6): a run-stripping `while` changes no clip's duration —
+    // Measured on both shipped GLBs: a run-stripping `while` changes no clip's duration —
     // every clip keeps at least one track whose last key is real — so the
     // single-tail `if` stays and the deeper repeats stay untouched.
     if (n > 1 && sameKey(track.values, n - 1, n - 2, size)) {
