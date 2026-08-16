@@ -118,15 +118,6 @@ body.custom-cursor canvas.viewer-canvas:active {
   display: none;
 }
 
-/* The /contact HP gauge's fill. Segmented like a game meter rather than solid,
-   and the gradient draws the notches itself so the bar stays one element. The
-   accent sits at the same 70% the solid fill carried. */
-.gauge-fill {
-  background: repeating-linear-gradient(90deg,
-    color-mix(in srgb, var(--color-accent) 70%, transparent) 0 10px,
-    transparent 10px 14px);
-}
-
 /* Modal <dialog> — the three rules showModal() does not bring with it.
    A dialog in the top layer leaves the document behind it scrollable, so the page
    is locked while one is open; the gutter is reserved site-wide because otherwise

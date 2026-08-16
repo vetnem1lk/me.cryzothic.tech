@@ -43,14 +43,10 @@ export default function Contact() {
       </Masthead>
       <div>
         <p className="font-mono text-xs tracking-widest text-accent uppercase">{t('contact.boss')}</p>
-        {/* The bar is decor. A dashed accent frame is what the three real links wear,
-            so it borrowed their affordance — grey stops it looking clickable. The fill
-            is segmented (`.gauge-fill`) and square-edged, because a smooth rounded bar
-            reads as a loading percentage rather than a game meter. */}
-        <div aria-hidden className="mt-1 h-2 w-full border border-dashed border-neutral-700">
-          <div className="gauge-fill h-full w-full" />
-        </div>
-        <p className="mt-1 font-mono text-xs text-neutral-400">{t('contact.hp')}</p>
+        {/* The status row the HP bar used to occupy: the practical facts a recruiter
+            scans for — timezone, languages, reply promise — in the same terminal
+            grammar the Rail speaks. */}
+        <p className="mt-1 font-mono text-xs text-neutral-400">{t('contact.status')}</p>
       </div>
       {/* Three across from @2xl — 672 px of this section's own inline size, not the
           viewport's: the section is a scrolled column inside the shell, so the old
