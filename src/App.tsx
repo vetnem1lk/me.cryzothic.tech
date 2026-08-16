@@ -27,6 +27,11 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.lang = lang;
+    // The canonical must move with the language, or the RU board a Russian visitor
+    // was redirected onto keeps advertising the EN URL to anything that reads the
+    // rendered DOM. Origin comes off the tag itself, so no host is hardcoded here.
+    const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonical) canonical.href = new URL(lang === 'ru' ? '/ru/' : '/', canonical.href).href;
   }, [lang]);
 
   // Autodetect runs on the bare root only, once per load. A deep link is already a
@@ -36,7 +41,7 @@ export default function App() {
   // survive the redirect, or the Russian visitor is the one who loses it.
   useEffect(() => {
     if (window.location.pathname === '/' && pickInitialLocale(navigator.language) === 'ru')
-      navigate('/ru' + window.location.search + window.location.hash, { replace: true });
+      navigate('/ru/' + window.location.search + window.location.hash, { replace: true });
   }, []);
 
   return (
