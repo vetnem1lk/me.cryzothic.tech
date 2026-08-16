@@ -61,7 +61,7 @@ export default function ThreeDView() {
         {/* Pre-rendered still of the real scene. The live canvas mounts on top
             and simply covers it — poster-under-boot needs no state at all. */}
         <img
-          src="/posters/3d-m-idle-v1.avif"
+          src="/posters/3d-m-idle-v2.avif"
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
