@@ -16,9 +16,6 @@ export default function Loot() {
         <h2 className="font-mono text-base tracking-widest text-accent uppercase">
           {t('loot.title')}
         </h2>
-        {/* One line for the whole table: the same sentence printed on four cards was
-            four times the noise and no extra information. */}
-        <p className="mt-1 font-mono text-xs text-neutral-400">{t('loot.note')}</p>
       </Masthead>
       {/* Two columns from @md — 448 px of this section's own inline size, not the
           viewport's. The stage is a scrolled column inside the shell (~870 px at a 1280

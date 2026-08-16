@@ -118,7 +118,7 @@
       },
       "nda": {
         "title": "NDA: New position",
-        "intro": "Seven files, seven covers, and not one of them lifts the way its neighbor does. What a cover wants is written on the cover and nowhere else. The two project dossiers this sector started as are folded into the archive at the bottom.",
+        "intro": "Seven sealed stories — the feats, passions, and ambitions of one developer. Opening them takes some wit, though I promise nothing beyond reason: every seal hints at what it wants. Two dossiers wait in the archive below.",
         "labels": {
           "classified": "classified",
           "declassified": "declassified",
@@ -223,7 +223,6 @@
     },
     "loot": {
       "title": "Loot Table (Resume)",
-      "note": "PDF ⇩ — one click, no quest required",
       "tier": {
         "epic": "epic drop",
         "common": "common, parser-safe"
@@ -238,7 +237,7 @@
     "contact": {
       "title": "Boss Fight (Direct Contact)",
       "boss": "Boss: Vlad — accepts offers",
-      "hp": "HP ∞ — direct contact is the only move that lands",
+      "status": "UTC+7 · Barnaul · RU/EN · reply within 24h",
       "emailLabel": "Email",
       "githubSub": "vetnem1lk — this site is open source",
       "telegramSub": "@cryzoth",
@@ -465,7 +464,7 @@
       },
       "nda": {
         "title": "NDA: Новая позиция",
-        "intro": "Семь файлов, семь обложек — и ни одна не снимается так же, как соседняя. Чего хочет обложка, написано на ней самой и больше нигде. Два проектных досье, с которых начинался этот сектор, свёрнуты в архив внизу.",
+        "intro": "Семь закрытых историй — о подвигах, увлечениях и стремлениях одного разработчика. Чтобы открыть их, понадобится смекалка; обещаю — сверх меры проявлять не придётся: каждая печать сама подсказывает, чего хочет. Два досье — в архиве внизу.",
         "labels": {
           "classified": "засекречено",
           "declassified": "рассекречено",
@@ -570,7 +569,6 @@
     },
     "loot": {
       "title": "Таблица лута (резюме)",
-      "note": "PDF ⇩ — один клик, квест не нужен",
       "tier": {
         "epic": "эпический дроп",
         "common": "обычный, читается парсером"
@@ -585,7 +583,7 @@
     "contact": {
       "title": "Бой с боссом (прямой контакт)",
       "boss": "Босс: Влад — принимает офферы",
-      "hp": "HP ∞ — проходит только прямой контакт",
+      "status": "UTC+7 · Барнаул · RU/EN · ответ в течение суток",
       "emailLabel": "Почта",
       "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
       "telegramSub": "@cryzoth",
