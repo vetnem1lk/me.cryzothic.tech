@@ -105,16 +105,16 @@ const sameKey = (v: ArrayLike<number>, a: number, b: number, size: number): bool
 export function trimLoopSeam(clip: AnimationClip): AnimationClip {
   let start = Infinity;
   for (const track of clip.tracks) {
-    let n = track.times.length;
+    const n = track.times.length;
     const size = track.getValueSize();
     // A repeated tail key is value-neutral: the track already holds that value
-    // to its end, so dropping it only pulls clip.duration off the padding. A
-    // while, not an if — some tracks carry the repeat more than once, and one
-    // padded track left behind pins clip.duration for the whole clip.
-    while (n > 1 && sameKey(track.values, n - 1, n - 2, size)) n -= 1;
-    if (n < track.times.length) {
-      track.times = track.times.slice(0, n);
-      track.values = track.values.slice(0, n * size);
+    // to its end, so dropping it only pulls clip.duration off the padding.
+    // Measured (T8+ C6): a run-stripping `while` changes no clip's duration —
+    // every clip keeps at least one track whose last key is real — so the
+    // single-tail `if` stays and the deeper repeats stay untouched.
+    if (n > 1 && sameKey(track.values, n - 1, n - 2, size)) {
+      track.times = track.times.slice(0, n - 1);
+      track.values = track.values.slice(0, (n - 1) * size);
     }
     start = Math.min(start, track.times[0]);
   }
