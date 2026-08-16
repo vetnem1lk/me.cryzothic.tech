@@ -363,26 +363,30 @@ function CodeLock({
           the value, with the arrow keys on it; here the two arrows are the controls,
           and claiming the role without its keyboard contract is a promise the cover
           would not keep. Each button is named by its direction and which wheel it drives —
-          "raise digit 2" — never by the digit standing there: a name built from the value
+          "raise wheel 2" — never by the digit standing there: a name built from the value
           renames the control under the finger, and leaves all three wheels announcing the
-          same thing whenever their digits happen to match. */}
+          same thing whenever their digits happen to match. The digit rides along as the
+          buttons' description instead: read on demand, after the stable name, without
+          renaming anything. */}
       <div role="group" aria-labelledby={`${id}-prompt`} className="flex items-center gap-2">
         {wheels.map((d, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
             <button
               type="button"
               aria-label={`${labels.wheelUp} ${i + 1}`}
+              aria-describedby={`${id}-wheel-${i}`}
               onClick={() => spin(i, 1)}
               className={`cursor-target ${QUEST_BTN}`}
             >
               ▲
             </button>
-            <span data-wheel={i} className="font-mono text-xl text-neutral-100">
+            <span id={`${id}-wheel-${i}`} data-wheel={i} className="font-mono text-xl text-neutral-100">
               {d}
             </span>
             <button
               type="button"
               aria-label={`${labels.wheelDown} ${i + 1}`}
+              aria-describedby={`${id}-wheel-${i}`}
               onClick={() => spin(i, -1)}
               className={`cursor-target ${QUEST_BTN}`}
             >
