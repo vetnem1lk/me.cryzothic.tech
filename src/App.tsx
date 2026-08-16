@@ -48,7 +48,7 @@ export default function App() {
     <>
       <TargetCursor />
       <FastPath lang={lang} />
-      <main className="flex min-h-dvh flex-col bg-neutral-950 pt-12 text-neutral-100">
+      <main className="flex min-h-dvh flex-col bg-neutral-950 pt-12 text-neutral-100 md:pt-9">
         <Suspense fallback={<BoardFallback lang={lang} />}>
           <Board />
         </Suspense>

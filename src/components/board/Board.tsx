@@ -116,7 +116,7 @@ export default function Board() {
       <Router base={lang === 'ru' ? '/ru' : ''}>
         <div
           ref={scope}
-          className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh_-_3rem)] md:min-h-[520px] md:flex-none"
+          className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-3 pb-3 md:h-[calc(100dvh_-_2.25rem)] md:min-h-[520px] md:flex-none"
         >
           <div className="relative flex min-h-0 flex-1 flex-col border border-dashed border-accent/40">
             <Corners />

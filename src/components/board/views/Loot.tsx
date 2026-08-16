@@ -41,10 +41,12 @@ export default function Loot() {
               // The rarity is structural before it is chromatic: a solid 2 px left edge
               // against the dashed frame, so the epic pair reads as a rank even where
               // the accent colour does not survive (greyscale print, forced colours).
+              // The frame answers the pointer, the rank does not: hover's border-accent
+              // is a shorthand over all four sides, so the common edge pins its grey.
               className={`cursor-target rounded-md border border-dashed p-4 hover:border-accent ${
                 epic
                   ? 'border-accent/60 border-l-2 [border-left-style:solid] border-l-accent'
-                  : 'border-accent/50 border-l-2 [border-left-style:solid] border-l-neutral-700'
+                  : 'border-accent/50 border-l-2 [border-left-style:solid] border-l-neutral-700 hover:border-l-neutral-700'
               }`}
             >
               <span
