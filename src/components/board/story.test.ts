@@ -9,7 +9,7 @@ const { CHAPTERS, DECLASSIFY_CHAPTER, QUESTS } = story;
 
 /** The chapter a given quest guards — the tests name quests, never file numbers. */
 const guarding = (q: story.Quest) => CHAPTERS.find((c) => QUESTS[c] === q) as story.ChapterId;
-const KNOCK = guarding('knock');
+const VIEWERS = guarding('viewers');
 const GUESS = guarding('guess');
 const SPRINT = guarding('sprint');
 const DIALOG = guarding('dialog');
@@ -29,7 +29,7 @@ describe('the quest table', () => {
     const count = (q: story.Quest) => CHAPTERS.filter((c) => QUESTS[c] === q).length;
     expect(CHAPTERS).toHaveLength(7);
     const quests: story.Quest[] = //
-      ['knock', 'guess', 'cv', 'declassify', 'sprint', 'dialog', 'laser'];
+      ['viewers', 'guess', 'cv', 'declassify', 'sprint', 'dialog', 'laser'];
     expect(quests.map(count)).toEqual([1, 1, 1, 1, 1, 1, 1]);
     // The three newcomers sit on the photos that tell their joke: the mass start,
     // the conference badge, the rocket.
@@ -41,25 +41,30 @@ describe('the quest table', () => {
   });
 });
 
-describe('knock', () => {
-  test('unlocks on the 5th knock, once', () => {
-    expect(story.knock(KNOCK)).toBe(false);
-    expect(story.knockCount(KNOCK)).toBe(1);
-    expect(story.knock(KNOCK)).toBe(false);
-    expect(story.knock(KNOCK)).toBe(false);
-    expect(story.knock(KNOCK)).toBe(false);
-    expect(story.knock(KNOCK)).toBe(true);
-    expect(story.isUnlocked(KNOCK)).toBe(true);
-    expect(story.knock(KNOCK)).toBe(false); // no re-unlock
-    expect(story.knockCount(KNOCK)).toBe(5);
+describe('viewers', () => {
+  test('unlocks once both characters have been seen, once', () => {
+    expect(story.viewCharacter('m')).toBe(false);
+    expect(story.isUnlocked(VIEWERS)).toBe(false);
+    expect(story.viewCharacter('m')).toBe(false); // the same pad twice is one pad
+    expect(story.viewCharacter('f')).toBe(true);
+    expect(story.isUnlocked(VIEWERS)).toBe(true);
+    expect(story.viewCharacter('f')).toBe(false); // no re-unlock
+  });
+
+  // A half-done pair is invisible on the board — the cover shows no counter —
+  // so the first sighting must not wake a single subscriber.
+  test('one character seen is not a change anyone is told about', () => {
+    const cb = vi.fn();
+    const unsubscribe = story.subscribe(cb);
+    story.viewCharacter('m');
+    expect(cb).not.toHaveBeenCalled();
+    unsubscribe();
   });
 
   test('leaves every chapter another quest guards alone', () => {
-    for (const id of others(KNOCK)) {
-      expect(story.knock(id) || story.knock(id) || story.knock(id)).toBe(false);
-      expect(story.isUnlocked(id)).toBe(false);
-      expect(story.knockCount(id)).toBe(0);
-    }
+    story.viewCharacter('m');
+    story.viewCharacter('f');
+    for (const id of others(VIEWERS)) expect(story.isUnlocked(id)).toBe(false);
   });
 });
 
@@ -223,13 +228,10 @@ describe('declassify', () => {
 
 describe('the lore queue', () => {
   test('yields freshly unlocked chapters FIFO, each exactly once', () => {
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
+    story.viewCharacter('m');
+    story.viewCharacter('f');
     story.guess(GUESS);
-    expect(story.takeLoreChapter()).toBe(KNOCK);
+    expect(story.takeLoreChapter()).toBe(VIEWERS);
     expect(story.takeLoreChapter()).toBe(GUESS);
     expect(story.takeLoreChapter()).toBeNull();
   });
@@ -242,7 +244,8 @@ describe('the lore queue', () => {
 describe('the achievement ledger', () => {
   /** Six of the seven doors, each answering only to its own quest. Laser is left shut. */
   const openSix = () => {
-    for (let i = 0; i < 5; i++) story.knock(KNOCK);
+    story.viewCharacter('m');
+    story.viewCharacter('f');
     story.guess(GUESS);
     markCvDownloaded();
     story.syncCvQuest();
@@ -260,8 +263,9 @@ describe('the achievement ledger', () => {
 
   test('the first cover off earns a badge, once', () => {
     expect(story.earnedCount()).toBe(0);
-    for (let i = 0; i < 5; i++) story.knock(KNOCK);
-    expect(story.isUnlocked(KNOCK)).toBe(true);
+    story.viewCharacter('m');
+    story.viewCharacter('f');
+    expect(story.isUnlocked(VIEWERS)).toBe(true);
     expect(story.earnedCount()).toBe(1);
     expect(story.takeAchievement()).toBe('first-file');
     expect(story.takeAchievement()).toBeNull();
@@ -346,7 +350,7 @@ describe('the store contract', () => {
     const cb = vi.fn();
     const unsubscribe = story.subscribe(cb);
     const v0 = story.getVersion();
-    story.knock(KNOCK); // a counter tick is a change: the tile shows the count
+    story.rotateMirror(LASER, 0); // a turn is a change: the panel shows the mirror
     expect(cb).toHaveBeenCalledTimes(1);
     story.guess(GUESS);
     expect(cb).toHaveBeenCalledTimes(2);
@@ -355,7 +359,7 @@ describe('the store contract', () => {
     expect(cb).toHaveBeenCalledTimes(2);
     expect(story.getVersion()).toBe(v0 + 2);
     unsubscribe();
-    story.knock(KNOCK);
+    story.rotateMirror(LASER, 0);
     expect(cb).toHaveBeenCalledTimes(2);
   });
 
@@ -366,7 +370,7 @@ describe('the store contract', () => {
     const unsubscribe = story.subscribe(() => seen.push(story.getVersion()));
     const v0 = story.getVersion();
     story.guess(GUESS);
-    story.knock(KNOCK);
+    story.rotateMirror(LASER, 0);
     unsubscribe();
     expect(seen).toEqual([v0 + 1, v0 + 2]);
   });
@@ -374,24 +378,23 @@ describe('the store contract', () => {
   test('resetStory restores a pristine session without deafening the store', () => {
     const cb = vi.fn();
     const unsubscribe = story.subscribe(cb);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
+    story.viewCharacter('m');
     story.sprintPush(SPRINT, 0);
     story.dialogChoose(DIALOG, 1);
     story.rotateMirror(LASER, 0);
     const before = story.getVersion();
     story.resetStory();
     expect(CHAPTERS.some(story.isUnlocked)).toBe(false);
-    expect(story.knockCount(KNOCK)).toBe(0);
     // Every quest's own half-finished progress goes with it, or a reload that is not
     // a reload hands the next visitor a sprint already up to speed and the mirrors
-    // left where the last one turned them.
+    // left where the last one turned them. The seen pad goes too: one more character
+    // after the reset is the first of a pair again, not the second.
+    expect(story.viewCharacter('f')).toBe(false);
     expect(story.sprintSpeed(SPRINT, 0)).toBe(0);
     expect(story.dialogState(DIALOG)).toEqual({ phase: 'ask', choice: null });
     expect(story.mirrorDirs(LASER)).toEqual([0, 0]);
     expect(story.takeLoreChapter()).toBeNull();
-    expect(cb).toHaveBeenCalledTimes(7); // three knocks, a push, a word, a turn, and the reset
+    expect(cb).toHaveBeenCalledTimes(4); // a push, a word, a turn, and the reset
     expect(story.getVersion()).toBeGreaterThan(before); // no subscriber left on a stale snapshot
     unsubscribe();
   });
@@ -426,11 +429,8 @@ describe('stepping across the open chapters', () => {
 
   test('a covered neighbour is stepped over, not landed on', () => {
     // Two quests with at least one chapter standing between them, left covered.
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
-    story.knock(KNOCK);
+    story.viewCharacter('m');
+    story.viewCharacter('f');
     story.guess(GUESS);
     const open = CHAPTERS.filter(story.isUnlocked);
     expect(open).toHaveLength(2);
@@ -440,5 +440,5 @@ describe('stepping across the open chapters', () => {
   });
 
   test('a chapter that is not in the list stays put', () =>
-    expect(step([SPRINT, KNOCK], GUESS, 1)).toBe(GUESS));
+    expect(step([SPRINT, VIEWERS], GUESS, 1)).toBe(GUESS));
 });
