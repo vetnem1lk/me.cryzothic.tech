@@ -14,10 +14,12 @@ export const langFromPath = (path: string): Lang => {
 export const pickInitialLocale = (navLang: string | undefined): Lang =>
   navLang?.toLowerCase().startsWith('ru') ? 'ru' : 'en';
 
-// '/career' <-> '/ru/career'; roots map to roots.
+// '/career' <-> '/ru/career'; roots map to roots. The RU root is '/ru/' with the
+// slash, because that is the form canonical and hreflang name — one URL per page,
+// not two that happen to both resolve.
 export const mirrorPath = (path: string): string => {
   if (langFromPath(path) === 'ru') return path.slice(3) || '/';
-  return path === '/' ? '/ru' : `/ru${path}`;
+  return path === '/' ? '/ru/' : `/ru${path}`;
 };
 
 // What the greeting chip links to: the mirrored location, whole. `~` escapes the

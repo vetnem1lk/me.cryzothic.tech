@@ -20,7 +20,8 @@ describe('pickInitialLocale', () => {
 
 describe('mirrorPath', () => {
   test.each([
-    ['/', '/ru'], ['/career', '/ru/career'], ['/3d', '/ru/3d'],
+    // The RU root carries its slash: '/ru/' is what canonical and hreflang name.
+    ['/', '/ru/'], ['/career', '/ru/career'], ['/3d', '/ru/3d'],
     ['/ru', '/'], ['/ru/', '/'], ['/ru/career', '/career'],
     // The case-folded prefix again, this time on the mirror rather than on the
     // language read: a hand-typed '/RU/career' mounts the Russian router, so the
@@ -39,7 +40,7 @@ describe('pathForLang', () => {
   test.each([
     ['en', '/career', '/career'], ['ru', '/career', '/ru/career'],
     ['en', '/ru/loot', '/loot'], ['ru', '/ru/loot', '/ru/loot'],
-    ['en', '/', '/'], ['ru', '/', '/ru'],
+    ['en', '/', '/'], ['ru', '/', '/ru/'],
     ['en', '/ru', '/'], ['ru', '/ru', '/ru'],
     ['en', '/rules', '/rules'], ['ru', '/rules', '/ru/rules'],
   ] as const)('%s + %s -> %s', (lang, from, to) => expect(pathForLang(lang, from)).toBe(to));
@@ -62,5 +63,5 @@ describe('mirrorTarget', () => {
     expect(mirrorTarget('/career', '?utm=x', '#exp')).toBe('~/ru/career?utm=x#exp'));
   test('ru -> en with query', () =>
     expect(mirrorTarget('/ru/loot', '?a=1', '')).toBe('~/loot?a=1'));
-  test('bare root', () => expect(mirrorTarget('/', '', '')).toBe('~/ru'));
+  test('bare root', () => expect(mirrorTarget('/', '', '')).toBe('~/ru/'));
 });
