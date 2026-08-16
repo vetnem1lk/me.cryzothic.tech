@@ -5,6 +5,7 @@
 // by design.
 import type { Dispatch } from 'react';
 import { useT } from '../../../../i18n/I18nContext';
+import { viewCharacter } from '../../story';
 import { CHARACTERS, onCharacterProgress, type CharacterId } from '../../../../three/characters';
 import type { ViewerHandle } from '../../../../three/createViewer';
 import { applyHudToViewer, type HudAction, type HudState } from './hudState';
@@ -29,6 +30,9 @@ export default function CharacterCluster({
     try {
       await viewer.setCharacter(id);
       dispatch({ type: 'setCharacter', value: id });
+      // The switch door of the FILE-03 pair: only a completed stream counts —
+      // the catch below never marks a pad nobody saw.
+      viewCharacter(id);
       // The panel is the truth and it did not move: the character who just
       // walked on gets the clip, the face, the head and the hair it describes.
       applyHudToViewer(viewer, hud);

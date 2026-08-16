@@ -1,7 +1,7 @@
 // The /nda view: a case file with seven covers on it. Every chapter is a photo, and
-// every photo is guarded by a small joke of a quest — a knock, a number nobody
-// checks, a CV that opens its own file, one word with VAI. Progress is session-long
-// on purpose: reload and all seven covers are back down.
+// every photo is guarded by a small joke of a quest — a walk to the engine bay, a
+// number nobody checks, a CV that opens its own file, one word with VAI. Progress is
+// session-long on purpose: reload and all seven covers are back down.
 //
 // Every cover is a riddle rather than a caption: one large element that changes as the
 // visitor works on it, one hint line under it that never names the mechanic, and —
@@ -32,8 +32,6 @@ import {
   getVersion,
   guess,
   isUnlocked,
-  knock,
-  knockCount,
   laserIgnite,
   mirrorDirs,
   photoSlug,
@@ -45,6 +43,7 @@ import {
   type ChapterId,
 } from '../story';
 import Lightbox from './Lightbox';
+import { preload3d } from './ThreeDView';
 
 // Slots: a 420px pane once the row form is on at xl. Below it the photo spans the stage
 // column, which is the viewport less everything around it — 24 gutter, 2 frame, 320 chat,
@@ -364,26 +363,30 @@ function CodeLock({
           the value, with the arrow keys on it; here the two arrows are the controls,
           and claiming the role without its keyboard contract is a promise the cover
           would not keep. Each button is named by its direction and which wheel it drives —
-          "raise digit 2" — never by the digit standing there: a name built from the value
+          "raise wheel 2" — never by the digit standing there: a name built from the value
           renames the control under the finger, and leaves all three wheels announcing the
-          same thing whenever their digits happen to match. */}
+          same thing whenever their digits happen to match. The digit rides along as the
+          buttons' description instead: read on demand, after the stable name, without
+          renaming anything. */}
       <div role="group" aria-labelledby={`${id}-prompt`} className="flex items-center gap-2">
         {wheels.map((d, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
             <button
               type="button"
               aria-label={`${labels.wheelUp} ${i + 1}`}
+              aria-describedby={`${id}-wheel-${i}`}
               onClick={() => spin(i, 1)}
               className={`cursor-target ${QUEST_BTN}`}
             >
               ▲
             </button>
-            <span data-wheel={i} className="font-mono text-xl text-neutral-100">
+            <span id={`${id}-wheel-${i}`} data-wheel={i} className="font-mono text-xl text-neutral-100">
               {d}
             </span>
             <button
               type="button"
               aria-label={`${labels.wheelDown} ${i + 1}`}
+              aria-describedby={`${id}-wheel-${i}`}
               onClick={() => spin(i, -1)}
               className={`cursor-target ${QUEST_BTN}`}
             >
@@ -632,26 +635,27 @@ export default function Nda() {
   function cover(id: ChapterId, code: string) {
     const hintId = `${id}-hint`;
     switch (QUESTS[id]) {
-      case 'knock':
+      case 'viewers':
+        // Nothing to press on the cover itself: the answer is a walk to the engine
+        // bay, and the link is the door. The question is the whole delivery — no
+        // counter, no denominator, no progress mark — deliberate.
         return (
-          <button
-            type="button"
-            onClick={() => {
-              if (knock(id)) justOpened.current = id;
-            }}
-            aria-labelledby={`${id}-code ${hintId}`}
-            className={`cursor-target ${COVER} justify-center-safe`}
-          >
+          <div className={`${COVER} justify-center-safe`}>
             {stamp(code, labels.classified, id)}
-            {/* Bare: what the number is counting up to is the riddle, and printing a
-                denominator beside it answers the riddle. */}
             <span aria-hidden="true" className={BIG}>
-              {knockCount(id)}
+              2
             </span>
             <span id={hintId} className={HINT}>
-              {labels.knockHint}
+              {labels.viewersHint}{' '}
+              <Link
+                href="/3d"
+                {...preload3d}
+                className="cursor-target text-accent underline-offset-4 hover:underline"
+              >
+                → /3d
+              </Link>
             </span>
-          </button>
+          </div>
         );
       case 'sprint':
         return (

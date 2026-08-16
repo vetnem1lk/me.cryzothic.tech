@@ -55,11 +55,10 @@ export default function MorphCluster({
       </div>
       {MORPHS.map(([name, key]) => (
         <label key={name} className="flex items-center gap-2">
-          {/* A 5rem caption column, not 4rem: «экспозиция» alone measures 72px
-              and the narrower box pushed it into the slider it labels. «эльфийские
-              уши» still takes two lines — no width this panel can spare fits it —
-              but it now breaks inside its own column. */}
-          <span className="w-20 shrink-0 text-neutral-400">{t(key)}</span>
+          {/* A 6.5rem caption column: «эльфийские уши» measures ~101px, the longest
+              string in either language, so 104px keeps every caption to one line and
+              the slider on its label's baseline. The 24px come out of a 130px slider. */}
+          <span className="w-26 shrink-0 text-neutral-400">{t(key)}</span>
           <input
             type="range"
             min="0"

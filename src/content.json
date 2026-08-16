@@ -118,19 +118,19 @@
       },
       "nda": {
         "title": "NDA: New position",
-        "intro": "Seven files, seven covers, and not one of them lifts the way its neighbor does. What a cover wants is written on the cover and nowhere else. The two project dossiers this sector started as are folded into the archive at the bottom.",
+        "intro": "Seven sealed stories — the feats, passions, and ambitions of one developer. Opening them takes some wit, though I promise nothing beyond reason: every seal hints at what it wants. Two dossiers wait in the archive below.",
         "labels": {
           "classified": "classified",
           "declassified": "declassified",
           "cvHint": "Paper opens for paper. This one wants a sheet with his name on it.",
           "vaiHint": "No handle on this one. The code is already on the cover — somebody here answers to it.",
-          "knockHint": "Knock — someone might open.",
+          "viewersHint": "Vlad prepared 2 characters — are you sure you've seen them all?",
           "sprintHint": "The group is already rolling. Nobody ever caught it by coasting.",
           "dialogOpenHint": "Nobody is checking anymore.",
           "guessPrompt": "I picked a number. Which one?",
           "guessHint": "Try the code",
-          "wheelUp": "raise digit",
-          "wheelDown": "lower digit",
+          "wheelUp": "raise wheel",
+          "wheelDown": "lower wheel",
           "laserHint": "The beam only knows straight. Somebody else does the turning.",
           "laserStatusBottom": "The beam runs off the bottom edge, into the floor — the rocket stays dark.",
           "laserStatusLeft": "The beam runs off the left edge — the rocket stays dark.",
@@ -223,7 +223,6 @@
     },
     "loot": {
       "title": "Loot Table (Resume)",
-      "note": "PDF ⇩ — one click, no quest required",
       "tier": {
         "epic": "epic drop",
         "common": "common, parser-safe"
@@ -238,7 +237,7 @@
     "contact": {
       "title": "Boss Fight (Direct Contact)",
       "boss": "Boss: Vlad — accepts offers",
-      "hp": "HP ∞ — direct contact is the only move that lands",
+      "status": "UTC+7 · Barnaul · RU/EN · reply within 24h",
       "emailLabel": "Email",
       "githubSub": "vetnem1lk — this site is open source",
       "telegramSub": "@cryzoth",
@@ -465,19 +464,19 @@
       },
       "nda": {
         "title": "NDA: Новая позиция",
-        "intro": "Семь файлов, семь обложек — и ни одна не снимается так же, как соседняя. Чего хочет обложка, написано на ней самой и больше нигде. Два проектных досье, с которых начинался этот сектор, свёрнуты в архив внизу.",
+        "intro": "Семь закрытых историй — о подвигах, увлечениях и стремлениях одного разработчика. Чтобы открыть их, понадобится смекалка; обещаю — сверх меры проявлять не придётся: каждая печать сама подсказывает, чего хочет. Два досье — в архиве внизу.",
         "labels": {
           "classified": "засекречено",
           "declassified": "рассекречено",
           "cvHint": "Бумага открывается бумагой. Этой нужен лист с его именем.",
           "vaiHint": "Ручки у этой обложки нет. Код написан прямо на ней — и кое-кто здесь на него отвечает.",
-          "knockHint": "Постучи — вдруг откроют.",
+          "viewersHint": "Влад подготовил 2 персонажей — вы точно видели их всех?",
           "sprintHint": "Группа уже укатила. Накатом её ещё никто не догонял.",
           "dialogOpenHint": "Дальше уже никто не спрашивает.",
           "guessPrompt": "Я загадал число. Какое?",
           "guessHint": "Ввести код",
-          "wheelUp": "цифра выше",
-          "wheelDown": "цифра ниже",
+          "wheelUp": "колесо выше",
+          "wheelDown": "колесо ниже",
           "laserHint": "Луч умеет только прямо. Повороты — не его работа.",
           "laserStatusBottom": "Луч уходит вниз, в пол — ракета так и стоит тёмной.",
           "laserStatusLeft": "Луч уходит за левый край — ракета так и стоит тёмной.",
@@ -570,7 +569,6 @@
     },
     "loot": {
       "title": "Таблица лута (резюме)",
-      "note": "PDF ⇩ — один клик, квест не нужен",
       "tier": {
         "epic": "эпический дроп",
         "common": "обычный, читается парсером"
@@ -585,7 +583,7 @@
     "contact": {
       "title": "Бой с боссом (прямой контакт)",
       "boss": "Босс: Влад — принимает офферы",
-      "hp": "HP ∞ — проходит только прямой контакт",
+      "status": "UTC+7 · Барнаул · RU/EN · ответ в течение суток",
       "emailLabel": "Почта",
       "githubSub": "vetnem1lk — сайт с открытым исходным кодом",
       "telegramSub": "@cryzoth",

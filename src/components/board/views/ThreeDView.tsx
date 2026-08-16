@@ -50,7 +50,10 @@ export default function ThreeDView() {
         <h2 className="font-mono text-sm tracking-widest text-neutral-400 uppercase">
           {t('threed.mode')}
         </h2>
-        <p className="mx-auto max-w-prose font-mono text-[11px] leading-snug text-neutral-500">
+        {/* No measure cap: max-w-prose resolved to 429px at this size and wrapped the
+            RU credit to two lines at every desktop width. Uncapped it takes one line
+            wherever the stage is wide enough and wraps naturally where it is not. */}
+        <p className="font-mono text-[11px] leading-snug text-neutral-500">
           {t('threed.credit')}
         </p>
       </div>
@@ -58,7 +61,7 @@ export default function ThreeDView() {
         {/* Pre-rendered still of the real scene. The live canvas mounts on top
             and simply covers it — poster-under-boot needs no state at all. */}
         <img
-          src="/posters/3d-m-idle-v1.avif"
+          src="/posters/3d-m-idle-v2.avif"
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />

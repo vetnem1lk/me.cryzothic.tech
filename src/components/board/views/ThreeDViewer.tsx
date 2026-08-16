@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useT } from '../../../i18n/I18nContext';
 import { createViewer, type ViewerHandle } from '../../../three/createViewer';
+import { viewCharacter } from '../story';
 import CharacterCluster from './viewer-hud/CharacterCluster';
 import ClipCluster from './viewer-hud/ClipCluster';
 import FpsOverlay, { type ViewerStats } from './viewer-hud/FpsOverlay';
@@ -58,7 +59,13 @@ export default function ThreeDViewer() {
             if (!cancelled) setPct(value);
           },
           onReady: () => {
-            if (!cancelled) setPhase('ready');
+            if (!cancelled) {
+              setPhase('ready');
+              // The boot door of the FILE-03 pair: onReady fires only once the
+              // boot character is genuinely on screen — never for the idle
+              // prefetch, which downloads F without showing it.
+              viewCharacter(HUD_DEFAULTS.character);
+            }
           },
           onError: () => {
             if (!cancelled) setPhase('error');

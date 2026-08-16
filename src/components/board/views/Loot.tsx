@@ -16,9 +16,6 @@ export default function Loot() {
         <h2 className="font-mono text-base tracking-widest text-accent uppercase">
           {t('loot.title')}
         </h2>
-        {/* One line for the whole table: the same sentence printed on four cards was
-            four times the noise and no extra information. */}
-        <p className="mt-1 font-mono text-xs text-neutral-400">{t('loot.note')}</p>
       </Masthead>
       {/* Two columns from @md — 448 px of this section's own inline size, not the
           viewport's. The stage is a scrolled column inside the shell (~870 px at a 1280
@@ -44,10 +41,12 @@ export default function Loot() {
               // The rarity is structural before it is chromatic: a solid 2 px left edge
               // against the dashed frame, so the epic pair reads as a rank even where
               // the accent colour does not survive (greyscale print, forced colours).
+              // The frame answers the pointer, the rank does not: hover's border-accent
+              // is a shorthand over all four sides, so the common edge pins its grey.
               className={`cursor-target rounded-md border border-dashed p-4 hover:border-accent ${
                 epic
                   ? 'border-accent/60 border-l-2 [border-left-style:solid] border-l-accent'
-                  : 'border-accent/50 border-l-2 [border-left-style:solid] border-l-neutral-700'
+                  : 'border-accent/50 border-l-2 [border-left-style:solid] border-l-neutral-700 hover:border-l-neutral-700'
               }`}
             >
               <span

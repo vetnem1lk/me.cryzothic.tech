@@ -23,8 +23,10 @@ const CV_LINKS = [
   },
 ]
 
+/* py-1.5 is touch padding, so it is mobile's: the desktop strip trades it for a
+   denser row (49px -> 37px) that stops reading as a second toolbar. */
 const CV_BUTTON =
-  'cursor-target rounded-lg border border-dashed border-accent/45 px-3 py-1.5 text-base font-semibold text-accent transition-colors hover:border-accent hover:bg-accent/10'
+  'cursor-target rounded-lg border border-dashed border-accent/45 px-3 py-1.5 md:py-1 text-base font-semibold text-accent transition-colors hover:border-accent hover:bg-accent/10'
 
 /* Mobile-only replacement for the two CV buttons: one button, a dashed dropdown
    with the language choice. Desktop keeps the flat strip. */
@@ -99,7 +101,7 @@ function CvDropdown({ lang }: { lang: Lang }) {
 export default function FastPath({ lang }: { lang: Lang }) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-neutral-800 bg-neutral-950/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-12 max-w-[1600px] items-center justify-between gap-4 px-4">
+      <div className="mx-auto flex h-12 max-w-[1600px] items-center justify-between gap-4 px-4 md:h-9">
         <div className="flex min-w-0 items-baseline gap-3">
           {/* Face mark colored by the theme via mask — the 9KB traced SVG stays a
               cached static asset instead of joining the JS bundle. */}
