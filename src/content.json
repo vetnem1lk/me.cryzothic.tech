@@ -184,7 +184,7 @@
             "code": "FILE-05",
             "title": "The badge",
             "alt": "Vlad at a laptop wearing a lanyard badge that reads EXPERT in Russian.",
-            "story": "The badge says EXPERT. Read it as the target, not the title: an expert in crafting captivating worlds and deep game mechanics. Everything else in this archive is the run-up.",
+            "story": "The badge says EXPERT. Read it as the target, not the title: an expert in crafting captivating worlds and deep game mechanics. Everything else in this archive is the run-up to that jump.",
             "credit": "personal archive"
           },
           {
@@ -198,7 +198,7 @@
             "code": "FILE-07",
             "title": "Not his rocket",
             "alt": "SpaceX Starship climbing above the clouds with the curve of Earth behind it.",
-            "story": "The one file here that did not come out of his own archive. Starship, on the way up, by SpaceX. Space and popular science are the standing off-hours interest, and the good frames come from people with better cameras.",
+            "story": "The one file here that did not come out of his own archive. Starship, on the way up, by SpaceX. Space and popular science are the standing off-hours interest, and this frame is here as a reminder of the scale worth aiming for.",
             "credit": "Photo: SpaceX"
           }
         ],
@@ -530,7 +530,7 @@
             "code": "FILE-05",
             "title": "Бейдж",
             "alt": "Влад за ноутбуком с бейджем на ленте, на бейдже написано «ЭКСПЕРТ».",
-            "story": "На бейдже написано «ЭКСПЕРТ». Это не должность, а цель: эксперт в области создания захватывающих миров и глубоких игровых механик. Всё остальное в архиве — разбег.",
+            "story": "На бейдже написано «ЭКСПЕРТ». Это не должность, а цель: эксперт в области создания захватывающих миров и глубоких игровых механик. Всё остальное в архиве — разбег перед этим прыжком.",
             "credit": "личный архив"
           },
           {
@@ -544,7 +544,7 @@
             "code": "FILE-07",
             "title": "Не его ракета",
             "alt": "Starship от SpaceX поднимается над облаками, за ним изгиб Земли.",
-            "story": "Единственный файл здесь не из его собственного архива. Starship на подъёме, снимок SpaceX. Космос и научпоп — постоянный интерес в свободное время, а хорошие кадры приходят от тех, у кого камера лучше.",
+            "story": "Единственный файл здесь не из его собственного архива. Starship на подъёме, снимок SpaceX. Космос и научпоп — постоянный интерес в свободное время, а этот кадр здесь как напоминание о масштабе задач, которые стоит выбирать.",
             "credit": "Photo: SpaceX"
           }
         ],
