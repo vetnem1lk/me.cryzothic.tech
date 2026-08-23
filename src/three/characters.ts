@@ -41,8 +41,8 @@ export const CHARACTERS: readonly Character[] = [
   },
   {
     id: 'f',
-    glb: '/g2/v1/scene_fb_final.glb',
-    bytes: 5_907_552,
+    glb: '/g2/v1/scene_fb2_final.glb',
+    bytes: 5_907_200,
     label: 'F',
     heads: { hair: 'FHair', mask: 'Mask' },
   },
