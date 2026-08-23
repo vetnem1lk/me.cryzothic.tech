@@ -34,8 +34,8 @@ export type HeadFlags = Record<HeadSlot, boolean>;
 export const CHARACTERS: readonly Character[] = [
   {
     id: 'm',
-    glb: '/g2/v1/scene_mb_final.glb',
-    bytes: 5_849_572,
+    glb: '/g2/v1/scene_mb2_final.glb',
+    bytes: 5_849_356,
     label: 'M',
     heads: { hair: 'MHair', mask: 'MMask' },
   },

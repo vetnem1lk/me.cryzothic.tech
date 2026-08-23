@@ -16,13 +16,13 @@ import {
 describe('character registry', () => {
   it('ships exactly the two closed models under the versioned path', () => {
     expect(CHARACTERS.map((c) => c.id)).toEqual(['m', 'f']);
-    for (const c of CHARACTERS) {
-      expect(c.glb).toMatch(/^\/g2\/v1\/scene_[mf]b_final\.glb$/);
-    }
+    // M is the b8 build (jacket-print retouch, 2026-08-24); F is still the b6 pair.
+    expect(characterById('m').glb).toBe('/g2/v1/scene_mb2_final.glb');
+    expect(characterById('f').glb).toBe('/g2/v1/scene_fb_final.glb');
   });
 
   it('pins the byte denominators to the closed GLB pair', () => {
-    expect(characterById('m').bytes).toBe(5_849_572);
+    expect(characterById('m').bytes).toBe(5_849_356);
     expect(characterById('f').bytes).toBe(5_907_552);
   });
 
