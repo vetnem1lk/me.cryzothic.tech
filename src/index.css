@@ -7,8 +7,8 @@
 
 @theme {
   --color-accent: #b497cf;
-  /* Palette B accents: mint is live ([sys] lines, the headline gradient);
-     sand is declared but unused — Tailwind v4 emits only referenced vars. */
+  /* Palette B accents: mint is live ([sys] lines, the headline gradient, /code
+     strings); sand paints numbers in the /code exhibit. */
   --color-sep-mint: #97cfb4;
   --color-sep-sand: #cfc397;
   --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
