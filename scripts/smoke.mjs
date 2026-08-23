@@ -39,8 +39,8 @@ const TARGETS = [
   // The 3D viewer's assets live outside the deploy root (versioned /g2/v1/ path,
   // immutable cache) - HEAD only: a body row would pull megabytes through CI to
   // learn nothing the headers don't already say. Byte sizes are pinned elsewhere.
-  ['/g2/v1/scene_mb_final.glb', ['model/gltf-binary'], undefined, 'head'],
-  ['/g2/v1/scene_fb_final.glb', ['model/gltf-binary'], undefined, 'head'],
+  ['/g2/v1/scene_mb2_final.glb', ['model/gltf-binary'], undefined, 'head'],
+  ['/g2/v1/scene_fb2_final.glb', ['model/gltf-binary'], undefined, 'head'],
   // All seven tint masks: the HUD fetches them on the first tint interaction, so a
   // missing one is a live feature break, not a spare asset. Hair is the seventh and
   // the one a count of the module list misses - it has its own picker in the head
